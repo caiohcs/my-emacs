@@ -1,62 +1,61 @@
-- [Programming](#orgbc4fb26)
-  - [C and C++](#org11920d7)
-    - [Requirements](#org00dc6e8)
-    - [Config](#orgdc400c4)
-  - [Golang](#org1869dd2)
-    - [Requirements](#org4871c2e)
-    - [Config](#org4eef6dd)
-  - [Color identifiers](#org269d0c5)
-  - [Lisp](#org9fc038c)
-    - [Config](#orgcce1903)
-- [Spell checking](#orgc678fa3)
-  - [Config](#orga337660)
-- [Dashboard](#org439b377)
-- [Org](#org41ee518)
-  - [Config](#org9c81844)
-  - [Exporting](#orgc6e904a)
-  - [Presentations](#org68c980b)
-    - [Requirements](#org08562e5)
-    - [Config](#orgdfd244b)
-- [Company](#org0084be5)
-- [Magit](#org2faee1a)
-- [Theme](#org3cac572)
-- [Treemacs](#org97e28f4)
-- [Docker](#orgc033046)
-- [Yaml](#org00b1a98)
-- [Global](#orgdc3090a)
-  - [Emacs completion](#org54ef3d6)
-  - [Parentheses](#org14a3a57)
-  - [Moving buffers](#orgacf697f)
-  - [Multiple cursors](#org4e8b029)
-  - [Text navigation](#orga4ce670)
-  - [Windows managing](#orgd2e66f7)
-  - [Smart region expanding](#orgc1ed7cc)
-  - [Syntax checking](#orgb1b61b6)
-  - [Tool bar, menu bar, line numbering etc](#orgc66c6b7)
-  - [Change backup/autosave folder](#org5a956dc)
-- [Latin accents](#orgecd520c)
+# My Emacs Configuration
 
 ![img](./imgs/my-emacs.png)
 
 
-<a id="orgbc4fb26"></a>
+# Installation
+
+-   Copy emacs to ~/.emacs
+-   Copy settings.org to ~/.emacs.d/settings.org
+-   Install all package requirements. For instance, C/C++ utilities requires clang.
+
+
+# Table of Contents
+
+1.  [My Emacs Configuration](#orgada6f2b)
+2.  [Installation](#org53ef663)
+3.  [Programming](#org11ce1ef)
+    1.  [C and C++](#orgb591bce)
+    2.  [Golang](#org2e36482)
+    3.  [Color identifiers](#orgddb158f)
+    4.  [Lisp](#org74e3492)
+4.  [Spell checking](#org04cf009)
+    1.  [Config](#orgabb91e1)
+5.  [Dashboard](#orge6b3ff6)
+6.  [Org](#org79be228)
+    1.  [Config](#org3b011ed)
+    2.  [Exporting](#orgfa66726)
+    3.  [Presentations](#org937b4ea)
+7.  [Company](#orgf1e45e8)
+8.  [Magit](#org0b846d9)
+9.  [Theme](#org3544ac5)
+10. [Treemacs](#org6551e64)
+11. [Docker](#orge7ce849)
+12. [Yaml](#orgcfd9362)
+13. [Global](#org7030d95)
+    1.  [Emacs completion](#orgb5224c1)
+    2.  [Parentheses](#org0544cfe)
+    3.  [Moving buffers](#org040212d)
+    4.  [Multiple cursors](#org5c2b2a8)
+    5.  [Text navigation](#org13fee5d)
+    6.  [Windows managing](#orgf0b5ee6)
+    7.  [Smart region expanding](#orgbbec52a)
+    8.  [Syntax checking](#org1324d50)
+    9.  [Tool bar, menu bar, line numbering etc](#orgff2c705)
+    10. [Change backup/autosave folder](#org4211405)
+14. [Latin accents](#orgd5374aa)
+
 
 # Programming
 
 
-<a id="org11920d7"></a>
-
 ## C and C++
 
-
-<a id="org00dc6e8"></a>
 
 ### Requirements
 
 Most of the C and C++ utilities requires clang installed on the system.
 
-
-<a id="orgdc400c4"></a>
 
 ### Config
 
@@ -85,19 +84,13 @@ Most of the C and C++ utilities requires clang installed on the system.
 ```
 
 
-<a id="org1869dd2"></a>
-
 ## Golang
 
-
-<a id="org4871c2e"></a>
 
 ### Requirements
 
 Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We can install gocode with go get, then we need to create a symbolic link at /usr/bin.
 
-
-<a id="org4eef6dd"></a>
 
 ### Config
 
@@ -122,8 +115,6 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ```
 
 
-<a id="org269d0c5"></a>
-
 ## Color identifiers
 
 ```emacs-lisp
@@ -134,14 +125,10 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ```
 
 
-<a id="org9fc038c"></a>
-
 ## Lisp
 
 I use Steel Bank Common Lisp.
 
-
-<a id="orgcce1903"></a>
 
 ### Config
 
@@ -161,14 +148,10 @@ I use Steel Bank Common Lisp.
 ```
 
 
-<a id="orgc678fa3"></a>
-
 # Spell checking
 
 I use aspell for spell checking.
 
-
-<a id="orga337660"></a>
 
 ## Config
 
@@ -176,8 +159,6 @@ I use aspell for spell checking.
 (defvar ispell-program-name "aspell")
 ```
 
-
-<a id="org439b377"></a>
 
 # Dashboard
 
@@ -206,12 +187,8 @@ I use aspell for spell checking.
 ```
 
 
-<a id="org41ee518"></a>
-
 # Org
 
-
-<a id="org9c81844"></a>
 
 ## Config
 
@@ -236,8 +213,6 @@ I use aspell for spell checking.
 ```
 
 
-<a id="orgc6e904a"></a>
-
 ## Exporting
 
 ```emacs-lisp
@@ -253,19 +228,13 @@ I use aspell for spell checking.
 ```
 
 
-<a id="org68c980b"></a>
-
 ## Presentations
 
-
-<a id="org08562e5"></a>
 
 ### Requirements
 
 Requires reveal.js to create html presentations.
 
-
-<a id="orgdfd244b"></a>
 
 ### Config
 
@@ -279,8 +248,6 @@ Requires reveal.js to create html presentations.
   (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
 ```
 
-
-<a id="org0084be5"></a>
 
 # Company
 
@@ -296,8 +263,6 @@ Requires reveal.js to create html presentations.
 ```
 
 
-<a id="org2faee1a"></a>
-
 # Magit
 
 ```emacs-lisp
@@ -308,8 +273,6 @@ Requires reveal.js to create html presentations.
 (global-set-key (kbd "\C-x g") 'magit-status)
 ```
 
-
-<a id="org3cac572"></a>
 
 # Theme
 
@@ -322,8 +285,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-<a id="org97e28f4"></a>
-
 # Treemacs
 
 ```emacs-lisp
@@ -332,8 +293,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :defer 12.4)
 ```
 
-
-<a id="orgc033046"></a>
 
 # Docker
 
@@ -351,8 +310,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-<a id="org00b1a98"></a>
-
 # Yaml
 
 ```emacs-lisp
@@ -363,12 +320,8 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-<a id="orgdc3090a"></a>
-
 # Global
 
-
-<a id="org54ef3d6"></a>
 
 ## Emacs completion
 
@@ -387,8 +340,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     :ensure t))
 ```
 
-
-<a id="org14a3a57"></a>
 
 ## Parentheses
 
@@ -409,8 +360,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-<a id="orgacf697f"></a>
-
 ## Moving buffers
 
 ```emacs-lisp
@@ -424,8 +373,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-<a id="org4e8b029"></a>
-
 ## Multiple cursors
 
 ```emacs-lisp
@@ -438,8 +385,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-<a id="orga4ce670"></a>
-
 ## Text navigation
 
 ```emacs-lisp
@@ -449,8 +394,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-<a id="orgd2e66f7"></a>
-
 ## Windows managing
 
 ```emacs-lisp
@@ -458,8 +401,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :ensure t)
 ```
 
-
-<a id="orgc1ed7cc"></a>
 
 ## Smart region expanding
 
@@ -469,8 +410,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :bind (("C-=" . er/expand-region)))
 ```
 
-
-<a id="orgb1b61b6"></a>
 
 ## Syntax checking
 
@@ -483,8 +422,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```
 
-
-<a id="orgc66c6b7"></a>
 
 ## Tool bar, menu bar, line numbering etc
 
@@ -500,8 +437,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-<a id="org5a956dc"></a>
-
 ## Change backup/autosave folder
 
 ```emacs-lisp
@@ -513,8 +448,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (setq auto-save-file-name-transforms `((".*" ,autosave-dir t)))
 ```
 
-
-<a id="orgecd520c"></a>
 
 # Latin accents
 

@@ -1,6 +1,16 @@
 #+TITLE: My Emacs configuration
 #+AUTHOR: Caio Henrique
+#+OPTIONS: toc:nil
+
+* My Emacs Configuration
 [[./imgs/my-emacs.png]]
+
+* Installation
+- Copy emacs to ~/.emacs
+- Copy settings.org to ~/.emacs.d/settings.org
+- Install all package requirements. For instance, C/C++ utilities requires clang.
+
+#+TOC: headlines 2
 
 * Programming
 ** C and C++
