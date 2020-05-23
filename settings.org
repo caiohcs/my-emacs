@@ -10,8 +10,6 @@
 - Copy settings.org to ~/.emacs.d/settings.org
 - Install all package requirements. For instance, C/C++ utilities requires clang.
 
-#+TOC: headlines 2
-
 * Programming
 Autocompletion uses company.
 
