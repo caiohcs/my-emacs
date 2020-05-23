@@ -1,23 +1,45 @@
-#+TITLE: My Emacs configuration
-#+AUTHOR: Caio Henrique
-#+OPTIONS: toc:nil
+# My Emacs Configuration
 
-* My Emacs Configuration
-[[./imgs/my-emacs.png]]
+![img](./imgs/my-emacs.png)
 
-* Installation
-- Copy emacs to ~/.emacs
-- Copy settings.org to ~/.emacs.d/settings.org
-- Install all package requirements. For instance, C/C++ utilities requires clang.
 
-#+TOC: headlines 2
+# Installation
 
-* Programming
-** C and C++
-*** Requirements
+-   Copy emacs to ~/.emacs
+-   Copy settings.org to ~/.emacs.d/settings.org
+-   Install all package requirements. For instance, C/C++ utilities requires clang.
+
+
+# Programming
+
+Autocompletion uses company.
+
+
+## Company
+
+```emacs-lisp
+(use-package company
+  :ensure t
+  :defer 2.3
+  :init
+  (use-package company-quickhelp
+    :ensure t)
+  :config
+  (company-quickhelp-mode))
+```
+
+
+## C and C++
+
+
+### Requirements
+
 Most of the C and C++ utilities requires clang installed on the system.
-*** Config
-#+BEGIN_SRC emacs-lisp
+
+
+### Config
+
+```emacs-lisp
 ;;; C/C++
 (use-package cmake-ide
   :ensure t
@@ -39,14 +61,20 @@ Most of the C and C++ utilities requires clang installed on the system.
 
 (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
-#+END_SRC
+```
 
-** Golang
-*** Requirements
-Autocompletion requires gocode, available at https://github.com/nsf/gocode.
-We can install gocode with go get, then we need to create a symbolic link at /usr/bin.
-*** Config
-#+BEGIN_SRC emacs-lisp
+
+## Golang
+
+
+### Requirements
+
+Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We can install gocode with go get, then we need to create a symbolic link at /usr/bin.
+
+
+### Config
+
+```emacs-lisp
 ;; Requires gocode https://github.com/nsf/gocode
 ;; After installing gocode, we also have to create a symbolic link
 (use-package go-mode
@@ -64,20 +92,27 @@ We can install gocode with go get, then we need to create a symbolic link at /us
     (set (make-local-variable 'company-backends) '(company-go))
     (company-mode))
   (add-hook 'go-mode-hook 'my-go-mode-hook))
-#+END_SRC
+```
 
-** Color identifiers
-#+BEGIN_SRC emacs-lisp
+
+## Color identifiers
+
+```emacs-lisp
 (use-package color-identifiers-mode
   :disabled
   :ensure t
   :defer 9)
-#+END_SRC
+```
 
-** Lisp
+
+## Lisp
+
 I use Steel Bank Common Lisp.
-*** Config
-#+BEGIN_SRC emacs-lisp
+
+
+### Config
+
+```emacs-lisp
 ;;; Lisp
 (use-package slime
   :ensure t
@@ -90,17 +125,24 @@ I use Steel Bank Common Lisp.
   :ensure t
   :init
   (slime-setup '(slime-fancy slime-company)))
-#+END_SRC
+```
 
-* Spell checking
+
+# Spell checking
+
 I use aspell for spell checking.
-** Config
-#+BEGIN_SRC emacs-lisp
-(defvar ispell-program-name "aspell")
-#+END_SRC
 
-* Dashboard
-#+BEGIN_SRC emacs-lisp
+
+## Config
+
+```emacs-lisp
+(defvar ispell-program-name "aspell")
+```
+
+
+# Dashboard
+
+```emacs-lisp
 (use-package dashboard
   :ensure t
   :init
@@ -116,17 +158,21 @@ I use aspell for spell checking.
   (setq dashboard-banner-logo-title "Welcome to Emacs")
   (setq dashboard-startup-banner 'logo)
   (setq dashboard-items '((recents   . 5)
-                          (bookmarks . 5)
-                          (agenda    . 5)
-                          (registers . 5)))
+			  (bookmarks . 5)
+			  (agenda    . 5)
+			  (registers . 5)))
   (setq dashboard-set-init-info t)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t))
-#+END_SRC
+```
 
-* Org
-** Config
-#+BEGIN_SRC emacs-lisp
+
+# Org
+
+
+## Config
+
+```emacs-lisp
 ;;; org
 (use-package org
   :ensure t
@@ -144,10 +190,12 @@ I use aspell for spell checking.
   :after org
   :ensure t
   :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
-#+END_SRC
+```
 
-** Exporting
-#+BEGIN_SRC emacs-lisp
+
+## Exporting
+
+```emacs-lisp
 ;; Export to html with syntax highlighting
 (use-package htmlize
   :after org
@@ -157,14 +205,20 @@ I use aspell for spell checking.
 (use-package ox-gfm
   :after org
   :ensure t)
-#+END_SRC
+```
 
-** Presentations
-*** Requirements
+
+## Presentations
+
+
+### Requirements
+
 Requires reveal.js to create html presentations.
 
-*** Config
-#+BEGIN_SRC emacs-lisp
+
+### Config
+
+```emacs-lisp
 ;; Package used to create presentations using reveal.js.
 ;; Requires the installation of reveaj.js.
 (use-package ox-reveal
@@ -172,46 +226,43 @@ Requires reveal.js to create html presentations.
   :ensure t
   :config
   (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
-#+END_SRC
+```
 
-* Company
-#+BEGIN_SRC emacs-lisp
-(use-package company
-  :ensure t
-  :defer 2.3
-  :init
-  (use-package company-quickhelp
-    :ensure t)
-  :config
-  (company-quickhelp-mode))
-#+END_SRC
 
-* Magit
-#+BEGIN_SRC emacs-lisp
+# Magit
+
+```emacs-lisp
 (use-package magit
   :ensure t
   :defer 9.2)
 
 (global-set-key (kbd "\C-x g") 'magit-status)
-#+END_SRC
+```
 
-* Theme
+
+# Theme
+
 My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dracula-theme.
-#+BEGIN_SRC emacs-lisp
+
+```emacs-lisp
 ;; zerodark-theme kaolin-themes moe-theme dracula-theme are nice themes
 (use-package kaolin-themes
   :ensure t)
-#+END_SRC
+```
 
-* Treemacs
-#+BEGIN_SRC emacs-lisp
+
+# Treemacs
+
+```emacs-lisp
 (use-package treemacs
   :ensure t
   :defer 12.4)
-#+END_SRC
+```
 
-* Docker
-#+BEGIN_SRC emacs-lisp
+
+# Docker
+
+```emacs-lisp
 (use-package docker
   :disabled
   :ensure t
@@ -222,19 +273,25 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :ensure t
   :defer 9)
 (add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode))
-#+END_SRC
+```
 
-* Yaml
-#+BEGIN_SRC emacs-lisp
+
+# Yaml
+
+```emacs-lisp
 (use-package yaml-mode
   :disabled
   :ensure t
   :mode ("\\.yml\\'" . yaml-mode))
-#+END_SRC
+```
 
-* Global
-** Emacs completion
-#+BEGIN_SRC emacs-lisp
+
+# Global
+
+
+## Emacs completion
+
+```emacs-lisp
 ;;; Global
 ;; Ivy is a generic completion tool
 (use-package ivy
@@ -247,10 +304,12 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :config
   (use-package counsel
     :ensure t))
-#+END_SRC
+```
 
-** Parentheses
-#+BEGIN_SRC emacs-lisp
+
+## Parentheses
+
+```emacs-lisp
 (use-package smartparens
   :ensure t
   :defer 5.1
@@ -264,10 +323,12 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (defvar show-paren-delay 0)
 
 (show-paren-mode 1)
-#+END_SRC
+```
 
-** Moving buffers
-#+BEGIN_SRC emacs-lisp
+
+## Moving buffers
+
+```emacs-lisp
 (use-package buffer-move
   :ensure t
   :bind
@@ -275,50 +336,62 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
    ("C-c <C-down>"  . buf-move-down)
    ("C-c <C-left>"  . buf-move-left)
    ("C-c <C-right>" . buf-move-right)))
-#+END_SRC
+```
 
-** Multiple cursors
-#+BEGIN_SRC emacs-lisp
+
+## Multiple cursors
+
+```emacs-lisp
 (use-package multiple-cursors
   :ensure t
   :bind (("C-: C-m b" . mc/edit-lines)
 	 ("C-: C-m a" . mc/mark-all-like-this)
 	 ("C-: C-m >" . mc/mark-next-like-this)
 	 ("C-: C-m <" . mc/mark-previous-like-this)))
-#+END_SRC
+```
 
-** Text navigation
-#+BEGIN_SRC emacs-lisp
+
+## Text navigation
+
+```emacs-lisp
 (use-package avy
   :ensure t
   :bind (("M-s" . avy-goto-word-1)))
-#+END_SRC
+```
 
-** Windows managing
-#+BEGIN_SRC emacs-lisp
+
+## Windows managing
+
+```emacs-lisp
 (use-package eyebrowse
   :ensure t)
-#+END_SRC
+```
 
-** Smart region expanding
-#+BEGIN_SRC emacs-lisp
+
+## Smart region expanding
+
+```emacs-lisp
 (use-package expand-region
   :ensure t
   :bind (("C-=" . er/expand-region)))
-#+END_SRC
+```
 
-** Syntax checking
-#+BEGIN_SRC emacs-lisp
+
+## Syntax checking
+
+```emacs-lisp
 ;; Provides some syntax checking
 (use-package flycheck
   :ensure t
   :defer 11.3
   :init (global-flycheck-mode))
 
-#+END_SRC
+```
 
-** Tool bar, menu bar, line numbering etc
-#+BEGIN_SRC emacs-lisp
+
+## Tool bar, menu bar, line numbering etc
+
+```emacs-lisp
 ;;; Variables
 (global-visual-line-mode)
 (menu-bar-mode -1)
@@ -327,31 +400,36 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (global-linum-mode)
 (global-set-key (kbd "TAB") 'self-insert-command)
 (global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)
-#+END_SRC
+```
 
-** Change backup/autosave folder
-#+BEGIN_SRC emacs-lisp
+
+## Change backup/autosave folder
+
+```emacs-lisp
 ;;; Change the backup/autosave folder.
 (defvar backup-dir (expand-file-name "~/.emacs.d/backup/"))
 (defvar autosave-dir (expand-file-name "~/.emacs.d/autosave/"))
 (setq backup-directory-alist (list (cons ".*" backup-dir)))
 (setq auto-save-list-file-prefix autosave-dir)
 (setq auto-save-file-name-transforms `((".*" ,autosave-dir t)))
-#+END_SRC
+```
 
-* Latin accents
+
+# Latin accents
+
 I created this function to insert the latin accents that I use the most.
-#+BEGIN_SRC emacs-lisp
+
+```emacs-lisp
 ;; latin accents
 (defun my-latin-accents-function (start end)
   (interactive "r")
   (defun cmp-and-fixcase (reg cmp out)
     (let ((case-fold-search t))
       (if (string-match-p reg cmp)
-       	  (let ((case-fold-search nil))
+	  (let ((case-fold-search nil))
 	    (if (string-match-p "\\`[a-z]*\\'" reg)
-               	(progn (delete-region start end) (insert out))
-              (progn (delete-region start end) (insert (upcase out))))) nil)))
+		(progn (delete-region start end) (insert out))
+	      (progn (delete-region start end) (insert (upcase out))))) nil)))
   (if (use-region-p)
       (let ((regionp (buffer-substring start end)))
 	(cond ((cmp-and-fixcase regionp "aa" "á"))
@@ -363,7 +441,6 @@ I created this function to insert the latin accents that I use the most.
 	      ((cmp-and-fixcase regionp "ce" "ê"))
 	      ((cmp-and-fixcase regionp "co" "ô"))
 	      ((cmp-and-fixcase regionp "to" "õ"))
-	      ((cmp-and-fixcase regionp "ai" "í")) 
-	      ))))
+	      ((cmp-and-fixcase regionp "ai" "í"))))))
 (global-set-key (kbd "C-: C-a") 'my-latin-accents-function)
-#+END_SRC
+```

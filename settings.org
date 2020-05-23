@@ -13,6 +13,20 @@
 #+TOC: headlines 2
 
 * Programming
+Autocompletion uses company.
+
+** Company
+#+BEGIN_SRC emacs-lisp
+(use-package company
+  :ensure t
+  :defer 2.3
+  :init
+  (use-package company-quickhelp
+    :ensure t)
+  :config
+  (company-quickhelp-mode))
+#+END_SRC
+
 ** C and C++
 *** Requirements
 Most of the C and C++ utilities requires clang installed on the system.
@@ -172,18 +186,6 @@ Requires reveal.js to create html presentations.
   :ensure t
   :config
   (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
-#+END_SRC
-
-* Company
-#+BEGIN_SRC emacs-lisp
-(use-package company
-  :ensure t
-  :defer 2.3
-  :init
-  (use-package company-quickhelp
-    :ensure t)
-  :config
-  (company-quickhelp-mode))
 #+END_SRC
 
 * Magit
@@ -363,7 +365,6 @@ I created this function to insert the latin accents that I use the most.
 	      ((cmp-and-fixcase regionp "ce" "ê"))
 	      ((cmp-and-fixcase regionp "co" "ô"))
 	      ((cmp-and-fixcase regionp "to" "õ"))
-	      ((cmp-and-fixcase regionp "ai" "í")) 
-	      ))))
+	      ((cmp-and-fixcase regionp "ai" "í"))))))
 (global-set-key (kbd "C-: C-a") 'my-latin-accents-function)
 #+END_SRC
