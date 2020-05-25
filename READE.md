@@ -326,7 +326,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-## Moving buffers
+## Buffer moving
 
 ```emacs-lisp
 (use-package buffer-move
@@ -336,6 +336,16 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
    ("C-c <C-down>"  . buf-move-down)
    ("C-c <C-left>"  . buf-move-left)
    ("C-c <C-right>" . buf-move-right)))
+```
+
+
+## Windows moving
+
+```emacs-lisp
+(global-set-key (kbd "C-c <M-up>") 'windmove-up) 
+(global-set-key (kbd "C-c <M-down>") 'windmove-down) 
+(global-set-key (kbd "C-c <M-right>") 'windmove-right) 
+(global-set-key (kbd "C-c <M-left>") 'windmove-left) 
 ```
 
 

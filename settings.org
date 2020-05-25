@@ -3,7 +3,7 @@
 #+OPTIONS: toc:nil
 
 * My Emacs Configuration
-[[./imgs/my-emacs.png]]
+[[./imgs/my-emacs.png]] 
 
 * Installation
 - Copy emacs to ~/.emacs
@@ -266,7 +266,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (show-paren-mode 1)
 #+END_SRC
 
-** Moving buffers
+** Buffer moving
 #+BEGIN_SRC emacs-lisp
 (use-package buffer-move
   :ensure t
@@ -275,6 +275,14 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
    ("C-c <C-down>"  . buf-move-down)
    ("C-c <C-left>"  . buf-move-left)
    ("C-c <C-right>" . buf-move-right)))
+#+END_SRC
+
+** Windows moving
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-c <M-up>") 'windmove-up) 
+(global-set-key (kbd "C-c <M-down>") 'windmove-down) 
+(global-set-key (kbd "C-c <M-right>") 'windmove-right) 
+(global-set-key (kbd "C-c <M-left>") 'windmove-left) 
 #+END_SRC
 
 ** Multiple cursors
