@@ -46,13 +46,21 @@ Used for some languages like C and C++.
 
 ### Requirements
 
-Requires ccls installed on the system. <https://github.com/MaskRay/ccls> I'm assuming that the binary is at /usr/bin/ccls.
+-   Requires clang installed on the system.
+-   Requires ccls installed on the system. <https://github.com/MaskRay/ccls>
+
+I'm assuming that the ccls binary is at /usr/bin/ccls.
 
 
 ### Config
 
 ```emacs-lisp
 ;;; C/C++
+(use-package cmake-ide
+  :ensure t
+  :defer 7.4
+  :config (cmake-ide-setup))
+
 (use-package ccls
   :requires lsp-mode
   :ensure t
