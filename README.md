@@ -12,8 +12,6 @@
 
 # Programming
 
-Autocompletion uses company.
-
 
 ## Company
 
@@ -29,22 +27,37 @@ Autocompletion uses company.
 ```
 
 
+## Language Server Protocol
+
+Used for some languages like C and C++.
+
+```emacs-lisp
+(use-package lsp-mode
+  :ensure t
+  :hook
+  ((c++-mode . lsp)
+  (c-mode . lsp))
+  :commands lsp)
+```
+
+
 ## C and C++
 
 
 ### Requirements
 
-Most of the C and C++ utilities requires clang installed on the system.
+Requires ccls installed on the system. <https://github.com/MaskRay/ccls> I'm assuming that the binary is at /usr/bin/ccls.
 
 
 ### Config
 
 ```emacs-lisp
 ;;; C/C++
-(use-package cmake-ide
+(use-package ccls
+  :requires lsp-mode
   :ensure t
-  :defer 7.4
-  :config (cmake-ide-setup))
+  :config
+  (setq ccls-executable "/usr/bin/ccls"))
 
 (defun my-c-mode-common-hook ()
   (c-set-offset 'substatement-open 0)
@@ -56,7 +69,6 @@ Most of the C and C++ utilities requires clang installed on the system.
 	 c++-tab-always-indent t
 	 tab-width 4
 	 backward-delete-function nil)
-  (aggressive-indent-mode)
   (company-mode))
 
 (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
@@ -289,6 +301,17 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 # Global
 
 
+## Garbage collector and read process output
+
+Sets gc-cons-threshold to 100mb and read-process-output-max to 1mb since the default is low.
+
+```emacs-lisp
+;;; garbage collector and read process output
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
+```
+
+
 ## Emacs completion
 
 ```emacs-lisp
@@ -374,7 +397,8 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package eyebrowse
-  :ensure t)
+  :ensure t
+  :config (eyebrowse-mode t))
 ```
 
 
