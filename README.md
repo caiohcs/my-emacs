@@ -29,7 +29,7 @@
 
 ## Language Server Protocol
 
-Used for some languages like C and C++.
+I use LSP for C and C++.
 
 ```emacs-lisp
 (use-package lsp-mode
@@ -38,6 +38,17 @@ Used for some languages like C and C++.
   ((c++-mode . lsp)
   (c-mode . lsp))
   :commands lsp)
+```
+
+
+## Projectile
+
+I think that LSP requires projectile, so it's going to be installed as a dependency anyway.
+
+```emacs-lisp
+(use-package projectile
+  :ensure t
+  :commands projectile-command-map) 
 ```
 
 
@@ -282,11 +293,13 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 # Docker
 
+I left the Docker packages disabled, so delete the :disabled line if you want these packages.
+
 ```emacs-lisp
 (use-package docker
   :disabled
   :ensure t
-  :defer 30)
+  :commands docker)
 
 (use-package dockerfile-mode
   :disabled
@@ -297,6 +310,8 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 
 # Yaml
+
+I left the Yaml package disabled, so delete the :disabled line if you want this package.
 
 ```emacs-lisp
 (use-package yaml-mode
