@@ -4,7 +4,7 @@
 
 My configuration has 59 packages installed. It loads fast, in my machine Doom Emacs takes around 0.7s to start, my configuration takes around 0.9s. I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations like Byte compilation.
 
-I like Hydra-mode since it's easy to customize, so for fast navigation and quick insertions I use one Hydra. I tap <f1> to call the Hydra body, then I can do stuff like:
+I like Hydra-mode since it's easy to customize, so for fast navigation and quick insertions I use one Hydra. I tap F1 to call the Hydra body, then I can do stuff like:
 
 | Key      | Action                 |
 |-------- |---------------------- |
@@ -17,7 +17,7 @@ I like Hydra-mode since it's easy to customize, so for fast navigation and quick
 | j        | jump to saved position |
 | g        | jump to a line number  |
 | G        | avy jump to word       |
-| <spc>    | set mark command       |
+| SPC      | set mark command       |
 | m        | mark all like region   |
 | M        | mark lines             |
 | w        | kill region            |
