@@ -2,11 +2,35 @@
 
 ![img](./imgs/my-emacs.png)
 
+My configuration has 59 packages installed. It loads fast, in my machine Doom Emacs takes around 0.7s to start, my configuration takes around 0.9s. I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations like Byte compilation.
+
+I like Hydra-mode since it's easy to customize, so for fast navigation and quick insertions I use one Hydra. I tap <f1> to call the Hydra body, then I can do stuff like:
+
+| Key      | Action                 |
+|-------- |---------------------- |
+| f        | forward word           |
+| b        | backward word          |
+| v        | page down              |
+| V        | page up                |
+| i        | quick insertion        |
+| s        | save position          |
+| j        | jump to saved position |
+| g        | jump to a line number  |
+| G        | avy jump to word       |
+| <spc>    | set mark command       |
+| m        | mark all like region   |
+| M        | mark lines             |
+| w        | kill region            |
+| W        | kill region and save   |
+| y        | popup kill ring        |
+| &#x2026; | &#x2026;               |
+
+There are also other Hydras for window management (using eyebrowse), buffer/window movement and avy.
+
 
 # Installation
 
--   Copy emacs to ~/.emacs
--   Copy settings.org to ~/.emacs.d/settings.org
+-   Copy init.el and settings.org to ~/.emacs.d/
 -   Install all package requirements. For instance, C/C++ utilities requires clang.
 
 
@@ -49,6 +73,16 @@ I think that LSP requires projectile, so it's going to be installed as a depende
 (use-package projectile
   :ensure t
   :commands projectile-command-map) 
+```
+
+
+## Syntax checking
+
+```emacs-lisp
+;; Provides some syntax checking
+(use-package flycheck
+  :ensure t
+  :defer 4.3)
 ```
 
 
@@ -147,27 +181,46 @@ I use Steel Bank Common Lisp.
 ;;; Lisp
 (use-package slime
   :ensure t
+  :commands slime
   :config
   (setq inferior-lisp-program "sbcl")
   (setq slime-contribs '(slime-fancy)))
 
 (use-package slime-company
-  :after company
+  :after (slime company)
   :ensure t
   :init
   (slime-setup '(slime-fancy slime-company)))
 ```
 
 
-# Spell checking
+## Yaml
 
-I use aspell for spell checking.
-
-
-## Config
+I left the Yaml package disabled, so delete the :disabled line if you want this package.
 
 ```emacs-lisp
-(defvar ispell-program-name "aspell")
+(use-package yaml-mode
+  :disabled
+  :ensure t
+  :mode ("\\.yml\\'" . yaml-mode))
+```
+
+
+## Docker
+
+I left the Docker packages disabled, so delete the :disabled line if you want these packages.
+
+```emacs-lisp
+(use-package docker
+  :disabled
+  :ensure t
+  :commands docker)
+
+(use-package dockerfile-mode
+  :disabled
+  :ensure t
+  :defer 4)
+(add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode))
 ```
 
 
@@ -208,6 +261,7 @@ I use aspell for spell checking.
 (use-package org
   :ensure t
   :mode ("\\.org\\'" . org-mode)
+  :diminish org-indent-mode
   :config
   (setq org-startup-indented t)
   (org-babel-do-load-languages
@@ -230,34 +284,35 @@ I use aspell for spell checking.
 ;; Export to html with syntax highlighting
 (use-package htmlize
   :after org
-  :ensure t)
+  :ensure t
+  :commands org-export-dispatch)
 
 ;; Export to Markdown with syntax highlighting
 (use-package ox-gfm
   :after org
-  :ensure t)
-```
-
-
-## Presentations
-
-
-### Requirements
-
-Requires reveal.js to create html presentations.
-
-
-### Config
-
-```emacs-lisp
-;; Package used to create presentations using reveal.js.
-;; Requires the installation of reveaj.js.
-(use-package ox-reveal
-  :after org
   :ensure t
-  :config
-  (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
+  :commands org-gfm-export-to-markdown)
 ```
+
+
+### Presentations
+
+1.  Requirements
+
+    Requires reveal.js to create html presentations.
+
+2.  Config
+
+    ```emacs-lisp
+    ;; Package used to create presentations using reveal.js.
+    ;; Requires the installation of reveaj.js.
+    (use-package ox-reveal
+      :after org
+      :ensure t
+      :commands org-reveal-export-to-html
+      :config
+      (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
+    ```
 
 
 # Magit
@@ -291,47 +346,102 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-# Docker
-
-I left the Docker packages disabled, so delete the :disabled line if you want these packages.
-
-```emacs-lisp
-(use-package docker
-  :disabled
-  :ensure t
-  :commands docker)
-
-(use-package dockerfile-mode
-  :disabled
-  :ensure t
-  :defer 9)
-(add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode))
-```
-
-
-# Yaml
-
-I left the Yaml package disabled, so delete the :disabled line if you want this package.
-
-```emacs-lisp
-(use-package yaml-mode
-  :disabled
-  :ensure t
-  :mode ("\\.yml\\'" . yaml-mode))
-```
-
-
 # Global
 
 
-## Garbage collector and read process output
-
-Sets gc-cons-threshold to 100mb and read-process-output-max to 1mb since the default is low.
+## Hydra
 
 ```emacs-lisp
-;;; garbage collector and read process output
-(setq gc-cons-threshold 100000000)
-(setq read-process-output-max (* 1024 1024))
+(use-package hydra
+  :ensure t
+  :defer 2.5
+  :config
+  (defhydra hydra-buff-move ()
+    "buff-move"
+    ("q" nil "quit")
+    ("<left>" buf-move-left)
+    ("<right>" buf-move-right)
+    ("<top>" buf-move-top)
+    ("<bottom>" buf-move-bottom))
+    (global-set-key (kbd "C-: b") 'hydra-buff-move/body)
+
+  (defhydra hydra-wind-move ()
+    "wind-move"
+    ("q" nil "quit")
+    ("<left>" windmove-left)
+    ("<right>" windmove-right)
+    ("<top>" windmove-top)
+    ("<bottom>" windmove-bottom))
+    (global-set-key (kbd "C-: w") 'hydra-wind-move/body)
+
+  (defhydra hydra-eyebrowse ()
+    "eyebrowse"
+    ("q" nil "quit")
+    ("p" eyebrowse-prev-window-config nil)
+    ("n" eyebrowse-next-window-config nil)
+    ("l" eyebrowse-last-window-config nil)
+    ("r" eyebrowse-rename-window-config nil)
+    ("c" eyebrowse-create-window-config nil)
+    ("C" eyebrowse-close-window-config nil)
+    ("0" eyebrowse-switch-to-window-config-0 nil)
+    ("1" eyebrowse-switch-to-window-config-1 nil)
+    ("2" eyebrowse-switch-to-window-config-2 nil)
+    ("3" eyebrowse-switch-to-window-config-3 nil)
+    ("4" eyebrowse-switch-to-window-config-4 nil)
+    ("5" eyebrowse-switch-to-window-config-5 nil)
+    ("6" eyebrowse-switch-to-window-config-6 nil)
+    ("7" eyebrowse-switch-to-window-config-7 nil)
+    ("8" eyebrowse-switch-to-window-config-8 nil)
+    ("9" eyebrowse-switch-to-window-config-9 nil))
+    (global-set-key (kbd "C-: e") 'hydra-eyebrowse/body)
+
+  (defhydra hydra-avy (:color blue :hint nil)
+    "
+    _w_: word      _n_: word bellow   _p_: word above
+    "
+    ("q" nil "quit")
+    ("w" avy-goto-word-1)
+    ("p" avy-goto-word-1-above)
+    ("n" avy-goto-word-1-below))
+    (global-set-key (kbd "M-s") 'hydra-avy/body)
+
+  (defhydra hydra-movement (:color amaranth :hint nil)
+    "
+    _f_: next word   _b_: prev word    _n_: next line     _p_: prev line
+    _s_: save point  _j_: jump point   _w_: kill region   _W_: kill region save
+    _<SPC>_: mark    _y_: yank         _v_: page down     _V_: page up
+    _l_: recenter    _G_: goto line    _a_: beg line      _e_: end line
+    _F_: next char   _B_: prev char    _g_: avy word      _i_: quick insertion
+    _=_: exp region  _m_: mark all     _M_: edit lines    _u_: universal arg
+    "
+    ("<f1>" nil "quit")
+    ("f" forward-word)
+    ("b" backward-word)
+    ("n" next-line)
+    ("p" previous-line)
+    ("s" (point-to-register 'g))
+    ("j" (jump-to-register 'g))
+    ("w" kill-region)
+    ("W" kill-ring-save)
+    ("<SPC>" set-mark-command)
+    ("y" popup-kill-ring)
+    ("v" scroll-up)
+    ("V" scroll-down)
+    ("l" recenter-top-bottom)
+    ("G" goto-line)
+    ("a" beginning-of-line)
+    ("e" end-of-line)
+    ("F" forward-char)
+    ("B" backward-char)
+    ("g" avy-goto-word-1)
+    ("i" (lambda (txt)
+	   (interactive "sQuick insertion:")
+	   (insert txt)))
+    ("=" er/expand-region)
+    ("m" mc/mark-all-like-this)
+    ("M" mc/edit-beginnings-of-lines)
+    ("u" universal-argument))
+    (global-set-key (kbd "<f1>") 'hydra-movement/body))
 ```
 
 
@@ -342,6 +452,8 @@ Sets gc-cons-threshold to 100mb and read-process-output-max to 1mb since the def
 ;; Ivy is a generic completion tool
 (use-package ivy
   :ensure t
+  :diminish ivy-mode
+  :defer 1.1
   :config
   (ivy-mode)
   (use-package swiper
@@ -353,22 +465,54 @@ Sets gc-cons-threshold to 100mb and read-process-output-max to 1mb since the def
 ```
 
 
+## Kill ring
+
+```emacs-lisp
+(use-package popup-kill-ring
+  :ensure t
+  :bind (("M-y" . popup-kill-ring))) 
+```
+
+
+## Modeline
+
+```emacs-lisp
+(display-time-mode t)
+
+(use-package spaceline
+  :ensure t
+  :defer 2.2
+  :config
+  (require 'spaceline-config)
+  (setq powerline-default-separator (quote arrow))
+  (setq spaceline-line-column-p nil)
+  (setq spaceline-buffer-size nil)
+  (setq spaceline-workspace-numbers-unicode t)
+  (setq spaceline-buffer-encoding-abbrev-p nil)
+  (spaceline-spacemacs-theme))
+```
+
+
 ## Parentheses
 
 ```emacs-lisp
 (use-package smartparens
   :ensure t
   :defer 5.1
-  :config (smartparens-global-mode))
+  :diminish smartparens-mode
+  :config 
+  (smartparens-global-mode)
+  (sp-local-pair 'org-mode "*" "*")
+  (sp-local-pair 'org-mode "_" "_"))
 
 (use-package highlight-parentheses
   :ensure t
   :defer 12.1
+  :diminish highlight-parentheses-mode
   :config (global-highlight-parentheses-mode))
 
 (defvar show-paren-delay 0)
-
-(show-paren-mode 1)
+(show-paren-mode t)
 ```
 
 
@@ -434,18 +578,6 @@ Sets gc-cons-threshold to 100mb and read-process-output-max to 1mb since the def
 ```
 
 
-## Syntax checking
-
-```emacs-lisp
-;; Provides some syntax checking
-(use-package flycheck
-  :ensure t
-  :defer 11.3
-  :init (global-flycheck-mode))
-
-```
-
-
 ## Tool bar, menu bar, line numbering etc
 
 ```emacs-lisp
@@ -469,6 +601,27 @@ Sets gc-cons-threshold to 100mb and read-process-output-max to 1mb since the def
 (setq backup-directory-alist (list (cons ".*" backup-dir)))
 (setq auto-save-list-file-prefix autosave-dir)
 (setq auto-save-file-name-transforms `((".*" ,autosave-dir t)))
+```
+
+
+## Read process output
+
+Sets read-process-output-max to 1mb since the default is low. This should improve things that use servers like LSP.
+
+```emacs-lisp
+(setq read-process-output-max (* 1024 1024))
+```
+
+
+## Spell checking
+
+I use aspell for spell checking.
+
+
+### Config
+
+```emacs-lisp
+(defvar ispell-program-name "aspell")
 ```
 
 
