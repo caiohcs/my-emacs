@@ -2,7 +2,7 @@
 #+AUTHOR: Caio Henrique
 #+OPTIONS: toc:nil
 
-* My Emacs Configuration
+* My Emacs configuration
 [[./imgs/my-emacs.png]] 
 
 My configuration has 59 packages installed. It loads fast, in my machine Doom Emacs takes around 0.7s to start, my configuration takes around 0.9s. I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations like Byte compilation.
@@ -484,7 +484,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :bind (("M-s" . avy-goto-word-1)))
 #+END_SRC
 
-** Windows managing
+** Windows management
 #+BEGIN_SRC emacs-lisp
 (use-package eyebrowse
   :ensure t

@@ -1,4 +1,4 @@
-# My Emacs Configuration
+# My Emacs configuration
 
 ![img](./imgs/my-emacs.png)
 
@@ -560,7 +560,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
-## Windows managing
+## Windows management
 
 ```emacs-lisp
 (use-package eyebrowse
