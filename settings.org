@@ -341,12 +341,15 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
   (defhydra hydra-avy (:color blue :hint nil)
     "
-    _s_: word    _n_: word bellow   _p_: word above
+    _s_: word 1   _n_: word bellow   _p_: word above
+    _l_: line     _c_: char timer
     "
     ("q" nil "quit")
     ("s" avy-goto-word-1)
     ("p" avy-goto-word-1-above)
-    ("n" avy-goto-word-1-below))
+    ("n" avy-goto-word-1-below)
+    ("l" avy-goto-line)
+    ("c" avy-goto-char-timer))
   (global-set-key (kbd "M-s") 'hydra-avy/body)
 
   (defhydra hydra-movement (:post 
@@ -359,7 +362,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   _j_: jump point  _w_: cut        _W_: copy        _V_: page up     _u_: universal arg
   _y_: yank        _v_: page down  _e_: end line    _S_: swiper  _<SPC>_: mark
   _l_: recenter    _G_: goto line  _a_: beg line    _U_: undo        _i_: insert text
-  _F_: next char   _B_: prev char  _g_: avy word    _<_: beg buffer  _>_: end buffer
+  _F_: next char   _B_: prev char  _g_: avy         _<_: beg buffer  _>_: end buffer
   _=_: exp region  _m_: mark all   _M_: edit lines  _o_: open line   _h_: hide hints
     "
     ("<f1>" nil "quit")
@@ -398,7 +401,11 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("o" open-line)
     ("<DEL>" delete-backward-char)
     ("<deletechar>" delete-forward-char)))
-  (global-set-key (kbd "<f1>") '(lambda () (interactive) (set-cursor-color "#ff0000") (setq hydra-is-helpful nil) (hydra-movement/body)))
+  (global-set-key (kbd "<f1>") '(lambda () 
+                                  (interactive) 
+                                  (set-cursor-color "#ff0000") 
+                                  (setq hydra-is-helpful nil) 
+                                  (hydra-movement/body)))
 #+END_SRC
 
 ** Emacs completion
@@ -497,7 +504,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 #+BEGIN_SRC emacs-lisp
 (use-package avy
   :ensure t
-  :bind (("M-s" . avy-goto-word-1)))
+  :commands hydra-avy/body)
 #+END_SRC
 
 ** Windows management
