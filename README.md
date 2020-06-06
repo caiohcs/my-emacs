@@ -358,7 +358,10 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :ensure t
   :defer 2.5
   :config
-  (defhydra hydra-wind-move (:color amaranth :hint nil)
+  (defhydra hydra-wind-move (:post
+			      (hydra-movement/cond-body-call)
+			      :color amaranth 
+			      :hint nil)
     "
   _b_: left wind   _p_: up wind
   _f_: right wind  _n_: down wind
@@ -398,34 +401,53 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("9" eyebrowse-switch-to-window-config-9 nil))
   (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
 
-  (defhydra hydra-avy (:color blue :hint nil)
+  (defhydra hydra-avy (:post
+			(hydra-movement/cond-body-call)
+			:color blue 
+			:hint nil)
     "
     _s_: word 1   _n_: word bellow   _p_: word above
-    _l_: line     _c_: char timer
+    _l_: line     _c_: char timer    _g_: char timer
     "
     ("q" nil "quit")
-    ("s" avy-goto-word-1)
-    ("p" avy-goto-word-1-above)
-    ("n" avy-goto-word-1-below)
-    ("l" avy-goto-line)
-    ("c" avy-goto-char-timer))
+    ("s" avy-goto-word-1) 
+    ("p" avy-goto-word-1-above) 
+    ("n" avy-goto-word-1-below) 
+    ("l" avy-goto-line) 
+    ("c" avy-goto-char-timer) 
+    ("g" avy-goto-char-timer))
   (global-set-key (kbd "M-s") 'hydra-avy/body)
+
+
+  ;;; hydra-movement to make moving around easier
+  (defun hydra-movement/cond-body-call ()
+    (if hydra-movement/inside-body
+	(hydra-movement/call-body)))
+
+  (setq hydra-movement/inside-body nil)
+
+  (defun hydra-movement/call-body () 
+    (interactive)
+    (set-cursor-color "#ff0000") 
+    (setq hydra-is-helpful nil)
+    (setq hydra-movement/inside-body t)
+    (hydra-movement/body))
 
   (defhydra hydra-movement (:post 
 			     (progn (set-cursor-color "#000000") 
-				    (setq hydra-is-helpful t)) 
+				    (setq hydra-is-helpful t))
 			     :color amaranth 
 			     :hint nil)
     "
   _f_: next word   _b_: prev word  _n_: next line   _p_: prev line   _s_: save point
   _j_: jump point  _w_: cut        _W_: copy        _V_: page up     _u_: universal arg
-  _y_: yank        _v_: page down  _e_: end line    _S_: swiper  _<SPC>_: mark
+  _y_: yank        _v_: page down  _e_: end line    _S_: swiper      _<SPC>_: mark
   _l_: recenter    _G_: goto line  _a_: beg line    _U_: undo        _i_: insert text
   _F_: next char   _B_: prev char  _g_: avy         _<_: beg buffer  _>_: end buffer
-  _=_: exp region  _m_: mark all   _M_: edit lines  _o_: open line   _h_: hide hints
+  _=_: exp region  _m_: mark all   _M_: edit lines  _h_: hide hints  _<return>_: newline
     "
-    ("<f1>" nil "quit")
-    ("q" nil "quit")
+    ("<f1>" (setq hydra-movement/inside-body nil) :exit t)
+    ("q" (setq hydra-movement/inside-body nil) :exit t)
     ("h" (setq hydra-is-helpful (not hydra-is-helpful)))
     ("f" forward-word)
     ("b" backward-word)
@@ -445,7 +467,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("e" end-of-line)
     ("F" forward-char)
     ("B" backward-char)
-    ("g" avy-goto-word-1)
+    ("g" hydra-avy/body :exit t)
     ("i" (lambda (txt)
 	   (interactive "sQuick insertion:")
 	   (insert txt)))
@@ -457,14 +479,11 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("<" beginning-of-buffer)
     (">" end-of-buffer)
     ("U" undo)
-    ("o" open-line)
+    ("<return>" newline)
     ("<DEL>" delete-backward-char)
-    ("<deletechar>" delete-forward-char)))
-  (global-set-key (kbd "<f1>") '(lambda () 
-				  (interactive) 
-				  (set-cursor-color "#ff0000") 
-				  (setq hydra-is-helpful nil) 
-				  (hydra-movement/body)))
+    ("<deletechar>" delete-forward-char)
+    ("M-w" hydra-wind-move/body :exit t))
+  (global-set-key (kbd "<f1>") 'hydra-movement/call-body))
 ```
 
 
