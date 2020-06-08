@@ -18,12 +18,14 @@ I like Hydra-mode since it's easy to customize, so for fast navigation and quick
 | g        | jump to a line number  |
 | G        | avy jump to word       |
 | SPC      | set mark command       |
-| m        | mark all like region   |
-| M        | mark lines             |
-| w        | kill region            |
+| m        | mark operator          |
+| M        | multiple cursors block |
+| w        | cut operator           |
 | W        | kill region and save   |
 | y        | popup kill ring        |
 | &#x2026; | &#x2026;               |
+
+The delete/mark/cut/copy operators are vim-style, meaning that you can type "mb4l" to mark backwards 4 lines, or "d3w" to delete 3 words forwards.
 
 This nagivation Hydra has the hint menu hidden by default since it can slow down Emacs while holding some key like f to forward-word, so when this Hydra's body is called the cursor color changes to red to indicate that it's active. You can press H to open the hint menu.
 
@@ -249,7 +251,36 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 			  (registers . 5)))
   (setq dashboard-set-init-info t)
   (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t))
+  (setq dashboard-set-file-icons t)
+
+
+  (defun dashboard-insert-custom (list-size)
+    (defun string-centralized (str)
+      (let* ((indent
+	      (concat "%"
+		      (number-to-string
+		       (/ (- (window-body-width) (string-width str)) 2))
+		      "s"))
+	     (str (concat indent str indent)))
+	(format str " " " ")))
+
+    (insert (string-centralized (format-time-string "%a %d %b %Y" (current-time))))
+    (newline)
+    (insert (string-centralized (format-time-string "%H:%M:%S" (current-time)))))
+
+  (add-to-list 'dashboard-item-generators  '(custom . dashboard-insert-custom))
+  (add-to-list 'dashboard-items '(custom) t)
+
+  ; (cancel-timer *my-timer*)
+(setq *ntimescall* 0)
+  (defun test-dashboard ()   (setq *ntimescall* (1+ *ntimescall* )) (setq *my-timer* (run-at-time "5 sec" 1 #'(lambda ()
+								       (if (string=
+									    (buffer-name (window-buffer))
+									    "*dashboard*")
+									   (dashboard-refresh-buffer)
+									 (when (timerp *my-timer*)
+									   (cancel-timer *my-timer*))))))))
+ ; (add-hook 'dashboard-mode-hook #'test-dashboard)
 ```
 
 
@@ -358,10 +389,9 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :ensure t
   :defer 2.5
   :config
-  (defhydra hydra-wind-move (:post
-			      (hydra-movement/cond-body-call)
-			      :color amaranth 
-			      :hint nil)
+  (defhydra hydra-wind-move (:color amaranth 
+			     :hint nil
+			     :post hydra-movement/cond-body-call)
     "
   _b_: left wind   _p_: up wind
   _f_: right wind  _n_: down wind
@@ -401,10 +431,9 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("9" eyebrowse-switch-to-window-config-9 nil))
   (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
 
-  (defhydra hydra-avy (:post
-			(hydra-movement/cond-body-call)
-			:color blue 
-			:hint nil)
+  (defhydra hydra-avy (:color blue 
+		       :hint nil
+		       :post hydra-movement/cond-body-call)
     "
     _s_: word 1   _n_: word bellow   _p_: word above
     _l_: line     _c_: char timer    _g_: char timer
@@ -433,11 +462,114 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     (setq hydra-movement/inside-body t)
     (hydra-movement/body))
 
-  (defhydra hydra-movement (:post 
-			     (progn (set-cursor-color "#000000") 
-				    (setq hydra-is-helpful t))
-			     :color amaranth 
-			     :hint nil)
+(defun hydra-call/hydra-modal-operators (operator)
+  (setq hydra-call-operators/operator operator)
+  (setq hydra-call-operators/repeat nil)
+  (setq hydra-call-operators/backwards nil)
+  (hydra-modal-operators/body))
+
+(defhydra hydra-modal-operators (:color blue
+				 :hint nil
+				 :post hydra-movement/cond-body-call)
+  "
+_b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion
+  "
+  ("b" (setq hydra-call-operators/backwards t) :color red)
+  ("w" (funcall hydra-call-operators/operator 'word))
+  ("l" (funcall hydra-call-operators/operator 'line))
+  ("p" (funcall hydra-call-operators/operator 'paragraph))
+  ("r" (funcall hydra-call-operators/operator 'region))
+
+  ("0" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "0")) :color red)
+  ("1" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "1")) :color red)
+  ("2" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "2")) :color red)
+  ("3" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "3")) :color red)
+  ("4" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "4")) :color red)
+  ("5" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "5")) :color red)
+  ("6" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "6")) :color red)
+  ("7" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "7")) :color red)
+  ("8" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "8")) :color red)
+  ("9" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "9")) :color red))
+
+(defun current-line-blank-p ()
+    (interactive)
+    (string-match-p "\\`$" (thing-at-point 'line)))
+
+(defun hydra-modal-operator/mark (operand) 
+  (let ((times (if (not hydra-call-operators/repeat) 1 (string-to-number hydra-call-operators/repeat))))
+    (cond
+     ((eq 'line operand)
+      (cond (hydra-call-operators/backwards
+	     (end-of-visual-line)
+	     (call-interactively 'set-mark-command)
+	     (previous-line (1- times))
+	     (beginning-of-visual-line))
+	    (t (beginning-of-visual-line)
+	       (call-interactively 'set-mark-command)
+	       (next-line (1- times))
+	       (end-of-visual-line))))
+
+     ((eq 'word operand)
+      (call-interactively 'set-mark-command)
+      (if hydra-call-operators/backwards
+	  (backward-word times)
+	(forward-word times))))))
+
+(defun hydra-modal-operator/delete (operand)
+  (interactive)
+  (cond
+   ((eq 'line operand)
+    (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+	(kill-line)
+      (hydra-modal-operator/mark operand)
+      (delete-region (region-beginning) (region-end))
+      (kill-line)))
+
+   (t (hydra-modal-operator/mark operand)
+      (delete-forward-char 1))))
+
+(defun hydra-modal-operator/cut (operand)
+(interactive)
+(cond
+ ((eq 'line operand)
+  (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+      (kill-line)
+    (hydra-modal-operator/mark operand)
+    (kill-region -1 -1 t)
+    (kill-line)))
+
+ (t (hydra-modal-operator/mark operand)
+    (kill-region -1 -1 t))))
+
+;;; Need to finish this for the lines
+(defun hydra-modal-operator/copy (operand)
+  (interactive)
+  (cond
+   ((eq 'line operand)
+    (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+	nil
+      (hydra-modal-operator/mark operand)
+      (let ((str (buffer-substring (region-beginning) (region-end))))
+	(remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
+	(kill-new str t))
+      (deactivate-mark)))
+
+   ((eq 'region operand)
+    (let ((str (buffer-substring (region-beginning) (region-end))))
+      (remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
+      (kill-new str t))
+    (deactivate-mark))
+
+   (t (hydra-modal-operator/mark operand)
+      (let ((str (buffer-substring (region-beginning) (region-end))))
+	(remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
+	(kill-new str t))
+      (deactivate-mark))))
+
+  (defhydra hydra-movement (:hint nil
+			    :color amaranth 
+			    :post (progn (set-cursor-color "#000000") 
+				    (setq hydra-is-helpful t)))
     "
   _f_: next word   _b_: prev word  _n_: next line   _p_: prev line   _s_: save point
   _j_: jump point  _w_: cut        _W_: copy        _V_: page up     _u_: universal arg
@@ -455,8 +587,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("p" previous-line)
     ("s" (point-to-register 'g))
     ("j" (jump-to-register 'g))
-    ("w" (if (use-region-p) (kill-region (region-beginning) (region-end))))
-    ("W" kill-ring-save)
+    ("W" (hydra-call/hydra-modal-operators 'hydra-modal-operator/copy) :exit t)
     ("<SPC>" set-mark-command)
     ("y" popup-kill-ring)
     ("v" scroll-up)
@@ -472,7 +603,8 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 	   (interactive "sQuick insertion:")
 	   (insert txt)))
     ("=" er/expand-region)
-    ("m" mc/mark-all-like-this)
+    ("m" (hydra-call/hydra-modal-operators 'hydra-modal-operator/mark) :exit t)
+    ("M-m" mc/mark-all-like-this)
     ("M" mc/edit-lines)
     ("u" universal-argument)
     ("S" swiper)
@@ -482,7 +614,9 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("<return>" newline)
     ("<DEL>" delete-backward-char)
     ("<deletechar>" delete-forward-char)
-    ("M-w" hydra-wind-move/body :exit t))
+    ("M-w" hydra-wind-move/body :exit t)
+    ("d" (hydra-call/hydra-modal-operators 'hydra-modal-operator/delete) :exit t)
+    ("w" (hydra-call/hydra-modal-operators 'hydra-modal-operator/cut) :exit t))
   (global-set-key (kbd "<f1>") 'hydra-movement/call-body))
 ```
 
@@ -664,6 +798,190 @@ I use aspell for spell checking.
 
 ```emacs-lisp
 (defvar ispell-program-name "aspell")
+```
+
+
+## Change sexp keyword indentation
+
+This changes the identation style from: to: Code from <https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords-aligned> posted by the user Aquaactress.
+
+```emacs-lisp
+(advice-add #'calculate-lisp-indent :override #'void~calculate-lisp-indent)
+
+(defun void~calculate-lisp-indent (&optional parse-start)
+  "Add better indentation for quoted and backquoted lists."
+  ;; This line because `calculate-lisp-indent-last-sexp` was defined with `defvar` 
+  ;; with it's value ommited, marking it special and only defining it locally. So  
+  ;; if you don't have this, you'll get a void variable error.
+  (defvar calculate-lisp-indent-last-sexp)
+  (save-excursion
+    (beginning-of-line)
+    (let ((indent-point (point))
+	  state
+	  ;; setting this to a number inhibits calling hook
+	  (desired-indent nil)
+	  (retry t)
+	  calculate-lisp-indent-last-sexp containing-sexp)
+      (cond ((or (markerp parse-start) (integerp parse-start))
+	     (goto-char parse-start))
+	    ((null parse-start) (beginning-of-defun))
+	    (t (setq state parse-start)))
+      (unless state
+	;; Find outermost containing sexp
+	(while (< (point) indent-point)
+	  (setq state (parse-partial-sexp (point) indent-point 0))))
+      ;; Find innermost containing sexp
+      (while (and retry
+		  state
+		  (> (elt state 0) 0))
+	(setq retry nil)
+	(setq calculate-lisp-indent-last-sexp (elt state 2))
+	(setq containing-sexp (elt state 1))
+	;; Position following last unclosed open.
+	(goto-char (1+ containing-sexp))
+	;; Is there a complete sexp since then?
+	(if (and calculate-lisp-indent-last-sexp
+		 (> calculate-lisp-indent-last-sexp (point)))
+	    ;; Yes, but is there a containing sexp after that?
+	       (let ((peek (parse-partial-sexp calculate-lisp-indent-last-sexp
+					       indent-point 0)))
+		 (if (setq retry (car (cdr peek))) (setq state peek)))))
+      (if retry
+	  nil
+	;; Innermost containing sexp found
+	(goto-char (1+ containing-sexp))
+	(if (not calculate-lisp-indent-last-sexp)
+	    ;; indent-point immediately follows open paren.
+	       ;; Don't call hook.
+	       (setq desired-indent (current-column))
+	       ;; Find the start of first element of containing sexp.
+	       (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
+	       (cond ((looking-at "\\s(")
+		      ;; First element of containing sexp is a list.
+		      ;; Indent under that list.
+		      )
+		     ((> (save-excursion (forward-line 1) (point))
+			 calculate-lisp-indent-last-sexp)
+		      ;; This is the first line to start within the containing sexp.
+		      ;; It's almost certainly a function call.
+		      (if (or
+			   ;; Containing sexp has nothing before this line
+			   ;; except the first element. Indent under that element.
+			   (= (point) calculate-lisp-indent-last-sexp)
+
+			   ;; First sexp after `containing-sexp' is a keyword. This
+			   ;; condition is more debatable. It's so that I can have
+			   ;; unquoted plists in macros. It assumes that you won't
+			   ;; make a function whose name is a keyword.
+			   (when-let (char-after (char-after (1+ containing-sexp)))
+			     (char-equal char-after ?:))
+
+			   ;; Check for quotes or backquotes around.
+			   (let* ((positions (elt state 9))
+				  (last (car (last positions)))
+				  (rest (reverse (butlast positions)))
+				  (any-quoted-p nil)
+				  (point nil))
+			     (or
+			      (when-let (char (char-before last))
+				(or (char-equal char ?')
+				    (char-equal char ?`)))
+			      (progn
+				(while (and rest (not any-quoted-p))
+				  (setq point (pop rest))
+				  (setq any-quoted-p
+					(or
+					 (when-let (char (char-before point))
+					   (or (char-equal char ?')
+					       (char-equal char ?`)))
+					 (save-excursion
+					   (goto-char (1+ point))
+					   (looking-at-p
+					    "\\(?:back\\)?quote[\t\n\f\s]+(")))))
+				any-quoted-p))))
+			  ;; Containing sexp has nothing before this line
+			     ;; except the first element.  Indent under that element.
+			     nil
+			     ;; Skip the first element, find start of second (the first
+										  ;; argument of the function call) and indent under.
+			     (progn (forward-sexp 1)
+				    (parse-partial-sexp (point)
+							calculate-lisp-indent-last-sexp
+							0 t)))
+		      (backward-prefix-chars))
+		     (t
+		      ;; Indent beneath first sexp on same line as
+		      ;; `calculate-lisp-indent-last-sexp'.  Again, it's
+		      ;; almost certainly a function call.
+		      (goto-char calculate-lisp-indent-last-sexp)
+		      (beginning-of-line)
+		      (parse-partial-sexp (point) calculate-lisp-indent-last-sexp
+					  0 t)
+		      (backward-prefix-chars)))))
+      ;; Point is at the point to indent under unless we are inside a string.
+      ;; Call indentation hook except when overridden by lisp-indent-offset
+      ;; or if the desired indentation has already been computed.
+      (let ((normal-indent (current-column)))
+	(cond ((elt state 3)
+	       ;; Inside a string, don't change indentation.
+	       nil)
+	      ((and (integerp lisp-indent-offset) containing-sexp)
+	       ;; Indent by constant offset
+	       (goto-char containing-sexp)
+	       (+ (current-column) lisp-indent-offset))
+	      ;; in this case calculate-lisp-indent-last-sexp is not nil
+	      (calculate-lisp-indent-last-sexp
+	       (or
+		;; try to align the parameters of a known function
+		(and lisp-indent-function
+		     (not retry)
+		     (funcall lisp-indent-function indent-point state))
+		;; If the function has no special alignment
+		;; or it does not apply to this argument,
+		;; try to align a constant-symbol under the last
+		;; preceding constant symbol, if there is such one of
+		;; the last 2 preceding symbols, in the previous
+		;; uncommented line.
+		(and (save-excursion
+		       (goto-char indent-point)
+		       (skip-chars-forward " \t")
+		       (looking-at ":"))
+		     ;; The last sexp may not be at the indentation
+		     ;; where it begins, so find that one, instead.
+		     (save-excursion
+		       (goto-char calculate-lisp-indent-last-sexp)
+		       ;; Handle prefix characters and whitespace
+		       ;; following an open paren.  (Bug#1012)
+		       (backward-prefix-chars)
+		       (while (not (or (looking-back "^[ \t]*\\|([ \t]+"
+						     (line-beginning-position))
+				       (and containing-sexp
+					    (>= (1+ containing-sexp) (point)))))
+			 (forward-sexp -1)
+			 (backward-prefix-chars))
+		       (setq calculate-lisp-indent-last-sexp (point)))
+		     (> calculate-lisp-indent-last-sexp
+			(save-excursion
+			  (goto-char (1+ containing-sexp))
+			  (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
+			  (point)))
+		     (let ((parse-sexp-ignore-comments t)
+			   indent)
+		       (goto-char calculate-lisp-indent-last-sexp)
+		       (or (and (looking-at ":")
+				(setq indent (current-column)))
+			   (and (< (line-beginning-position)
+				   (prog2 (backward-sexp) (point)))
+				(looking-at ":")
+				(setq indent (current-column))))
+		       indent))
+		;; another symbols or constants not preceded by a constant
+		;; as defined above.
+		normal-indent))
+	      ;; in this case calculate-lisp-indent-last-sexp is nil
+	      (desired-indent)
+	      (t
+	       normal-indent))))))
 ```
 
 
