@@ -712,14 +712,14 @@ I use aspell for spell checking.
 ** Change sexp keyword indentation
 This changes the identation style from:
 #+BEGIN_SRC emacs-lisp :tangle no
-(defhydra foo (:color blue
-		      :help nil))
+;(defhydra foo (:color blue
+;		      :help nil))
 #+END_SRC
 
 to:
 #+BEGIN_SRC emacs-lisp :tangle no
-(defhydra foo (:color blue
-		   :help nil))
+;(defhydra foo (:color blue
+; 		    :help nil))
 #+END_SRC
 
 Code from https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords-aligned posted by the user Aquaactress.
