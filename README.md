@@ -806,15 +806,15 @@ I use aspell for spell checking.
 This changes the identation style from:
 
 ```emacs-lisp
-;(defhydra foo (:color blue
-;		      :help nil))
+(defhydra foo (:color blue
+		    :help nil))
 ```
 
 to:
 
 ```emacs-lisp
-;(defhydra foo (:color blue
-; 		    :help nil))
+(defhydra foo (:color blue
+	       :help nil))
 ```
 
 Code from <https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords-aligned> posted by the user Aquaactress.
