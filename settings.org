@@ -711,13 +711,13 @@ I use aspell for spell checking.
 
 ** Change sexp keyword indentation
 This changes the identation style from:
-#+BEGIN_SRC emacs-lisp :exports none :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (defhydra foo (:color blue
 		      :help nil))
 #+END_SRC
 
 to:
-#+BEGIN_SRC emacs-lisp :exports none :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (defhydra foo (:color blue
 		   :help nil))
 #+END_SRC

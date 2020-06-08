@@ -803,7 +803,21 @@ I use aspell for spell checking.
 
 ## Change sexp keyword indentation
 
-This changes the identation style from: to: Code from <https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords-aligned> posted by the user Aquaactress.
+This changes the identation style from:
+
+```emacs-lisp
+(defhydra foo (:color blue
+		      :help nil))
+```
+
+to:
+
+```emacs-lisp
+(defhydra foo (:color blue
+		   :help nil))
+```
+
+Code from <https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords-aligned> posted by the user Aquaactress.
 
 ```emacs-lisp
 (advice-add #'calculate-lisp-indent :override #'void~calculate-lisp-indent)
