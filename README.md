@@ -2,9 +2,9 @@
 
 ![img](./imgs/my-emacs.png)
 
-My configuration has 59 packages installed. It loads fast, in my machine Doom Emacs takes around 0.6s to start, my configuration takes around 0.8s. I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations like Byte compilation.
+My configuration has 62 packages installed. It loads fast, in my machine Doom Emacs takes around 0.6s to start, my configuration takes around 0.8s. I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
 
-I like Hydra-mode since it's easy to customize, so for fast navigation and quick insertions I use a Hydra. I tap F1 to call the Hydra body, then I can do stuff like:
+I like hydra-mode since it's easy to customize, so for fast navigation and quick insertions I use some nested hydras. I tap F1 to call the hydra body, then I can do stuff like:
 
 | Key      | Action                 |
 |-------- |---------------------- |
@@ -19,17 +19,17 @@ I like Hydra-mode since it's easy to customize, so for fast navigation and quick
 | G        | avy jump to word       |
 | SPC      | set mark command       |
 | m        | mark operator          |
-| M        | multiple cursors block |
+| M        | multiple cursors       |
 | w        | cut operator           |
-| W        | kill region and save   |
+| W        | copy operator          |
 | y        | popup kill ring        |
 | &#x2026; | &#x2026;               |
 
 The delete/mark/cut/copy operators are vim-style, meaning that you can type "mb4l" to mark backwards 4 lines, or "d3w" to delete 3 words forwards.
 
-This nagivation Hydra has the hint menu hidden by default since it can slow down Emacs while holding some key like f to forward-word, so when this Hydra's body is called the cursor color changes to red to indicate that it's active. You can press H to open the hint menu.
+This nagivation hydra has the hint menu hidden by default since it can slow down Emacs while holding some key like f to forward-word, so when this hydra's body is called the cursor color changes to red to indicate that it's active. You can press H to open the hint menu.
 
-There is also a Hydra for windows management (using Eyebrowse) on F2, another one for switching between windows on F3, and one for Avy shorcuts on M-s.
+There is also an hydra for windows management (using Eyebrowse) on F2, another one for dumb-jump on F3, and one for Avy shorcuts on M-s.
 
 
 # Installation
@@ -90,6 +90,25 @@ I think that LSP requires projectile, so it's going to be installed as a depende
 ```
 
 
+## Jump to definition
+
+
+### Requirements
+
+Silver searcher: <https://github.com/ggreer/the_silver_searcher>
+
+
+### Config
+
+```emacs-lisp
+(use-package dumb-jump
+  :ensure t
+  :config
+  (setq dumb-jump-selector 'ivy)
+  :commands dumb-jump-go)
+```
+
+
 ## C and C++
 
 
@@ -118,6 +137,8 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
 
 (defun my-c-mode-common-hook ()
   (c-set-offset 'substatement-open 0)
+  (c-set-offset 'access-label '/)
+  (c-set-offset 'inclass '+)
   (setq  c-default-style "bsd"
 	 c-basic-offset 4
 	 c-indent-level 4
@@ -246,14 +267,12 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
   (setq dashboard-banner-logo-title "Welcome to Emacs")
   (setq dashboard-startup-banner 'logo)
   (setq dashboard-items '((recents   . 5)
-			  (bookmarks . 5)
-			  (agenda    . 5)
-			  (registers . 5)))
+			  (agenda    . 5)))
   (setq dashboard-set-init-info t)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
 
-
+  ;; adds a clock
   (defun dashboard-insert-custom (list-size)
     (defun string-centralized (str)
       (let* ((indent
@@ -264,23 +283,22 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 	     (str (concat indent str indent)))
 	(format str " " " ")))
 
-    (insert (string-centralized (format-time-string "%a %d %b %Y" (current-time))))
+    (insert (propertize (string-centralized (format-time-string "%a %d %b %Y" (current-time))) 'font-lock-face '('bold :foreground "#6c4c7b")))
     (newline)
-    (insert (string-centralized (format-time-string "%H:%M:%S" (current-time)))))
+    (insert (propertize (string-centralized (format-time-string "%H:%M" (current-time))) 'font-lock-face '('bold :foreground "#6c4c7b"))))
 
   (add-to-list 'dashboard-item-generators  '(custom . dashboard-insert-custom))
   (add-to-list 'dashboard-items '(custom) t)
 
-  ; (cancel-timer *my-timer*)
-(setq *ntimescall* 0)
-  (defun test-dashboard ()   (setq *ntimescall* (1+ *ntimescall* )) (setq *my-timer* (run-at-time "5 sec" 1 #'(lambda ()
-								       (if (string=
-									    (buffer-name (window-buffer))
-									    "*dashboard*")
-									   (dashboard-refresh-buffer)
-									 (when (timerp *my-timer*)
-									   (cancel-timer *my-timer*))))))))
- ; (add-hook 'dashboard-mode-hook #'test-dashboard)
+  (defun test-dashboard () (setq *my-timer* (run-at-time "20 sec" nil #'(lambda ()
+								       (when *my-timer*
+									(cancel-timer *my-timer*)
+									(setq *my-timer* nil))
+									(when (string=
+									       (buffer-name (window-buffer))
+									       "*dashboard*")
+									 (dashboard-refresh-buffer))))))
+ (add-hook 'dashboard-mode-hook #'test-dashboard))
 ```
 
 
@@ -402,7 +420,18 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("f" windmove-right)
     ("p" windmove-up)
     ("n" windmove-down))
-  (global-set-key (kbd "<f3>") 'hydra-wind-move/body)
+
+  (defhydra hydra-dumb-jump (:color teal :columns 3)
+    "Dumb Jump"
+    ("q" nil "quit")
+    ("j" dumb-jump-go "Go")
+    ("o" dumb-jump-go-other-window "Other window")
+    ("e" dumb-jump-go-prefer-external "Go external")
+    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+    ("i" dumb-jump-go-prompt "Prompt")
+    ("l" dumb-jump-quick-look "Quick look")
+    ("b" dumb-jump-back "Back"))
+  (global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
 
   (defhydra hydra-multiple-cursors (:color teal 
 				    :hint nil
@@ -610,7 +639,10 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("F" (when (= (skip-syntax-forward "-") 0) (forward-char 1)))
     ("B" (when (= (skip-syntax-backward "-") 0) (backward-char 1)))
     ("g" hydra-avy/body :exit t)
-    ("i" (lambda (arg) (interactive "cChoose a register:") (insert-register arg)))
+    ("I" (lambda (arg) (interactive "cChoose a register:") (insert-register arg)))
+    ("i" (lambda (txt)
+	   (interactive "sQuick insertion:")
+	   (insert txt)))
     ("=" er/expand-region)
     ("m" (hydra-call/hydra-modal-operators 'hydra-modal-operator/mark) :exit t)
     ("M" hydra-multiple-cursors/body :exit t)
@@ -646,6 +678,15 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :config
   (use-package counsel
     :ensure t))
+```
+
+
+## Regular expressions
+
+```emacs-lisp
+(use-package visual-regexp-steroids
+  :ensure t
+  :commands vr/replace)
 ```
 
 
