@@ -345,6 +345,16 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("n" windmove-down))
   (global-set-key (kbd "<f3>") 'hydra-wind-move/body)
 
+  (defhydra hydra-multiple-cursors (:color teal 
+                                    :hint nil
+                                    :post hydra-movement/cond-body-call)
+    "
+  _l_: edit lines   _a_: all like this
+    "
+    ("q" nil "quit")
+    ("l" mc/edit-lines)
+    ("a" mc/mark-all-like-this))
+
   (defhydra hydra-eyebrowse (:color amaranth :hint nil)
     "
   %s(eyebrowse-mode-line-indicator)  
@@ -372,7 +382,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("9" eyebrowse-switch-to-window-config-9 nil))
   (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
 
-  (defhydra hydra-avy (:color blue 
+  (defhydra hydra-avy (:color teal 
                        :hint nil
                        :post hydra-movement/cond-body-call)
     "
@@ -389,7 +399,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   (global-set-key (kbd "M-s") 'hydra-avy/body)
 
 
-  ;;; hydra-movement to make moving around easier
+;;; hydra-movement to make moving around easier
   (defun hydra-movement/cond-body-call ()
     (if hydra-movement/inside-body
         (hydra-movement/call-body)))
@@ -403,121 +413,121 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     (setq hydra-movement/inside-body t)
     (hydra-movement/body))
 
-(defun hydra-call/hydra-modal-operators (operator)
-  (setq hydra-call-operators/operator operator)
-  (setq hydra-call-operators/repeat nil)
-  (setq hydra-call-operators/backwards nil)
-  (hydra-modal-operators/body))
+  (defun hydra-call/hydra-modal-operators (operator)
+    (setq hydra-call-operators/operator operator)
+    (setq hydra-call-operators/repeat nil)
+    (setq hydra-call-operators/backwards nil)
+    (hydra-modal-operators/body))
 
-(defhydra hydra-modal-operators (:color blue
-                                 :hint nil
-                                 :post hydra-movement/cond-body-call)
-  "
-_b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion
-  "
-  ("b" (setq hydra-call-operators/backwards t) :color red)
-  ("w" (funcall hydra-call-operators/operator 'word))
-  ("l" (funcall hydra-call-operators/operator 'line))
-  ("p" (funcall hydra-call-operators/operator 'paragraph))
-  ("r" (funcall hydra-call-operators/operator 'region))
+  (defhydra hydra-modal-operators (:color blue
+                                   :hint nil
+                                   :post hydra-movement/cond-body-call)
+    "
+  _b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion
+    "
+    ("b" (setq hydra-call-operators/backwards t) :color red)
+    ("w" (funcall hydra-call-operators/operator 'word))
+    ("l" (funcall hydra-call-operators/operator 'line))
+    ("p" (funcall hydra-call-operators/operator 'paragraph))
+    ("r" (funcall hydra-call-operators/operator 'region))
   
-  ("0" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "0")) :color red)
-  ("1" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "1")) :color red)
-  ("2" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "2")) :color red)
-  ("3" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "3")) :color red)
-  ("4" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "4")) :color red)
-  ("5" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "5")) :color red)
-  ("6" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "6")) :color red)
-  ("7" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "7")) :color red)
-  ("8" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "8")) :color red)
-  ("9" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "9")) :color red))
+    ("0" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "0")) :color red)
+    ("1" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "1")) :color red)
+    ("2" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "2")) :color red)
+    ("3" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "3")) :color red)
+    ("4" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "4")) :color red)
+    ("5" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "5")) :color red)
+    ("6" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "6")) :color red)
+    ("7" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "7")) :color red)
+    ("8" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "8")) :color red)
+    ("9" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "9")) :color red))
 
-(defun current-line-blank-p ()
+  (defun current-line-blank-p ()
     (interactive)
     (string-match-p "\\`$" (thing-at-point 'line)))
 
-(defun hydra-modal-operator/mark (operand) 
-  (let ((times (if (not hydra-call-operators/repeat) 1 (string-to-number hydra-call-operators/repeat))))
+  (defun hydra-modal-operator/mark (operand) 
+    (let ((times (if (not hydra-call-operators/repeat) 1 (string-to-number hydra-call-operators/repeat))))
+      (cond
+       ((eq 'line operand)
+	(cond (hydra-call-operators/backwards
+	       (end-of-visual-line)
+	       (call-interactively 'set-mark-command)
+	       (previous-line (1- times))
+	       (beginning-of-visual-line))
+	      (t (beginning-of-visual-line)
+		 (call-interactively 'set-mark-command)
+		 (next-line (1- times))
+		 (end-of-visual-line))))
+    
+       ((eq 'word operand)
+	(call-interactively 'set-mark-command)
+	(if hydra-call-operators/backwards
+	    (backward-word times)
+	  (forward-word times))))))
+
+  (defun hydra-modal-operator/delete (operand)
+    (interactive)
     (cond
      ((eq 'line operand)
-      (cond (hydra-call-operators/backwards
-	     (end-of-visual-line)
-	     (call-interactively 'set-mark-command)
-	     (previous-line (1- times))
-	     (beginning-of-visual-line))
-	    (t (beginning-of-visual-line)
-	       (call-interactively 'set-mark-command)
-	       (next-line (1- times))
-	       (end-of-visual-line))))
+      (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+	  (kill-line)
+	(hydra-modal-operator/mark operand)
+	(delete-region (region-beginning) (region-end))
+	(kill-line)))
     
-     ((eq 'word operand)
-      (call-interactively 'set-mark-command)
-      (if hydra-call-operators/backwards
-	  (backward-word times)
-	(forward-word times))))))
+     (t (hydra-modal-operator/mark operand)
+	(delete-forward-char 1))))
 
-(defun hydra-modal-operator/delete (operand)
-  (interactive)
-  (cond
-   ((eq 'line operand)
-    (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
-	(kill-line)
-      (hydra-modal-operator/mark operand)
-      (delete-region (region-beginning) (region-end))
-      (kill-line)))
+  (defun hydra-modal-operator/cut (operand)
+    (interactive)
+    (cond
+     ((eq 'line operand)
+      (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+	  (kill-line)
+	(hydra-modal-operator/mark operand)
+	(kill-region -1 -1 t)
+	(kill-line)))
     
-   (t (hydra-modal-operator/mark operand)
-      (delete-forward-char 1))))
+     (t (hydra-modal-operator/mark operand)
+	(kill-region -1 -1 t))))
 
-(defun hydra-modal-operator/cut (operand)
-(interactive)
-(cond
- ((eq 'line operand)
-  (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
-      (kill-line)
-    (hydra-modal-operator/mark operand)
-    (kill-region -1 -1 t)
-    (kill-line)))
-    
- (t (hydra-modal-operator/mark operand)
-    (kill-region -1 -1 t))))
+  ;; Need to finish this for the lines
+  (defun hydra-modal-operator/copy (operand)
+    (interactive)
+    (cond
+     ((eq 'line operand)
+      (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+          nil
+	(hydra-modal-operator/mark operand)
+	(let ((str (buffer-substring (region-beginning) (region-end))))
+          (remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
+          (kill-new str t))
+	(deactivate-mark)))
 
-;;; Need to finish this for the lines
-(defun hydra-modal-operator/copy (operand)
-  (interactive)
-  (cond
-   ((eq 'line operand)
-    (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
-        nil
-      (hydra-modal-operator/mark operand)
+     ((eq 'region operand)
       (let ((str (buffer-substring (region-beginning) (region-end))))
-        (remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
-        (kill-new str t))
-      (deactivate-mark)))
-
-   ((eq 'region operand)
-    (let ((str (buffer-substring (region-beginning) (region-end))))
-      (remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
-      (kill-new str t))
-    (deactivate-mark))
+	(remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
+	(kill-new str t))
+      (deactivate-mark))
     
-   (t (hydra-modal-operator/mark operand)
-      (let ((str (buffer-substring (region-beginning) (region-end))))
-        (remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
-        (kill-new str t))
-      (deactivate-mark))))
+     (t (hydra-modal-operator/mark operand)
+	(let ((str (buffer-substring (region-beginning) (region-end))))
+          (remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
+          (kill-new str t))
+	(deactivate-mark))))
 
   (defhydra hydra-movement (:hint nil
                             :color amaranth 
                             :post (progn (set-cursor-color "#000000") 
-                                    (setq hydra-is-helpful t)))
+					 (setq hydra-is-helpful t)))
     "
   _f_: next word   _b_: prev word  _n_: next line   _p_: prev line   _s_: save point
-  _j_: jump point  _w_: cut        _W_: copy        _V_: page up     _u_: universal arg
+  _j_: jump point  _w_: cut oper   _W_: copy oper   _V_: page up     _u_: universal arg
   _y_: yank        _v_: page down  _e_: end line    _S_: swiper      _<SPC>_: mark
   _l_: recenter    _G_: goto line  _a_: beg line    _U_: undo        _i_: insert text
   _F_: next char   _B_: prev char  _g_: avy         _<_: beg buffer  _>_: end buffer
-  _=_: exp region  _m_: mark all   _M_: edit lines  _h_: hide hints  _<return>_: newline
+  _=_: exp region  _m_: mark oper  _M_: mult curs   _h_: hide hints  _<return>_: newline
     "
     ("<f1>" (setq hydra-movement/inside-body nil) :exit t)
     ("q" (setq hydra-movement/inside-body nil) :exit t)
@@ -526,8 +536,8 @@ _b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion
     ("b" backward-word)
     ("n" next-line)
     ("p" previous-line)
-    ("s" (point-to-register 'g))
-    ("j" (jump-to-register 'g))
+    ("s" (point-to-register ?g))
+    ("j" (jump-to-register ?g))
     ("W" (hydra-call/hydra-modal-operators 'hydra-modal-operator/copy) :exit t)
     ("<SPC>" set-mark-command)
     ("y" popup-kill-ring)
@@ -536,17 +546,15 @@ _b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion
     ("l" recenter-top-bottom)
     ("G" goto-line)
     ("a" beginning-of-line)
+    ("r" (lambda (arg) (interactive "cChoose a register:") (copy-to-register arg 1 1 nil t)))
     ("e" end-of-line)
-    ("F" forward-char)
-    ("B" backward-char)
+    ("F" (when (= (skip-syntax-forward "-") 0) (forward-char 1)))
+    ("B" (when (= (skip-syntax-backward "-") 0) (backward-char 1)))
     ("g" hydra-avy/body :exit t)
-    ("i" (lambda (txt)
-           (interactive "sQuick insertion:")
-           (insert txt)))
+    ("i" (lambda (arg) (interactive "cChoose a register:") (insert-register arg)))
     ("=" er/expand-region)
     ("m" (hydra-call/hydra-modal-operators 'hydra-modal-operator/mark) :exit t)
-    ("M-m" mc/mark-all-like-this)
-    ("M" mc/edit-lines)
+    ("M" hydra-multiple-cursors/body :exit t)
     ("u" universal-argument)
     ("S" swiper)
     ("<" beginning-of-buffer)
