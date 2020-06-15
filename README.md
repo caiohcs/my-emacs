@@ -6,24 +6,23 @@ My configuration has 62 packages installed. It loads fast, in my machine Doom Em
 
 I like hydra-mode since it's easy to customize, so for fast navigation and quick insertions I use some nested hydras. I tap F1 to call the hydra body, then I can do stuff like:
 
-| Key      | Action                 |
-|-------- |---------------------- |
-| f        | forward word           |
-| b        | backward word          |
-| v        | page down              |
-| V        | page up                |
-| i        | quick insertion        |
-| s        | save position          |
-| j        | jump to saved position |
-| g        | jump to a line number  |
-| G        | avy jump to word       |
-| SPC      | set mark command       |
-| m        | mark operator          |
-| M        | multiple cursors       |
-| w        | cut operator           |
-| W        | copy operator          |
-| y        | popup kill ring        |
-| &#x2026; | &#x2026;               |
+| Key      | Action              |
+|-------- |------------------- |
+| f        | forward             |
+| b        | backward            |
+| v        | page down           |
+| V        | page up             |
+| i        | insert              |
+| s        | save position       |
+| j        | jump saved position |
+| g        | avy                 |
+| SPC      | set mark command    |
+| m        | mark operator       |
+| M        | multiple cursors    |
+| w        | cut operator        |
+| W        | copy operator       |
+| y        | popup kill ring     |
+| &#x2026; | &#x2026;            |
 
 The delete/mark/cut/copy operators are vim-style, meaning that you can type "mb4l" to mark backwards 4 lines, or "d3w" to delete 3 words forwards.
 
@@ -402,6 +401,8 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ## Hydra
 
+![img](./imgs/hydra.png)
+
 ```emacs-lisp
 (use-package hydra
   :ensure t
@@ -478,14 +479,13 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     _l_: line     _c_: char timer    _g_: char timer
     "
     ("q" nil "quit")
-    ("s" avy-goto-word-1) 
-    ("p" avy-goto-word-1-above) 
-    ("n" avy-goto-word-1-below) 
-    ("l" avy-goto-line) 
-    ("c" avy-goto-char-timer) 
+    ("s" avy-goto-word-1)
+    ("p" avy-goto-word-1-above)
+    ("n" avy-goto-word-1-below)
+    ("l" avy-goto-line)
+    ("c" avy-goto-char-timer)
     ("g" avy-goto-char-timer))
   (global-set-key (kbd "M-s") 'hydra-avy/body)
-
 
 ;;; hydra-movement to make moving around easier
   (defun hydra-movement/cond-body-call ()
@@ -505,15 +505,23 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     (setq hydra-call-operators/operator operator)
     (setq hydra-call-operators/repeat nil)
     (setq hydra-call-operators/backwards nil)
+    (setq hydra-call-operators/inside nil)
+    (setq hydra-call-operators/until nil)
     (hydra-modal-operators/body))
 
   (defhydra hydra-modal-operators (:color blue
 				   :hint nil
 				   :post hydra-movement/cond-body-call)
     "
-  _b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion
+  _b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion  _u_:ntil  _i_:nside
     "
     ("b" (setq hydra-call-operators/backwards t) :color red)
+    ("i" (progn
+	   (call-interactively (lambda (arg) (interactive "c") (setq hydra-call-operators/inside arg)))
+	   (funcall hydra-call-operators/operator 'another)))
+    ("u" (progn
+	   (call-interactively (lambda (arg) (interactive "c") (setq hydra-call-operators/until arg)))
+	   (funcall hydra-call-operators/operator 'another)))
     ("w" (funcall hydra-call-operators/operator 'word))
     ("l" (funcall hydra-call-operators/operator 'line))
     ("p" (funcall hydra-call-operators/operator 'paragraph))
@@ -530,13 +538,63 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("8" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "8")) :color red)
     ("9" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "9")) :color red))
 
+  (defhydra hydra-indentation (:color blue
+			       :hint nil
+			       :post hydra-movement/cond-body-call)
+    "
+  Hydra for indentation
+  _c_:C  _l_:Lisp
+    "
+    ("q" nil "quit")
+    ("l" indent-sexp)
+    ("c" c-indent-defun))
+
   (defun current-line-blank-p ()
     (interactive)
     (string-match-p "\\`$" (thing-at-point 'line)))
 
-  (defun hydra-modal-operator/mark (operand) 
+  (defun navigate-to-specific-char (char &optional increment)
+    (or increment (setq increment 1))
+    (let ((tmp-pos (point)))
+      (while (not (= char (char-after tmp-pos))) (setq tmp-pos (+ increment tmp-pos)))
+      (goto-char tmp-pos)))
+
+  (defun hydra-modal-operator/mark (operand)
     (let ((times (if (not hydra-call-operators/repeat) 1 (string-to-number hydra-call-operators/repeat))))
       (cond
+
+       ((eq 'another operand)
+	(cond
+	 (hydra-call-operators/until
+	  (call-interactively 'set-mark-command)
+	  (if hydra-call-operators/backwards
+	      (navigate-to-specific-char hydra-call-operators/until -1)
+	    (navigate-to-specific-char hydra-call-operators/until +1)))
+
+	 (hydra-call-operators/inside
+	  (cond
+	   ((= hydra-call-operators/inside ?w)
+	    (backward-word)
+	    (call-interactively 'set-mark-command)
+	    (mark-word))
+
+	   ((member hydra-call-operators/inside '(?\" ?' ?` ?\ ?* ?\\ ?/))
+	    (navigate-to-specific-char hydra-call-operators/inside -1)
+	    (forward-char 1)
+	    (call-interactively 'set-mark-command)
+	    (navigate-to-specific-char hydra-call-operators/inside 1))
+
+	   (t (funcall #'(lambda (arg)
+			   (let ((delimiters `((,?( ,?)) (,?< ,?>) (,?{ ?}) (,?[ ?]))))
+			    (while delimiters
+			     (let ((del-pair (pop delimiters)))
+			      (when (member arg del-pair)
+			       (navigate-to-specific-char (car del-pair) -1)
+			       (forward-char 1)
+			       (call-interactively 'set-mark-command)
+			       (navigate-to-specific-char (cadr del-pair) 1))))))
+		       hydra-call-operators/inside))))))
+
        ((eq 'line operand)
 	(cond (hydra-call-operators/backwards
 	       (end-of-visual-line)
@@ -564,6 +622,10 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 	(delete-region (region-beginning) (region-end))
 	(kill-line)))
 
+     ((or hydra-call-operators/until hydra-call-operators/inside)
+      (hydra-modal-operator/mark 'another)
+      (delete-forward-char 1))
+
      (t (hydra-modal-operator/mark operand)
 	(delete-forward-char 1))))
 
@@ -577,31 +639,40 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 	(kill-region -1 -1 t)
 	(kill-line)))
 
+     ((or hydra-call-operators/until hydra-call-operators/inside)
+      (hydra-modal-operator/mark 'another)
+      (kill-region -1 -1 t))
+
      (t (hydra-modal-operator/mark operand)
 	(kill-region -1 -1 t))))
 
-  ;; Need to finish this for the lines
   (defun hydra-modal-operator/copy (operand)
     (interactive)
     (cond
      ((eq 'line operand)
-      (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
-	  nil
+      (unless (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
 	(hydra-modal-operator/mark operand)
 	(let ((str (buffer-substring (region-beginning) (region-end))))
-	  (remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
+	  (remove-text-properties 0 (length str) '(read-only t) str)
 	  (kill-new str t))
 	(deactivate-mark)))
 
      ((eq 'region operand)
       (let ((str (buffer-substring (region-beginning) (region-end))))
-	(remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
+	(remove-text-properties 0 (length str) '(read-only t) str)
+	(kill-new str t))
+      (deactivate-mark))
+
+     ((or hydra-call-operators/until hydra-call-operators/inside)
+      (hydra-modal-operator/mark 'another)
+      (let ((str (buffer-substring (region-beginning) (region-end))))
+	(remove-text-properties 0 (length str) '(read-only t) str)
 	(kill-new str t))
       (deactivate-mark))
 
      (t (hydra-modal-operator/mark operand)
 	(let ((str (buffer-substring (region-beginning) (region-end))))
-	  (remove-text-properties 0 (1- (string-width str)) '(read-only t) str)
+	  (remove-text-properties 0 (length str) '(read-only t) str)
 	  (kill-new str t))
 	(deactivate-mark))))
 
@@ -610,18 +681,28 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 			    :post (progn (set-cursor-color "#000000") 
 					 (setq hydra-is-helpful t)))
     "
-  _f_: next word   _b_: prev word  _n_: next line   _p_: prev line   _s_: save point
-  _j_: jump point  _w_: cut oper   _W_: copy oper   _V_: page up     _u_: universal arg
-  _y_: yank        _v_: page down  _e_: end line    _S_: swiper      _<SPC>_: mark
-  _l_: recenter    _G_: goto line  _a_: beg line    _U_: undo        _i_: insert text
-  _F_: next char   _B_: prev char  _g_: avy         _<_: beg buffer  _>_: end buffer
-  _=_: exp region  _m_: mark oper  _M_: mult curs   _h_: hide hints  _<return>_: newline
+  Navigation:
+  _f_: forward     _b_: backward   _F_: forward word  _B_: backward word
+  _n_: next line   _p_: prev line  _v_: page down     _V_: page up
+  _a_: beg line    _e_: end line   _<_: beg buffer    _>_: end buffer
+  _s_: save pos    _j_: jump pos   _g_: avy hydra     _S_: swiper
+ _C-n_: in sexp   _C-p_: out sexp _C-f_: forw sexp   _C-b_: back sexp
+  Edition:
+  _y_: popup yank  _Y_: yank       _i_: insert      _u_: undo  _C-s_: save buffer
+  _=_: exp region  _M_: MC hydra   _r_: copy regis  _I_: insert regis
+ _<DEL>_: del   _<SPC>_: set mark _<tab>_: ind hydra  _<return>_: newline
+  Operators:
+  _m_: mark  _d_: delete  _w_: cut  _W_: copy
     "
     ("<f1>" (setq hydra-movement/inside-body nil) :exit t)
     ("q" (setq hydra-movement/inside-body nil) :exit t)
     ("h" (setq hydra-is-helpful (not hydra-is-helpful)))
-    ("f" forward-word)
-    ("b" backward-word)
+    ("F" forward-word)
+    ("B" backward-word)
+    ("C-f" forward-sexp)
+    ("C-b" backward-sexp)
+    ("C-n" down-list)
+    ("C-p" backward-up-list)
     ("n" next-line)
     ("p" previous-line)
     ("s" (point-to-register ?g))
@@ -629,15 +710,16 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("W" (hydra-call/hydra-modal-operators 'hydra-modal-operator/copy) :exit t)
     ("<SPC>" set-mark-command)
     ("y" popup-kill-ring)
+    ("Y" yank)
+    ("<tab>" hydra-indentation/body :exit t)
     ("v" scroll-up)
     ("V" scroll-down)
     ("l" recenter-top-bottom)
-    ("G" goto-line)
     ("a" beginning-of-line)
     ("r" (lambda (arg) (interactive "cChoose a register:") (copy-to-register arg 1 1 nil t)))
     ("e" end-of-line)
-    ("F" (when (= (skip-syntax-forward "-") 0) (forward-char 1)))
-    ("B" (when (= (skip-syntax-backward "-") 0) (backward-char 1)))
+    ("f" (when (= (skip-syntax-forward "-") 0) (forward-char 1)))
+    ("b" (when (= (skip-syntax-backward "-") 0) (backward-char 1)))
     ("g" hydra-avy/body :exit t)
     ("I" (lambda (arg) (interactive "cChoose a register:") (insert-register arg)))
     ("i" (lambda (txt)
@@ -646,11 +728,12 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("=" er/expand-region)
     ("m" (hydra-call/hydra-modal-operators 'hydra-modal-operator/mark) :exit t)
     ("M" hydra-multiple-cursors/body :exit t)
-    ("u" universal-argument)
+    ("U" universal-argument)
     ("S" swiper)
+    ("C-s" save-buffer)
     ("<" beginning-of-buffer)
     (">" end-of-buffer)
-    ("U" undo)
+    ("u" undo)
     ("<return>" newline)
     ("<DEL>" delete-backward-char)
     ("<deletechar>" delete-forward-char)
