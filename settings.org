@@ -581,7 +581,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
        (t (hydra-modal-operator/mark operand)
           (kill-region -1 -1 t))))
-
+  
     (defun hydra-modal-operator/copy (operand)
       (interactive)
       (cond
@@ -612,6 +612,20 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
             (kill-new str t))
           (deactivate-mark))))
 
+    (defun hydra-modal-operator/case (operand)
+      (interactive)
+      (hydra-modal-operator/mark operand)
+      (let ((hydra-case-arg nil))
+        (call-interactively #'(lambda (arg)
+                                (interactive "c") (setq hydra-case-arg arg)))
+        (cond
+         ((= hydra-case-arg ?u)
+          (upcase-region (region-beginning) (region-end)))
+         ((= hydra-case-arg ?d)
+          (downcase-region (region-beginning) (region-end)))
+         ((= hydra-case-arg ?c)
+          (capitalize-region (region-beginning) (region-end))))))
+
     (defhydra hydra-movement (:hint nil
                               :color amaranth 
                               :post (progn (set-cursor-color "#000000") 
@@ -628,7 +642,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     _=_: exp region  _M_: MC hydra   _r_: copy regis  _I_: insert regis
    _<DEL>_: del   _<SPC>_: set mark _<tab>_: ind hydra  _<return>_: newline
     Operators:
-    _m_: mark  _d_: delete  _w_: cut  _W_: copy
+    _m_: mark  _d_: delete  _w_: cut  _W_: copy  _c_: case
       "
       ("<f1>" (setq hydra-movement/inside-body nil) :exit t)
       ("q" (setq hydra-movement/inside-body nil) :exit t)
@@ -649,11 +663,13 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
       ("Y" yank)
       ("<tab>" hydra-indentation/body :exit t)
       ("v" scroll-up)
+      ("c" (hydra-call/hydra-modal-operators 'hydra-modal-operator/case) :exit t)
       ("V" scroll-down)
       ("l" recenter-top-bottom)
       ("a" beginning-of-line)
       ("r" (lambda (arg) (interactive "cChoose a register:") (copy-to-register arg 1 1 nil t)))
       ("e" end-of-line)
+      ("C-e" eval-last-sexp)
       ("f" (when (= (skip-syntax-forward "-") 0) (forward-char 1)))
       ("b" (when (= (skip-syntax-backward "-") 0) (backward-char 1)))
       ("g" hydra-avy/body :exit t)
