@@ -2,54 +2,6 @@
 
 ![img](./imgs/my-emacs.png)
 
-
-# Table of Contents
-
-1.  [My Emacs configuration](#orgeb942c9)
-2.  [Overview](#org236cb8d)
-3.  [Installation](#org676d659)
-4.  [Programming](#orgb5e9205)
-    1.  [Company](#org9ef7eed)
-    2.  [Language Server Protocol](#org9db0100)
-    3.  [Projectile](#org3a14397)
-    4.  [Syntax checking](#orgd99ab05)
-    5.  [Jump to definition](#org60688cc)
-    6.  [C and C++](#org6ad4326)
-    7.  [Golang](#orga51a4c0)
-    8.  [Color identifiers](#orgbcb4d10)
-    9.  [Lisp](#orgbeac0f7)
-    10. [Yaml](#org6abc87a)
-    11. [Docker](#org1065670)
-5.  [Dashboard](#orgd81ec76)
-6.  [Org](#org258289b)
-    1.  [Config](#org8a5175c)
-    2.  [Exporting](#org7955c91)
-7.  [Magit](#org18eb584)
-8.  [Theme](#orgc112216)
-9.  [Treemacs](#org0fd34fe)
-10. [Global](#org1677118)
-    1.  [Hydra](#orgadcfdad)
-    2.  [Emacs completion](#orgd124efa)
-    3.  [Regular expressions](#orgb3cb8e3)
-    4.  [Kill ring](#org812f516)
-    5.  [Modeline](#orgc14efca)
-    6.  [Parentheses](#orgf84e2e5)
-    7.  [Buffer moving](#orgfa8cb56)
-    8.  [Windows moving](#org1d6c6d9)
-    9.  [Multiple cursors](#orgb1b84c4)
-    10. [Text navigation](#org79dd897)
-    11. [Windows management](#orga8c64b7)
-    12. [Smart region expanding](#org50c3450)
-    13. [Tool bar, menu bar, line numbering etc](#orga176759)
-    14. [Change backup/autosave folder](#org32b81cc)
-    15. [Read process output](#org841aa59)
-    16. [Spell checking](#org1b1ab13)
-    17. [Change sexp keyword indentation](#org560aace)
-11. [Latin accents](#org9b0ea68)
-
-
-# Overview
-
 My configuration has 62 packages installed. It loads fast, in my machine Doom Emacs takes around 0.6s to start, my configuration takes around 0.8s. I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
 
 I like hydra-mode since it's easy to customize, so for fast navigation and quick insertions I use some nested hydras. I tap F1 to call the hydra body, then I can do stuff like:
@@ -361,14 +313,13 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
   :mode ("\\.org\\'" . org-mode)
   :diminish org-indent-mode
   :config
-  (global-set-key (kbd "C-c l") 'org-store-link)
   (setq org-startup-indented t)
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '((python . t)
-     (emacs-lisp . t)
-     (lisp . t)
-     (C . t))))
+   '( (python . t)
+      (emacs-lisp . t)
+      (lisp . t)
+      (C . t))))
 
 (use-package org-bullets
   :after org
@@ -875,11 +826,12 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :diminish smartparens-mode
   :config 
   (smartparens-global-mode)
+  (sp-local-pair 'org-mode "*" "*")
   (sp-local-pair 'org-mode "_" "_"))
 
 (use-package highlight-parentheses
   :ensure t
-  :defer 7.1
+  :defer 12.1
   :diminish highlight-parentheses-mode
   :config (global-highlight-parentheses-mode))
 
