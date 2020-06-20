@@ -42,7 +42,7 @@ There is also an hydra for windows management (using Eyebrowse) on F2, another o
 #+BEGIN_SRC emacs-lisp
 (use-package company
   :ensure t
-  :defer 2.3
+  :defer 6.3
   :init
   (use-package company-quickhelp
     :ensure t)
@@ -100,15 +100,14 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
 #+BEGIN_SRC emacs-lisp
 ;;; C/C++
 (use-package cmake-ide
+  :disabled
   :ensure t
-  :defer 7.4
   :config (cmake-ide-setup))
 
 (use-package ccls
-  :requires lsp-mode
+  :after lsp-mode
   :ensure t
-  :config
-  (setq ccls-executable "/usr/bin/ccls"))
+  :config (setq ccls-executable "/usr/bin/ccls"))
 
 (defun my-c-mode-common-hook ()
   (c-set-offset 'substatement-open 0)
@@ -154,14 +153,6 @@ We can install gocode with go get, then we need to create a symbolic link at /us
   (add-hook 'go-mode-hook 'my-go-mode-hook))
 #+END_SRC
 
-** Color identifiers
-#+BEGIN_SRC emacs-lisp
-(use-package color-identifiers-mode
-  :disabled
-  :ensure t
-  :defer 9)
-#+END_SRC
-
 ** Lisp
 I use Steel Bank Common Lisp.
 *** Config
@@ -201,8 +192,7 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 (use-package dockerfile-mode
   :disabled
   :ensure t
-  :defer 4)
-(add-to-list 'auto-mode-alist '("Dockerfile\\'" . dockerfile-mode))
+  :mode ("Dockerfile\\'" . dockerfile-mode))
 #+END_SRC
 
 * Dashboard
@@ -331,7 +321,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 #+BEGIN_SRC emacs-lisp
 (use-package treemacs
   :ensure t
-  :defer 12.4)
+  :commands treemacs)
 #+END_SRC
 
 * Global
@@ -657,6 +647,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
       ("p" previous-line)
       ("s" (point-to-register ?g))
       ("j" (jump-to-register ?g))
+      ("G" (lambda (arg) (interactive "cInsert char:") (navigate-to-specific-char arg)))
       ("W" (hydra-call/hydra-modal-operators 'hydra-modal-operator/copy) :exit t)
       ("<SPC>" set-mark-command)
       ("y" popup-kill-ring)
@@ -689,20 +680,21 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
       ("<return>" newline)
       ("<DEL>" delete-backward-char)
       ("<deletechar>" delete-forward-char)
-      ("M-w" hydra-wind-move/body :exit t)
+      ("M-w" ace-window)
       ("d" (hydra-call/hydra-modal-operators 'hydra-modal-operator/delete) :exit t)
       ("w" (hydra-call/hydra-modal-operators 'hydra-modal-operator/cut) :exit t))
-    (global-set-key (kbd "<f1>") 'hydra-movement/call-body))
+    (global-set-key (kbd "<f1>") 'hydra-movement/call-body)
+    (global-set-key (kbd "C-: :") 'hydra-movement/call-body))
 #+END_SRC
 
-** Emacs completion
+** Ivy
 #+BEGIN_SRC emacs-lisp
 ;;; Global
 ;; Ivy is a generic completion tool
 (use-package ivy
   :ensure t
   :diminish ivy-mode
-  :defer 1.1
+  :defer 0.9
   :config
   (ivy-mode)
   (use-package swiper
@@ -782,6 +774,10 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (global-set-key (kbd "C-c <M-down>") 'windmove-down) 
 (global-set-key (kbd "C-c <M-right>") 'windmove-right) 
 (global-set-key (kbd "C-c <M-left>") 'windmove-left) 
+
+(use-package ace-window
+  :ensure t
+  :commands ace-window)
 #+END_SRC
 
 ** Multiple cursors
@@ -794,7 +790,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 	 ("C-: C-m <" . mc/mark-previous-like-this)))
 #+END_SRC
 
-** Text navigation
+** Avy
 #+BEGIN_SRC emacs-lisp
 (use-package avy
   :ensure t
@@ -1043,6 +1039,33 @@ Code from https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords
                normal-indent))))))
 #+END_SRC
 
+* PDF
+** Requirements
+See https://github.com/politza/pdf-tools.
+
+** Config
+#+BEGIN_SRC emacs-lisp
+(use-package pdf-tools
+  :ensure t
+  :mode ("\\.pdf\\'" . pdf-view-mode)
+  :hook (pdf-view-mode . (lambda() (linum-mode -1))))
+#+END_SRC
+
+* RSS
+** Requirements
+cURL.
+
+** Config
+#+BEGIN_SRC emacs-lisp
+(use-package elfeed
+  :ensure t
+  :commands elfeed
+  :config
+  (setq elfeed-feeds
+        '("reddit.com/r/emacs.rss"
+          "https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA")))
+#+END_SRC
+
 * Latin accents
 I created this function to insert the latin accents that I use the most.
 #+BEGIN_SRC emacs-lisp
@@ -1070,4 +1093,3 @@ I created this function to insert the latin accents that I use the most.
 	      ((cmp-and-fixcase regionp "ai" "í"))))))
 (global-set-key (kbd "C-: C-a") 'my-latin-accents-function)
 #+END_SRC
-
