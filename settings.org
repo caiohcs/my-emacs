@@ -5,7 +5,7 @@
 * My Emacs configuration
 [[./imgs/my-emacs.png]] 
 
-My configuration has 64 packages installed. It loads fast, in my machine Doom Emacs takes around 0.6s to start, my configuration takes around 0.8s. I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
+My configuration has 73 packages installed. It loads fast, in my machine Doom Emacs takes around 0.6s to start, my configuration takes around 0.8s. I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
 
 I like hydra-mode since it's easy to customize, so for fast navigation and quick insertions I use some nested hydras. I tap F1 to call the hydra body, then I can do stuff like:
 
@@ -42,7 +42,7 @@ There is also an hydra for windows management (using Eyebrowse) on F2, another o
 #+BEGIN_SRC emacs-lisp
 (use-package company
   :ensure t
-  :defer 6.3
+  :commands company-mode
   :init
   (use-package company-quickhelp
     :ensure t)
@@ -107,7 +107,14 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
 (use-package ccls
   :after lsp-mode
   :ensure t
-  :config (setq ccls-executable "/usr/bin/ccls"))
+  :config (setq ccls-executable "/usr/bin/ccls")
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp))))
+
+(use-package company-lsp
+  :ensure t
+  :after (lsp-mode company)
+  :commands company-lsp)
 
 (defun my-c-mode-common-hook ()
   (c-set-offset 'substatement-open 0)
@@ -120,8 +127,7 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
 	 c-tab-always-indent t
 	 c++-tab-always-indent t
 	 tab-width 4
-	 backward-delete-function nil)
-  (company-mode))
+	 backward-delete-function nil))
 
 (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
@@ -645,6 +651,8 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
       ("C-p" backward-up-list)
       ("n" next-line)
       ("p" previous-line)
+      ("+" (enlarge-window 1))
+      ("-" (enlarge-window -1))
       ("s" (point-to-register ?g))
       ("j" (jump-to-register ?g))
       ("G" (lambda (arg) (interactive "cInsert char:") (navigate-to-specific-char arg)))
