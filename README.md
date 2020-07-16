@@ -379,6 +379,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (setq *current-theme* *theme-dark*)
 
 (defun my-fn/next-theme (theme)
+  (disable-theme *current-theme*)
   (load-theme theme t)
   (powerline-reset)
   (setq *current-theme* theme))
