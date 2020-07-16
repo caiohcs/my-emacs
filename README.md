@@ -389,8 +389,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 	((eq *current-theme* *theme-light*) (my-fn/next-theme *theme-dark*))))
 
 (global-set-key (kbd "<f5>") #'my-fn/toggle-theme)
-
-(load-theme 'kaolin-galaxy t)
 ```
 
 
