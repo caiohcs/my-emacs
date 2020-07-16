@@ -2,33 +2,9 @@
 
 ![img](./imgs/my-emacs.png)
 
-My configuration has 62 packages installed. It loads fast, in my machine Doom Emacs takes around 0.6s to start, my configuration takes around 0.8s. I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
+My configuration has around 90 packages installed. It loads fast, in my machine it takes around 0.8s but I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
 
-I like hydra-mode since it's easy to customize, so for fast navigation and quick insertions I use some nested hydras. I tap F1 to call the hydra body, then I can do stuff like:
-
-| Key      | Action              |
-|-------- |------------------- |
-| f        | forward             |
-| b        | backward            |
-| v        | page down           |
-| V        | page up             |
-| i        | insert              |
-| s        | save position       |
-| j        | jump saved position |
-| g        | avy                 |
-| SPC      | set mark command    |
-| m        | mark operator       |
-| M        | multiple cursors    |
-| w        | cut operator        |
-| W        | copy operator       |
-| y        | popup kill ring     |
-| &#x2026; | &#x2026;            |
-
-The delete/mark/cut/copy operators are vim-style, meaning that you can type "mb4l" to mark backwards 4 lines, or "d3w" to delete 3 words forwards.
-
-This nagivation hydra has the hint menu hidden by default since it can slow down Emacs while holding some key like f to forward-word, so when this hydra's body is called the cursor color changes to red to indicate that it's active. You can press H to open the hint menu.
-
-There is also an hydra for windows management (using Eyebrowse) on F2, another one for dumb-jump on F3, and one for Avy shorcuts on M-s.
+I use the hydra package to configure my keybindings. There is a modal editing hydra on F1, a hydra for windows management (using Eyebrowse) on F2, a hydra for dumb-jump on F3, a hydra to open programs (e.g. the browser) on F4 and a hydra for Avy shorcuts on M-s. F5 switches between a light theme and a dark theme.
 
 
 # Installation
@@ -45,7 +21,10 @@ There is also an hydra for windows management (using Eyebrowse) on F2, another o
 ```emacs-lisp
 (use-package company
   :ensure t
-  :defer 6.3
+  :commands company-mode
+  :bind (:map company-active-map
+	 ("C-n" . 'company-select-next)
+	 ("C-p" . 'company-select-previous))
   :init
   (use-package company-quickhelp
     :ensure t)
@@ -131,7 +110,14 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
 (use-package ccls
   :after lsp-mode
   :ensure t
-  :config (setq ccls-executable "/usr/bin/ccls"))
+  :config (setq ccls-executable "/usr/bin/ccls")
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+	 (lambda () (require 'ccls) (lsp))))
+
+(use-package company-lsp
+  :ensure t
+  :after (lsp-mode company)
+  :commands company-lsp)
 
 (defun my-c-mode-common-hook ()
   (c-set-offset 'substatement-open 0)
@@ -144,8 +130,7 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
 	 c-tab-always-indent t
 	 c++-tab-always-indent t
 	 tab-width 4
-	 backward-delete-function nil)
-  (company-mode))
+	 backward-delete-function nil))
 
 (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
@@ -204,6 +189,19 @@ I use Steel Bank Common Lisp.
   :ensure t
   :init
   (slime-setup '(slime-fancy slime-company)))
+
+(use-package suggest
+  :ensure t
+  :commands suggest)
+```
+
+
+## HTML
+
+```emacs-lisp
+(use-package emmet-mode
+  :ensure t
+  :mode ("\\.html\\'" . emmet-mode))
 ```
 
 
@@ -369,9 +367,30 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dracula-theme.
 
 ```emacs-lisp
-;; zerodark-theme kaolin-themes moe-theme dracula-theme are nice themes
+  ;; zerodark-theme kaolin-themes moe-theme dracula-theme are nice themes
 (use-package kaolin-themes
   :ensure t)
+
+(use-package doom-themes
+  :ensure t)
+
+(setq *theme-dark* 'kaolin-galaxy)
+(setq *theme-light* 'doom-acario-light)
+(setq *current-theme* *theme-dark*)
+
+(defun my-fn/next-theme (theme)
+  (load-theme theme t)
+  (powerline-reset)
+  (setq *current-theme* theme))
+
+(defun my-fn/toggle-theme ()
+  (interactive)
+  (cond ((eq *current-theme* *theme-dark*) (my-fn/next-theme *theme-light*))
+	((eq *current-theme* *theme-light*) (my-fn/next-theme *theme-dark*))))
+
+(global-set-key (kbd "<f5>") #'my-fn/toggle-theme)
+
+(load-theme 'kaolin-galaxy t)
 ```
 
 
@@ -380,7 +399,8 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```emacs-lisp
 (use-package treemacs
   :ensure t
-  :commands treemacs)
+  :commands treemacs
+  :hook (pdf-view-mode . (lambda() (linum-mode -1))))
 ```
 
 
@@ -410,9 +430,21 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("p" windmove-up)
     ("n" windmove-down))
 
+  (defhydra hydra-exwm (:color teal
+			:hint nil)
+    "
+  _b_:rave   _t_:erminal
+    "
+    ("q" nil "quit")
+    ("<f4>" nil "quit")
+    ("b" (exwm-async-run "brave-browser"))
+    ("t" (exwm-async-run "alacritty")))
+  (global-set-key (kbd "<f4>") 'hydra-exwm/body)
+
   (defhydra hydra-dumb-jump (:color teal :columns 3)
     "Dumb Jump"
     ("q" nil "quit")
+    ("<f3>" nil "quit")
     ("j" dumb-jump-go "Go")
     ("o" dumb-jump-go-other-window "Other window")
     ("e" dumb-jump-go-prefer-external "Go external")
@@ -699,14 +731,20 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("<f1>" (setq hydra-movement/inside-body nil) :exit t)
     ("q" (setq hydra-movement/inside-body nil) :exit t)
     ("h" (setq hydra-is-helpful (not hydra-is-helpful)))
+    ("o" (progn (end-of-line) (newline)))
     ("F" forward-word)
     ("B" backward-word)
     ("C-f" forward-sexp)
     ("C-b" backward-sexp)
     ("C-n" down-list)
     ("C-p" backward-up-list)
+    ("M-f" counsel-find-file)
+    ("P" (move-to-window-line 0))
     ("n" next-line)
+    ("N" (move-to-window-line -1))
     ("p" previous-line)
+    ("+" (enlarge-window 1))
+    ("-" (enlarge-window -1))
     ("s" (point-to-register ?g))
     ("j" (jump-to-register ?g))
     ("G" (lambda (arg) (interactive "cInsert char:") (navigate-to-specific-char arg)))
@@ -719,6 +757,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("c" (hydra-call/hydra-modal-operators 'hydra-modal-operator/case) :exit t)
     ("V" scroll-down)
     ("l" recenter-top-bottom)
+    ("L" (move-to-window-line (/ (window-height) 2)))
     ("a" beginning-of-line)
     ("r" (lambda (arg) (interactive "cChoose a register:") (copy-to-register arg 1 1 nil t)))
     ("e" end-of-line)
@@ -745,8 +784,8 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("M-w" ace-window)
     ("d" (hydra-call/hydra-modal-operators 'hydra-modal-operator/delete) :exit t)
     ("w" (hydra-call/hydra-modal-operators 'hydra-modal-operator/cut) :exit t))
-  (global-set-key (kbd "<f1>") 'hydra-movement/call-body)
-  (global-set-key (kbd "C-: :") 'hydra-movement/call-body))
+  (global-set-key (kbd "C-!") 'hydra-movement/call-body)
+  (global-set-key (kbd "<f1>") 'hydra-movement/call-body))
 ```
 
 
@@ -760,13 +799,14 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   :diminish ivy-mode
   :defer 0.9
   :config
-  (ivy-mode)
   (use-package swiper
     :ensure t
     :bind (("\C-s" . swiper)))
-  :config
   (use-package counsel
-    :ensure t))
+    :ensure t
+    :diminish counsel-mode
+    :config (counsel-mode))
+  (ivy-mode))
 ```
 
 
@@ -785,6 +825,74 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (use-package popup-kill-ring
   :ensure t
   :bind (("M-y" . popup-kill-ring))) 
+```
+
+
+## EXWM
+
+```emacs-lisp
+(use-package exwm
+  :ensure t
+  :config
+  (require 'exwm-config)
+      (exwm-config-default)
+      ;(exwm-enable)
+  (require 'exwm-randr)
+      ;(exwm-randr-enable)
+  (setq exwm-randr-workspace-output-plist '(0 "eDP-1" 1 "HDMI-1"))
+  (add-hook 'exwm-randr-screen-change-hook
+	    (lambda ()
+	      (start-process-shell-command
+	       "xrandr" nil "xrandr --output eDP-1 --right-of HDMI-1 --auto")))
+  (exwm-randr-enable)
+					;
+					;(exwm-enable)
+  (defun exwm-async-run (name)
+    (start-process name nil name))
+
+  (dolist (k '(XF86AudioLowerVolume
+	       XF86AudioRaiseVolume
+	       XF86PowerOff
+	       XF86AudioMute
+	       XF86AudioPlay
+	       XF86AudioStop
+	       XF86AudioPrev
+	       XF86AudioNext
+	       XF86ScreenSaver
+	       XF68Back
+	       XF86Forward
+	       Scroll_Lock
+	       print))
+    (cl-pushnew k exwm-input-prefix-keys))
+
+  (global-set-key (kbd "<XF86AudioRaiseVolume>")
+		  (lambda ()
+		    (interactive)
+		    (call-process-shell-command "amixer set Master 10%+" nil 0)))
+
+  (global-set-key (kbd "<XF86AudioLowerVolume>")
+		  (lambda ()
+		    (interactive)
+		    (call-process-shell-command "amixer set Master 10%-" nil 0)))
+
+  (global-set-key (kbd "<XF86AudioMute>")
+		  (lambda ()
+		    (interactive)
+		    (call-process-shell-command "amixer set Master toggle" nil 0)))
+
+  (global-set-key (kbd "<print>")
+		  (lambda ()
+		    (interactive)
+		    (call-process-shell-command "flameshot gui" nil 0)))
+
+  (exwm-input-set-simulation-keys
+   '(
+     ;; cut/paste
+     ([?\C-w] . ?\C-x)
+     ([?\M-w] . ?\C-c)
+     ([?\C-y] . ?\C-v)
+     ;; search
+     ([?\C-s] . ?\C-f))))
 ```
 
 
@@ -878,11 +986,75 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
+## Undo-tree
+
+```emacs-lisp
+(use-package undo-tree
+  :ensure t
+  :defer 4.2
+  :diminish undo-tree-mode
+  :config (global-undo-tree-mode))
+```
+
+
+## Dired
+
+```emacs-lisp
+(use-package dired
+  :hook (dired-mode . dired-omit-mode)
+  :bind (:map dired-mode-map
+	 ("<return>" . dired-find-alternate-file)))
+
+(use-package dired-x
+  :config
+  (setq dired-omit-verbose nil)
+  (setq dired-omit-files
+	"^\\..+$"))
+
+(use-package dired-rainbow
+  :ensure t
+  :defer 3.2
+  :config
+  (progn
+    (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+    (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
+    (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
+    (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
+    (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
+    (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
+    (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+    (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
+    (dired-rainbow-define log "#c17d11" ("log"))
+    (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
+    (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
+    (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
+    (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+    (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
+    (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
+    (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
+    (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+    (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
+    (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+    (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")))
+
+```
+
+
+## Tabs
+
+```emacs-lisp
+(use-package centaur-tabs
+  :ensure t
+  :defer 4.2)
+```
+
+
 ## Windows management
 
 ```emacs-lisp
 (use-package eyebrowse
   :ensure t
+  :commands hydra-eyebrowse/body
   :config (eyebrowse-mode t))
 ```
 
@@ -907,6 +1079,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (global-linum-mode)
 (global-set-key (kbd "TAB") 'self-insert-command)
 (global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)
+(setq visible-bell 1)
 ```
 
 
@@ -940,6 +1113,27 @@ I use aspell for spell checking.
 
 ```emacs-lisp
 (defvar ispell-program-name "aspell")
+```
+
+
+## Diminish
+
+I use aspell for spell checking.
+
+
+### Config
+
+```emacs-lisp
+(diminish 'visual-line-mode)
+(diminish 'auto-revert-mode)
+(diminish 'eldoc-mode)
+```
+
+
+## Eshell
+
+```emacs-lisp
+(add-hook 'eshell-mode-hook (lambda () (linum-mode -1)))
 ```
 
 
