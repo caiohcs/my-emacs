@@ -3,9 +3,10 @@
 #+OPTIONS: toc:nil
 
 * My Emacs configuration
-[[./imgs/my-emacs.png]] 
+#+ATTR_HTML: :width 100%
+[[./imgs/my-emacs.png]]
 
-My configuration has around 90 packages installed. It loads fast, in my machine it takes around 0.8s but I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
+My configuration has around 100 packages installed. It loads fast, in my machine it takes around 0.8s but I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
 
 I use the hydra package to configure my keybindings. There is a modal editing hydra on F1, a hydra for windows management (using Eyebrowse) on F2, a hydra for dumb-jump on F3, a hydra to open programs (e.g. the browser) on F4 and a hydra for Avy shorcuts on M-s. F5 switches between a light theme and a dark theme.
 
@@ -69,6 +70,21 @@ Silver searcher: https://github.com/ggreer/the_silver_searcher
   :commands dumb-jump-go)
 #+end_src
 
+** Yasnippets
+*** Config
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :defer 3.7
+    :hook (lisp-interaction-mode . (lambda () (yas-minor-mode)))
+    :config
+    (yas-reload-all))
+
+  (use-package yasnippet-snippets
+    :ensure t
+    :after yasnippet)
+#+end_src
+
 ** C and C++
 *** Requirements
 - Requires clang installed on the system.
@@ -77,39 +93,39 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
 
 *** Config
 #+BEGIN_SRC emacs-lisp
-;;; C/C++
-(use-package cmake-ide
-  :disabled
-  :ensure t
-  :config (cmake-ide-setup))
+  ;;; C/C++
+  (use-package cmake-ide
+    :disabled
+    :ensure t
+    :config (cmake-ide-setup))
 
-(use-package ccls
-  :after lsp-mode
-  :ensure t
-  :config (setq ccls-executable "/usr/bin/ccls")
-  :hook ((c-mode c++-mode objc-mode cuda-mode) .
-         (lambda () (require 'ccls) (lsp))))
+  (use-package ccls
+    :after lsp-mode
+    :ensure t
+    :config (setq ccls-executable "/usr/bin/ccls")
+    :hook ((c-mode c++-mode objc-mode cuda-mode) .
+           (lambda () (require 'ccls))))
 
-(use-package company-lsp
-  :ensure t
-  :after (lsp-mode company)
-  :commands company-lsp)
+  (use-package company-lsp
+    :ensure t
+    :after (lsp-mode company)
+    :commands company-lsp)
 
-(defun my-c-mode-common-hook ()
-  (c-set-offset 'substatement-open 0)
-  (c-set-offset 'access-label '/)
-  (c-set-offset 'inclass '+)
-  (setq  c-default-style "bsd"
-	 c-basic-offset 4
-	 c-indent-level 4
-	 c-indent-tabs-mode t
-	 c-tab-always-indent t
-	 c++-tab-always-indent t
-	 tab-width 4
-	 backward-delete-function nil))
+  (defun my-c-mode-common-hook ()
+    (c-set-offset 'substatement-open 0)
+    (c-set-offset 'access-label '/)
+    (c-set-offset 'inclass '+)
+    (setq  c-default-style "bsd"
+           c-basic-offset 4
+           c-indent-level 4
+           c-indent-tabs-mode t
+           c-tab-always-indent t
+           c++-tab-always-indent t
+           tab-width 4
+           backward-delete-function nil))
 
-(add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
-(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+  (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
+  (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 #+END_SRC
 
 ** Golang
@@ -163,9 +179,20 @@ I use Steel Bank Common Lisp.
 
 ** HTML
 #+BEGIN_SRC emacs-lisp
-(use-package emmet-mode
-  :ensure t
-  :mode ("\\.html\\'" . emmet-mode))
+  (use-package emmet-mode
+    :ensure t
+    :mode ("\\.html\\'" . emmet-mode))
+
+  (use-package rainbow-mode
+    :ensure t
+    :hook (org-mode . (lambda () (rainbow-mode)))
+    :mode (("\\.html\\'"	. rainbow-mode)
+           ("\\.css\\'"	. rainbow-mode)))
+
+  (use-package web-mode
+    :ensure t
+    :mode (("\\.html\\'"	. web-mode)
+           ("\\.css\\'"	. web-mode)))
 #+END_SRC
 
 ** Yaml
@@ -245,24 +272,24 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 * Org
 ** Config
 #+BEGIN_SRC emacs-lisp
-;;; org
-(use-package org
-  :ensure t
-  :mode ("\\.org\\'" . org-mode)
-  :diminish org-indent-mode
-  :config
-  (setq org-startup-indented t)
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '( (python . t)
-      (emacs-lisp . t)
-      (lisp . t)
-      (C . t))))
+  ;;; org
+  (use-package org
+    :ensure t
+    :mode ("\\.org\\'" . org-mode)
+    :diminish org-indent-mode
+    :config
+    (setq org-startup-indented t)
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((python		. t)
+       (emacs-lisp	. t)
+       (lisp		. t)
+       (C			. t))))
 
-(use-package org-bullets
-  :after org
-  :ensure t
-  :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
+  (use-package org-bullets
+    :after org
+    :ensure t
+    :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
 #+END_SRC
 
 ** Exporting
@@ -337,8 +364,15 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 #+BEGIN_SRC emacs-lisp
 (use-package treemacs
   :ensure t
-  :commands treemacs
-  :hook (pdf-view-mode . (lambda() (linum-mode -1))))
+  :commands treemacs)
+#+END_SRC
+
+* Password manager
+Requires pass.
+#+BEGIN_SRC emacs-lisp
+  (use-package pass
+    :ensure t
+    :commands pass)
 #+END_SRC
 
 * Global
@@ -912,7 +946,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ** Dired
 #+BEGIN_SRC emacs-lisp
   (use-package dired
-    :hook (dired-mode . dired-omit-mode)
+    :hook (dired-mode . (lambda () (dired-omit-mode)))
     :bind (:map dired-mode-map
            ("<return>" . dired-find-alternate-file)))
 
@@ -979,7 +1013,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
-(global-linum-mode)
 (global-set-key (kbd "TAB") 'self-insert-command)
 (global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)
 (setq visible-bell 1)
@@ -1015,11 +1048,6 @@ I use aspell for spell checking.
   (diminish 'visual-line-mode)
   (diminish 'auto-revert-mode)
   (diminish 'eldoc-mode)
-#+END_SRC
-
-** Eshell
-#+BEGIN_SRC emacs-lisp
-(add-hook 'eshell-mode-hook (lambda () (linum-mode -1)))
 #+END_SRC
 
 ** Change sexp keyword indentation
@@ -1223,8 +1251,49 @@ See https://github.com/politza/pdf-tools.
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
   :ensure t
-  :mode ("\\.pdf\\'" . pdf-view-mode)
-  :hook (pdf-view-mode . (lambda() (linum-mode -1))))
+  :mode ("\\.pdf\\'" . pdf-view-mode))
+#+END_SRC
+
+* Blog
+#+BEGIN_SRC emacs-lisp
+  (use-package org-static-blog
+    :ensure t
+    :config
+    (setq org-static-blog-publish-title "Caio's Blog")
+    (setq org-static-blog-publish-url "https://blog.caiohcs.xyz/")
+    (setq org-static-blog-publish-directory "~/projects/blog/")
+    (setq org-static-blog-posts-directory "~/projects/blog/posts/")
+    (setq org-static-blog-drafts-directory "~/projects/blog/drafts/")
+    (setq org-static-blog-enable-tags t)
+    (setq org-export-with-toc nil)
+    (setq org-export-with-section-numbers nil)
+
+    ;; This header is inserted into the <head> section of every page:
+    ;;   (you will need to create the style sheet at
+    ;;    ~/projects/blog/static/style.css
+    ;;    and the favicon at
+    ;;    ~/projects/blog/static/favicon.ico)
+    (setq org-static-blog-page-header
+          "<meta name=\"author\" content=\"Caio H C S\">
+  <meta name=\"referrer\" content=\"no-referrer\">
+  <link href= \"static/style.css\" rel=\"stylesheet\" type=\"text/css\" />
+  <link rel=\"icon\" href=\"static/favicon.ico\">")
+
+    ;; This preamble is inserted at the beginning of the <body> of every page:
+    ;;   This particular HTML creates a <div> with a simple linked headline
+    (setq org-static-blog-page-preamble
+          "<div class=\"header\">
+    <a href=\"https://caiohcs.xyz/\">Back to main page</a>
+  </div>")
+
+    ;; This postamble is inserted at the end of the <body> of every page:
+    ;;   This particular HTML creates a <div> with a link to the archive page
+    ;;   and a licensing stub.
+    (setq org-static-blog-page-postamble
+          "<div id=\"archive\">
+    <a href=\"https://blog.caiohcs.xyz/archive.html\">Other posts</a>
+  </div>
+  <center><a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-sa/3.0/88x31.png\" /></a><br /><span xmlns:dct=\"https://purl.org/dc/terms/\" href=\"https://purl.org/dc/dcmitype/Text\" property=\"dct:title\" rel=\"dct:type\">caiohcs.xyz</span> by <a xmlns:cc=\"https://creativecommons.org/ns#\" href=\"https://caiohcs.xyz/\" property=\"cc:attributionName\" rel=\"cc:attributionURL\">Caio H C S</a> is licensed under a <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.</center>"))
 #+END_SRC
 
 * RSS
@@ -1233,13 +1302,16 @@ cURL.
 
 ** Config
 #+BEGIN_SRC emacs-lisp
-(use-package elfeed
-  :ensure t
-  :commands elfeed
-  :config
-  (setq elfeed-feeds
-        '("reddit.com/r/emacs.rss"
-          "https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA")))
+  (use-package elfeed
+    :ensure t
+    :commands elfeed
+    :config
+    (setq elfeed-feeds
+          '("reddit.com/r/emacs.rss"
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA"
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UC7YOGHUfC1Tb6E4pudI9STA"
+            "https://www.youtube.com/feeds/videos.xml?channel_id=UCVls1GmFKf6WlTraIb_IaJg"
+            "https://lukesmith.xyz/rss.xml")))
 #+END_SRC
 
 * Latin accents
