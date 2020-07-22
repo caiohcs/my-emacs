@@ -6,7 +6,7 @@
 #+ATTR_HTML: :width 100%
 [[./imgs/my-emacs.png]]
 
-My configuration has around 100 packages installed. It loads fast, in my machine it takes around 0.8s but I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
+My configuration loads around 65 packages. It loads fast, in my machine it takes around 0.8s but I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
 
 I use the hydra package to configure my keybindings. There is a modal editing hydra on F1, a hydra for windows management (using Eyebrowse) on F2, a hydra for dumb-jump on F3, a hydra to open programs (e.g. the browser) on F4 and a hydra for Avy shorcuts on M-s. F5 switches between a light theme and a dark theme.
 
@@ -18,14 +18,14 @@ I use the hydra package to configure my keybindings. There is a modal editing hy
 ** Company
 #+BEGIN_SRC emacs-lisp
   (use-package company
-    :ensure t
+    :straight t
     :commands company-mode
     :bind (:map company-active-map
            ("C-n" . 'company-select-next)
            ("C-p" . 'company-select-previous))
     :init
     (use-package company-quickhelp
-      :ensure t)
+      :straight t)
     :config
     (company-quickhelp-mode))
 #+END_SRC
@@ -34,7 +34,7 @@ I use the hydra package to configure my keybindings. There is a modal editing hy
 I use LSP for C and C++.
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
-  :ensure t
+  :straight t
   :hook
   ((c++-mode . lsp)
   (c-mode . lsp))
@@ -45,7 +45,7 @@ I use LSP for C and C++.
 I think that LSP requires projectile, so it's going to be installed as a dependency anyway.
 #+BEGIN_SRC emacs-lisp
 (use-package projectile
-  :ensure t
+  :straight t
   :commands projectile-command-map) 
 #+END_SRC
 
@@ -53,7 +53,7 @@ I think that LSP requires projectile, so it's going to be installed as a depende
 #+BEGIN_SRC emacs-lisp
 ;; Provides some syntax checking
 (use-package flycheck
-  :ensure t
+  :straight t
   :defer 4.3)
 #+END_SRC
 
@@ -64,7 +64,7 @@ Silver searcher: https://github.com/ggreer/the_silver_searcher
 *** Config
 #+begin_src emacs-lisp
 (use-package dumb-jump
-  :ensure t
+  :straight t
   :config
   (setq dumb-jump-selector 'ivy)
   :commands dumb-jump-go)
@@ -74,14 +74,14 @@ Silver searcher: https://github.com/ggreer/the_silver_searcher
 *** Config
 #+begin_src emacs-lisp
   (use-package yasnippet
-    :ensure t
+    :straight t
     :defer 3.7
     :hook (lisp-interaction-mode . (lambda () (yas-minor-mode)))
     :config
     (yas-reload-all))
 
   (use-package yasnippet-snippets
-    :ensure t
+    :straight t
     :after yasnippet)
 #+end_src
 
@@ -96,18 +96,18 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
   ;;; C/C++
   (use-package cmake-ide
     :disabled
-    :ensure t
+    :straight t
     :config (cmake-ide-setup))
 
   (use-package ccls
     :after lsp-mode
-    :ensure t
+    :straight t
     :config (setq ccls-executable "/usr/bin/ccls")
     :hook ((c-mode c++-mode objc-mode cuda-mode) .
            (lambda () (require 'ccls))))
 
   (use-package company-lsp
-    :ensure t
+    :straight t
     :after (lsp-mode company)
     :commands company-lsp)
 
@@ -138,14 +138,14 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 ;; Requires gocode https://github.com/nsf/gocode
 ;; After installing gocode, we also have to create a symbolic link
 (use-package go-mode
-  :ensure t
+  :straight t
   :mode ("\\.go\\'" . go-mode)
   :config
   (use-package company-go
     :requires company
-    :ensure t)
+    :straight t)
   (use-package go-errcheck
-    :ensure t)
+    :straight t)
   (defun my-go-mode-hook ()
     (setq tab-width 4)
     (setq gofmt-command "goimports")
@@ -160,7 +160,7 @@ I use Steel Bank Common Lisp.
 #+BEGIN_SRC emacs-lisp
   ;;; Lisp
   (use-package slime
-    :ensure t
+    :straight t
     :commands slime
     :config
     (setq inferior-lisp-program "sbcl")
@@ -168,29 +168,29 @@ I use Steel Bank Common Lisp.
 
   (use-package slime-company
     :after (slime company)
-    :ensure t
+    :straight t
     :init
     (slime-setup '(slime-fancy slime-company)))
 
   (use-package suggest
-    :ensure t
+    :straight t
     :commands suggest)
 #+END_SRC
 
 ** HTML
 #+BEGIN_SRC emacs-lisp
   (use-package emmet-mode
-    :ensure t
+    :straight t
     :mode ("\\.html\\'" . emmet-mode))
 
   (use-package rainbow-mode
-    :ensure t
+    :straight t
     :hook (org-mode . (lambda () (rainbow-mode)))
     :mode (("\\.html\\'"	. rainbow-mode)
            ("\\.css\\'"	. rainbow-mode)))
 
   (use-package web-mode
-    :ensure t
+    :straight t
     :mode (("\\.html\\'"	. web-mode)
            ("\\.css\\'"	. web-mode)))
 #+END_SRC
@@ -200,7 +200,7 @@ I left the Yaml package disabled, so delete the :disabled line if you want this 
 #+BEGIN_SRC emacs-lisp
 (use-package yaml-mode
   :disabled
-  :ensure t
+  :straight t
   :mode ("\\.yml\\'" . yaml-mode))
 #+END_SRC
 
@@ -209,27 +209,27 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 #+BEGIN_SRC emacs-lisp
 (use-package docker
   :disabled
-  :ensure t
+  :straight t
   :commands docker)
 
 (use-package dockerfile-mode
   :disabled
-  :ensure t
+  :straight t
   :mode ("Dockerfile\\'" . dockerfile-mode))
 #+END_SRC
 
 * Dashboard
 #+BEGIN_SRC emacs-lisp
 (use-package dashboard
-  :ensure t
+  :straight t
   :init
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
   :config
   ;; Dashboard requirements.
   (use-package page-break-lines
-    :ensure t)
+    :straight t)
   (use-package all-the-icons
-    :ensure t)
+    :straight t)
   ;; Dashboard configuration.
   (dashboard-setup-startup-hook)
   (setq dashboard-banner-logo-title "Welcome to Emacs")
@@ -274,7 +274,7 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 #+BEGIN_SRC emacs-lisp
   ;;; org
   (use-package org
-    :ensure t
+    :straight t
     :mode ("\\.org\\'" . org-mode)
     :diminish org-indent-mode
     :config
@@ -288,7 +288,7 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 
   (use-package org-bullets
     :after org
-    :ensure t
+    :straight t
     :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
 #+END_SRC
 
@@ -297,13 +297,13 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 ;; Export to html with syntax highlighting
 (use-package htmlize
   :after org
-  :ensure t
+  :straight t
   :commands org-export-dispatch)
 
 ;; Export to Markdown with syntax highlighting
 (use-package ox-gfm
   :after org
-  :ensure t
+  :straight t
   :commands org-gfm-export-to-markdown)
 #+END_SRC
 
@@ -317,7 +317,7 @@ Requires reveal.js to create html presentations.
 ;; Requires the installation of reveaj.js.
 (use-package ox-reveal
   :after org
-  :ensure t
+  :straight t
   :commands org-reveal-export-to-html
   :config
   (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
@@ -326,7 +326,7 @@ Requires reveal.js to create html presentations.
 * Magit
 #+BEGIN_SRC emacs-lisp
 (use-package magit
-  :ensure t
+  :straight t
   :defer 9.2)
 
 (global-set-key (kbd "\C-x g") 'magit-status)
@@ -337,10 +337,10 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 #+BEGIN_SRC emacs-lisp
     ;; zerodark-theme kaolin-themes moe-theme dracula-theme are nice themes
   (use-package kaolin-themes
-    :ensure t)
+    :straight t)
 
   (use-package doom-themes
-    :ensure t)
+    :straight t)
 
   (setq *theme-dark* 'kaolin-galaxy)
   (setq *theme-light* 'doom-acario-light)
@@ -363,7 +363,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 * Treemacs
 #+BEGIN_SRC emacs-lisp
 (use-package treemacs
-  :ensure t
+  :straight t
   :commands treemacs)
 #+END_SRC
 
@@ -371,7 +371,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 Requires pass.
 #+BEGIN_SRC emacs-lisp
   (use-package pass
-    :ensure t
+    :straight t
     :commands pass)
 #+END_SRC
 
@@ -382,7 +382,7 @@ Requires pass.
 
 #+BEGIN_SRC emacs-lisp
     (use-package hydra
-      :ensure t
+      :straight t
       :defer 2.5
       :config
       (defhydra hydra-wind-move (:color amaranth 
@@ -762,15 +762,15 @@ Requires pass.
   ;;; Global
   ;; Ivy is a generic completion tool
   (use-package ivy
-    :ensure t
+    :straight t
     :diminish ivy-mode
     :defer 0.9
     :config
     (use-package swiper
-      :ensure t
+      :straight t
       :bind (("\C-s" . swiper)))
     (use-package counsel
-      :ensure t
+      :straight t
       :diminish counsel-mode
       :config (counsel-mode))
     (ivy-mode))
@@ -779,21 +779,21 @@ Requires pass.
 ** Regular expressions
 #+begin_src emacs-lisp
 (use-package visual-regexp-steroids
-  :ensure t
+  :straight t
   :commands vr/replace)
 #+end_src
 
 ** Kill ring
 #+BEGIN_SRC emacs-lisp
 (use-package popup-kill-ring
-  :ensure t
+  :straight t
   :bind (("M-y" . popup-kill-ring))) 
 #+END_SRC
 
 ** EXWM
 #+BEGIN_SRC emacs-lisp
   (use-package exwm
-    :ensure t
+    :straight t
     :config
     (require 'exwm-config)
 	(exwm-config-default)
@@ -861,7 +861,7 @@ Requires pass.
 (display-time-mode t)
 
 (use-package spaceline
-  :ensure t
+  :straight t
   :defer 2.2
   :config
   (require 'spaceline-config)
@@ -876,7 +876,7 @@ Requires pass.
 ** Parentheses
 #+BEGIN_SRC emacs-lisp
 (use-package smartparens
-  :ensure t
+  :straight t
   :defer 5.1
   :diminish smartparens-mode
   :config 
@@ -885,7 +885,7 @@ Requires pass.
   (sp-local-pair 'org-mode "_" "_"))
 
 (use-package highlight-parentheses
-  :ensure t
+  :straight t
   :defer 12.1
   :diminish highlight-parentheses-mode
   :config (global-highlight-parentheses-mode))
@@ -897,7 +897,7 @@ Requires pass.
 ** Buffer moving
 #+BEGIN_SRC emacs-lisp
 (use-package buffer-move
-  :ensure t
+  :straight t
   :bind
   (("C-c <C-up>"   . buf-move-up)
    ("C-c <C-down>"  . buf-move-down)
@@ -913,14 +913,14 @@ Requires pass.
 (global-set-key (kbd "C-c <M-left>") 'windmove-left) 
 
 (use-package ace-window
-  :ensure t
+  :straight t
   :commands ace-window)
 #+END_SRC
 
 ** Multiple cursors
 #+BEGIN_SRC emacs-lisp
 (use-package multiple-cursors
-  :ensure t
+  :straight t
   :bind (("C-: C-m b" . mc/edit-lines)
 	 ("C-: C-m a" . mc/mark-all-like-this)
 	 ("C-: C-m >" . mc/mark-next-like-this)
@@ -930,14 +930,14 @@ Requires pass.
 ** Avy
 #+BEGIN_SRC emacs-lisp
 (use-package avy
-  :ensure t
+  :straight t
   :commands hydra-avy/body)
 #+END_SRC
 
 ** Undo-tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
-    :ensure t
+    :straight t
     :defer 4.2
     :diminish undo-tree-mode
     :config (global-undo-tree-mode))
@@ -957,7 +957,7 @@ Requires pass.
           "^\\..+$"))
 
   (use-package dired-rainbow
-    :ensure t
+    :straight t
     :defer 3.2
     :config
     (progn
@@ -987,14 +987,14 @@ Requires pass.
 ** Tabs
 #+BEGIN_SRC emacs-lisp
   (use-package centaur-tabs
-    :ensure t
+    :straight t
     :defer 4.2)
 #+END_SRC
 
 ** Windows management
 #+BEGIN_SRC emacs-lisp
   (use-package eyebrowse
-    :ensure t
+    :straight t
     :commands hydra-eyebrowse/body
     :config (eyebrowse-mode t))
 #+END_SRC
@@ -1002,7 +1002,7 @@ Requires pass.
 ** Smart region expanding
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
-  :ensure t
+  :straight t
   :bind (("C-=" . er/expand-region)))
 #+END_SRC
 
@@ -1250,14 +1250,14 @@ See https://github.com/politza/pdf-tools.
 ** Config
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
-  :ensure t
+  :straight t
   :mode ("\\.pdf\\'" . pdf-view-mode))
 #+END_SRC
 
 * Blog
 #+BEGIN_SRC emacs-lisp
   (use-package org-static-blog
-    :ensure t
+    :straight t
     :config
     (setq org-static-blog-publish-title "Caio's Blog")
     (setq org-static-blog-publish-url "https://blog.caiohcs.xyz/")
@@ -1303,7 +1303,7 @@ cURL.
 ** Config
 #+BEGIN_SRC emacs-lisp
   (use-package elfeed
-    :ensure t
+    :straight t
     :commands elfeed
     :config
     (setq elfeed-feeds
