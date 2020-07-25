@@ -16,6 +16,7 @@ I use the hydra package to configure my keybindings. There is a modal editing hy
 
 * Programming
 ** Company
+Company is a text completion framework.
 #+BEGIN_SRC emacs-lisp
   (use-package company
     :straight t
@@ -31,248 +32,105 @@ I use the hydra package to configure my keybindings. There is a modal editing hy
 #+END_SRC
 
 ** Language Server Protocol
-I use LSP for C and C++.
+LSP gives Emacs IDE features. 
 #+BEGIN_SRC emacs-lisp
-(use-package lsp-mode
-  :straight t
-  :hook
-  ((c++-mode . lsp)
-  (c-mode . lsp))
-  :commands lsp)
-#+END_SRC
-
-** Projectile
-I think that LSP requires projectile, so it's going to be installed as a dependency anyway.
-#+BEGIN_SRC emacs-lisp
-(use-package projectile
-  :straight t
-  :commands projectile-command-map) 
-#+END_SRC
-
-** Syntax checking
-#+BEGIN_SRC emacs-lisp
-;; Provides some syntax checking
-(use-package flycheck
-  :straight t
-  :defer 4.3)
-#+END_SRC
-
-** Jump to definition
-*** Requirements
-Silver searcher: https://github.com/ggreer/the_silver_searcher
-
-*** Config
-#+begin_src emacs-lisp
-(use-package dumb-jump
-  :straight t
-  :config
-  (setq dumb-jump-selector 'ivy)
-  :commands dumb-jump-go)
-#+end_src
-
-** Yasnippets
-*** Config
-#+begin_src emacs-lisp
-  (use-package yasnippet
+  (use-package lsp-mode
     :straight t
-    :defer 3.7
-    :hook (lisp-interaction-mode . (lambda () (yas-minor-mode)))
-    :config
-    (yas-reload-all))
-
-  (use-package yasnippet-snippets
-    :straight t
-    :after yasnippet)
-#+end_src
-
-** C and C++
-*** Requirements
-- Requires clang installed on the system.
-- Requires ccls installed on the system. https://github.com/MaskRay/ccls 
-I'm assuming that the ccls binary is at /usr/bin/ccls.
-
-*** Config
-#+BEGIN_SRC emacs-lisp
-  ;;; C/C++
-  (use-package cmake-ide
-    :disabled
-    :straight t
-    :config (cmake-ide-setup))
-
-  (use-package ccls
-    :after lsp-mode
-    :straight t
-    :config (setq ccls-executable "/usr/bin/ccls")
-    :hook ((c-mode c++-mode objc-mode cuda-mode) .
-           (lambda () (require 'ccls))))
+    :hook
+    ((c++-mode . lsp)
+    (c-mode . lsp))
+    :commands lsp)
 
   (use-package company-lsp
     :straight t
     :after (lsp-mode company)
     :commands company-lsp)
-
-  (defun my-c-mode-common-hook ()
-    (c-set-offset 'substatement-open 0)
-    (c-set-offset 'access-label '/)
-    (c-set-offset 'inclass '+)
-    (setq  c-default-style "bsd"
-           c-basic-offset 4
-           c-indent-level 4
-           c-indent-tabs-mode t
-           c-tab-always-indent t
-           c++-tab-always-indent t
-           tab-width 4
-           backward-delete-function nil))
-
-  (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
-  (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 #+END_SRC
 
-** Golang
+** Projectile
+I don't really use projectile, but I think that some other packages in my config require it, so it's going to be installed as a dependency anyway.
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :straight t
+    :defer 5.2) 
+#+END_SRC
+
+** Syntax checking
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :straight t
+    :defer 4.3)
+#+END_SRC
+
+** Jump to definition
+It's good to have two frameworks for jumping to definition (lsp also provides its own functions).
+
 *** Requirements
-Autocompletion requires gocode, available at https://github.com/nsf/gocode.
-We can install gocode with go get, then we need to create a symbolic link at /usr/bin.
+Silver searcher: https://github.com/ggreer/the_silver_searcher
 
 *** Config
-#+BEGIN_SRC emacs-lisp
-;; Requires gocode https://github.com/nsf/gocode
-;; After installing gocode, we also have to create a symbolic link
-(use-package go-mode
-  :straight t
-  :mode ("\\.go\\'" . go-mode)
-  :config
-  (use-package company-go
-    :requires company
-    :straight t)
-  (use-package go-errcheck
-    :straight t)
-  (defun my-go-mode-hook ()
-    (setq tab-width 4)
-    (setq gofmt-command "goimports")
-    (set (make-local-variable 'company-backends) '(company-go))
-    (company-mode))
-  (add-hook 'go-mode-hook 'my-go-mode-hook))
-#+END_SRC
-
-** Lisp
-I use Steel Bank Common Lisp.
-*** Config
-#+BEGIN_SRC emacs-lisp
-  ;;; Lisp
-  (use-package slime
+#+begin_src emacs-lisp
+  (use-package dumb-jump
     :straight t
-    :commands slime
     :config
-    (setq inferior-lisp-program "sbcl")
-    (setq slime-contribs '(slime-fancy)))
-
-  (use-package slime-company
-    :after (slime company)
-    :straight t
-    :init
-    (slime-setup '(slime-fancy slime-company)))
-
-  (use-package suggest
-    :straight t
-    :commands suggest)
-#+END_SRC
-
-** HTML
-#+BEGIN_SRC emacs-lisp
-  (use-package emmet-mode
-    :straight t
-    :mode ("\\.html\\'" . emmet-mode))
-
-  (use-package rainbow-mode
-    :straight t
-    :hook (org-mode . (lambda () (rainbow-mode)))
-    :mode (("\\.html\\'"	. rainbow-mode)
-           ("\\.css\\'"	. rainbow-mode)))
-
-  (use-package web-mode
-    :straight t
-    :mode (("\\.html\\'"	. web-mode)
-           ("\\.css\\'"	. web-mode)))
-#+END_SRC
-
-** Yaml
-I left the Yaml package disabled, so delete the :disabled line if you want this package.
-#+BEGIN_SRC emacs-lisp
-(use-package yaml-mode
-  :disabled
-  :straight t
-  :mode ("\\.yml\\'" . yaml-mode))
-#+END_SRC
-
-** Docker
-I left the Docker packages disabled, so delete the :disabled line if you want these packages.
-#+BEGIN_SRC emacs-lisp
-(use-package docker
-  :disabled
-  :straight t
-  :commands docker)
-
-(use-package dockerfile-mode
-  :disabled
-  :straight t
-  :mode ("Dockerfile\\'" . dockerfile-mode))
-#+END_SRC
+    (setq dumb-jump-selector 'ivy)
+    :commands dumb-jump-go)
+#+end_src
 
 * Dashboard
 #+BEGIN_SRC emacs-lisp
-(use-package dashboard
-  :straight t
-  :init
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-  :config
-  ;; Dashboard requirements.
-  (use-package page-break-lines
-    :straight t)
-  (use-package all-the-icons
-    :straight t)
-  ;; Dashboard configuration.
-  (dashboard-setup-startup-hook)
-  (setq dashboard-banner-logo-title "Welcome to Emacs")
-  (setq dashboard-startup-banner 'logo)
-  (setq dashboard-items '((recents   . 5)
-                          (agenda    . 5)))
-  (setq dashboard-set-init-info t)
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
+  (use-package dashboard
+    :straight t
+    :init
+    (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+    :config
+    ;; Dashboard requirements.
+    (use-package page-break-lines
+      :straight t)
+    (use-package all-the-icons
+      :straight t)
+    ;; Dashboard configuration.
+    (dashboard-setup-startup-hook)
+    (setq dashboard-banner-logo-title "Welcome to Emacs")
+    (setq dashboard-startup-banner 'logo)
+    (setq dashboard-items '((recents   . 5)
+                            (agenda    . 5)))
+    (setq dashboard-set-init-info t)
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-file-icons t)
 
-  ;; adds a clock
-  (defun dashboard-insert-custom (list-size)
-    (defun string-centralized (str)
-      (let* ((indent
-	      (concat "%"
-		      (number-to-string
-		       (/ (- (window-body-width) (string-width str)) 2))
-		      "s"))
-	     (str (concat indent str indent)))
-        (format str " " " ")))
+    ;; adds a clock
+    (defun dashboard-insert-custom (list-size)
+      (defun string-centralized (str)
+        (let* ((indent
+                (concat "%"
+                        (number-to-string
+                         (/ (- (window-body-width) (string-width str)) 2))
+                        "s"))
+               (str (concat indent str indent)))
+          (format str " " " ")))
   
-    (insert (propertize (string-centralized (format-time-string "%a %d %b %Y" (current-time))) 'font-lock-face '('bold :foreground "#6c4c7b")))
-    (newline)
-    (insert (propertize (string-centralized (format-time-string "%H:%M" (current-time))) 'font-lock-face '('bold :foreground "#6c4c7b"))))
+      (insert (propertize (string-centralized (format-time-string "%a %d %b %Y" (current-time))) 'font-lock-face '('bold :foreground "#6c4c7b")))
+      (newline)
+      (insert (propertize (string-centralized (format-time-string "%H:%M" (current-time))) 'font-lock-face '('bold :foreground "#6c4c7b"))))
 
-  (add-to-list 'dashboard-item-generators  '(custom . dashboard-insert-custom))
-  (add-to-list 'dashboard-items '(custom) t)
+    (add-to-list 'dashboard-item-generators  '(custom . dashboard-insert-custom))
+    (add-to-list 'dashboard-items '(custom) t)
 
-  (defun test-dashboard () (setq *my-timer* (run-at-time "20 sec" nil #'(lambda ()
-                                                                       (when *my-timer*
-                                                                        (cancel-timer *my-timer*)
-									(setq *my-timer* nil))
-									(when (string=
-						                               (buffer-name (window-buffer))
-						                               "*dashboard*")
-									 (dashboard-refresh-buffer))))))
- (add-hook 'dashboard-mode-hook #'test-dashboard))
+    (defun test-dashboard () (setq *my-timer* (run-at-time "20 sec" nil #'(lambda ()
+                                                                            (when *my-timer*
+                                                                             (cancel-timer *my-timer*)
+                                                                             (setq *my-timer* nil))
+                                                                            (when (string=
+                                                                                   (buffer-name (window-buffer))
+                                                                                   "*dashboard*")
+                                                                             (dashboard-refresh-buffer))))))
+    (add-hook 'dashboard-mode-hook #'test-dashboard))
 #+END_SRC
 
 * Org
 ** Config
 #+BEGIN_SRC emacs-lisp
-  ;;; org
   (use-package org
     :straight t
     :mode ("\\.org\\'" . org-mode)
@@ -327,15 +185,13 @@ Requires reveal.js to create html presentations.
 #+BEGIN_SRC emacs-lisp
 (use-package magit
   :straight t
-  :defer 9.2)
-
-(global-set-key (kbd "\C-x g") 'magit-status)
+  :bind (("C-x g" . magit-status)))
 #+END_SRC
 
 * Theme
 My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dracula-theme.
+There is a function bound to <f5> to switch between light mode and dark mode.
 #+BEGIN_SRC emacs-lisp
-    ;; zerodark-theme kaolin-themes moe-theme dracula-theme are nice themes
   (use-package kaolin-themes
     :straight t)
 
@@ -376,6 +232,7 @@ Requires pass.
 #+END_SRC
 
 * Global (better UX)
+
 ** Hydra
 
 [[./imgs/hydra.png]]
@@ -385,20 +242,6 @@ Requires pass.
     :straight t
     :defer 2.5
     :config
-    (defhydra hydra-wind-move (:color amaranth 
-                               :hint nil
-                               :post hydra-movement/cond-body-call)
-      "
-    _b_: left wind   _p_: up wind
-    _f_: right wind  _n_: down wind
-      "
-      ("q" nil "quit")
-      ("<f3>" nil "quit")
-      ("b" windmove-left)
-      ("f" windmove-right)
-      ("p" windmove-up)
-      ("n" windmove-down))
-
     (defhydra hydra-exwm (:color teal
                           :hint nil)
       "
@@ -409,72 +252,6 @@ Requires pass.
       ("b" (exwm-async-run "brave-browser"))
       ("t" (exwm-async-run "alacritty")))
     (global-set-key (kbd "<f4>") 'hydra-exwm/body)
-
-    (defhydra hydra-dumb-jump (:color teal :columns 3)
-      "Dumb Jump"
-      ("q" nil "quit")
-      ("<f3>" nil "quit")
-      ("j" dumb-jump-go "Go")
-      ("o" dumb-jump-go-other-window "Other window")
-      ("e" dumb-jump-go-prefer-external "Go external")
-      ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
-      ("i" dumb-jump-go-prompt "Prompt")
-      ("l" dumb-jump-quick-look "Quick look")
-      ("b" dumb-jump-back "Back"))
-    (global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
-
-    (defhydra hydra-multiple-cursors (:color teal 
-                                      :hint nil
-                                      :post hydra-movement/cond-body-call)
-      "
-    _l_: edit lines   _a_: all like this
-      "
-      ("q" nil "quit")
-      ("l" mc/edit-lines)
-      ("a" mc/mark-all-like-this))
-
-    (defhydra hydra-eyebrowse (:color amaranth :hint nil)
-      "
-    %s(eyebrowse-mode-line-indicator)  
-    _p_: prev wind   _c_: creat wind  _r_: renam wind
-    _n_: next wind   _C_: close wind  _l_: last wind
-    _0_: switch to 0      ^^...       _9_: switch to 9   
-      "
-      ("q" nil "quit")
-      ("<f2>" nil "quit")
-      ("p" eyebrowse-prev-window-config nil)
-      ("n" eyebrowse-next-window-config nil)
-      ("l" eyebrowse-last-window-config nil)
-      ("r" eyebrowse-rename-window-config nil)
-      ("c" eyebrowse-create-window-config nil)
-      ("C" eyebrowse-close-window-config nil)
-      ("0" eyebrowse-switch-to-window-config-0 nil)
-      ("1" eyebrowse-switch-to-window-config-1 nil)
-      ("2" eyebrowse-switch-to-window-config-2 nil)
-      ("3" eyebrowse-switch-to-window-config-3 nil)
-      ("4" eyebrowse-switch-to-window-config-4 nil)
-      ("5" eyebrowse-switch-to-window-config-5 nil)
-      ("6" eyebrowse-switch-to-window-config-6 nil)
-      ("7" eyebrowse-switch-to-window-config-7 nil)
-      ("8" eyebrowse-switch-to-window-config-8 nil)
-      ("9" eyebrowse-switch-to-window-config-9 nil))
-    (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
-
-    (defhydra hydra-avy (:color teal 
-                         :hint nil
-                         :post hydra-movement/cond-body-call)
-      "
-      _s_: word 1   _n_: word bellow   _p_: word above
-      _l_: line     _c_: char timer    _g_: char timer
-      "
-      ("q" nil "quit")
-      ("s" avy-goto-word-1)
-      ("p" avy-goto-word-1-above)
-      ("n" avy-goto-word-1-below)
-      ("l" avy-goto-line)
-      ("c" avy-goto-char-timer)
-      ("g" avy-goto-char-timer))
-    (global-set-key (kbd "M-s") 'hydra-avy/body)
 
   ;;; hydra-movement to make moving around easier
     (defun hydra-movement/cond-body-call ()
@@ -758,7 +535,104 @@ Requires pass.
     (global-set-key (kbd "<f1>") 'hydra-movement/call-body))
 #+END_SRC
 
-** Ivy
+**** Hydra EMMS
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-emms (:color teal
+                        :hint nil)
+    "
+      _p_:laylist  _b_:rowse  _r_:eset  _c_:onnect
+      _k_:ill      _u_:pdate
+    "
+    ("q" nil "quit")
+    ("p" emms)
+    ("b" emms-smart-browse)
+    ("r" emms-player-mpd-update-all-reset-cache)
+    ("c" mpd/start-music-daemon)
+    ("k" mpd/kill-music-daemon)
+    ("u" mpd/update-database))
+
+  (global-set-key (kbd "s-m") 'hydra-emms/body)
+#+END_SRC
+
+**** Hydra MC
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-multiple-cursors (:color teal 
+                                    :hint nil
+                                    :post hydra-movement/cond-body-call)
+    "
+      _l_: edit lines   _a_: all like this
+    "
+    ("q" nil "quit")
+    ("l" mc/edit-lines)
+    ("a" mc/mark-all-like-this))
+#+END_SRC
+
+**** Hydra AVY
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-avy (:color teal 
+                       :hint nil
+                       :post hydra-movement/cond-body-call)
+    "
+    _s_: word 1   _n_: word bellow   _p_: word above
+    _l_: line     _c_: char timer    _g_: char timer
+    "
+    ("q" nil "quit")
+    ("s" avy-goto-word-1)
+    ("p" avy-goto-word-1-above)
+    ("n" avy-goto-word-1-below)
+    ("l" avy-goto-line)
+    ("c" avy-goto-char-timer)
+    ("g" avy-goto-char-timer))
+  (global-set-key (kbd "M-s") 'hydra-avy/body)
+#+END_SRC
+
+**** Hydra Eyebrowse
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-eyebrowse (:color amaranth :hint nil)
+    "
+  %s(eyebrowse-mode-line-indicator)  
+  _p_: prev wind   _c_: creat wind  _r_: renam wind
+  _n_: next wind   _C_: close wind  _l_: last wind
+  _0_: switch to 0      ^^...       _9_: switch to 9   
+    "
+    ("q" nil "quit")
+    ("<f2>" nil "quit")
+    ("p" eyebrowse-prev-window-config nil)
+    ("n" eyebrowse-next-window-config nil)
+    ("l" eyebrowse-last-window-config nil)
+    ("r" eyebrowse-rename-window-config nil)
+    ("c" eyebrowse-create-window-config nil)
+    ("C" eyebrowse-close-window-config nil)
+    ("0" eyebrowse-switch-to-window-config-0 nil)
+    ("1" eyebrowse-switch-to-window-config-1 nil)
+    ("2" eyebrowse-switch-to-window-config-2 nil)
+    ("3" eyebrowse-switch-to-window-config-3 nil)
+    ("4" eyebrowse-switch-to-window-config-4 nil)
+    ("5" eyebrowse-switch-to-window-config-5 nil)
+    ("6" eyebrowse-switch-to-window-config-6 nil)
+    ("7" eyebrowse-switch-to-window-config-7 nil)
+    ("8" eyebrowse-switch-to-window-config-8 nil)
+    ("9" eyebrowse-switch-to-window-config-9 nil))
+  (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
+#+END_SRC
+
+**** Hydra dump jump
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-dumb-jump (:color teal :columns 3)
+    "Dumb Jump"
+    ("q" nil "quit")
+    ("<f3>" nil "quit")
+    ("j" dumb-jump-go "Go")
+    ("o" dumb-jump-go-other-window "Other window")
+    ("e" dumb-jump-go-prefer-external "Go external")
+    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+    ("i" dumb-jump-go-prompt "Prompt")
+    ("l" dumb-jump-quick-look "Quick look")
+    ("b" dumb-jump-back "Back"))
+  (global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
+#+END_SRC
+
+*** Ivy
 #+BEGIN_SRC emacs-lisp
   ;;; Global
   ;; Ivy is a generic completion tool
@@ -777,21 +651,21 @@ Requires pass.
     (ivy-mode))
 #+END_SRC
 
-** Regular expressions
+*** Regular expressions
 #+begin_src emacs-lisp
 (use-package visual-regexp-steroids
   :straight t
   :commands vr/replace)
 #+end_src
 
-** Kill ring
+*** Kill ring
 #+BEGIN_SRC emacs-lisp
 (use-package popup-kill-ring
   :straight t
   :bind (("M-y" . popup-kill-ring))) 
 #+END_SRC
 
-** Ido-vertical
+*** Ido-vertical
 #+BEGIN_SRC emacs-lisp
   (use-package ido-vertical-mode
     :straight t
@@ -802,73 +676,127 @@ Requires pass.
     (ido-vertical-mode))
 #+END_SRC
 
-** EXWM
+*** EMMS
+I use mpd/mpc to play music.
+I used Uncle Dave's config as a reference for the following settings.
+
+#+BEGIN_SRC emacs-lisp
+  (use-package emms
+    :straight t
+    :config
+    (require 'emms-setup)
+    (require 'emms-player-mpd)
+    (emms-all)
+    (setq emms-seek-seconds 5)
+    (setq emms-player-list '(emms-player-mpd emms-player-mpv))
+    (setq emms-info-functions '(emms-info-mpd))
+    (setq emms-player-mpd-server-name "localhost")
+    (setq emms-player-mpd-server-port "6601")
+    :commands hydra-emms/body
+    :bind
+    (("<XF86AudioPrev>" . emms-previous)
+    ("<XF86AudioNext>" . emms-next)
+    ("<XF86AudioPlay>" . emms-pause)
+    ("<XF86AudioStop>" . emms-stop)))
+
+  (setq mpc-host "localhost:6601")
+
+  (defun mpd/start-music-daemon ()
+    "Start MPD, connects to it and syncs the metadata cache."
+    (interactive)
+    (shell-command "mpd")
+    (mpd/update-database)
+    (emms-player-mpd-connect)
+    (emms-cache-set-from-mpd-all)
+    (message "MPD Started!"))
+
+  (defun mpd/kill-music-daemon ()
+    "Stops playback and kill the music daemon."
+    (interactive)
+    (emms-stop)
+    (call-process "killall" nil nil nil "mpd")
+    (message "MPD Killed!"))
+
+
+  (defun mpd/update-database ()
+    "Updates the MPD database synchronously."
+    (interactive)
+    (call-process "mpc" nil nil nil "update")
+    (message "MPD Database Updated!"))
+#+END_SRC
+
+*** EXWM
 #+BEGIN_SRC emacs-lisp
   (use-package exwm
     :straight t
+    :init
+    (defun my-exwm-config-fn ()
+      (interactive)
+      (defun exwm-async-run (name)
+        (start-process name nil name))
+
+      (dolist (k '(XF86AudioLowerVolume
+                   XF86AudioRaiseVolume
+                   XF86PowerOff
+                   XF86AudioMute
+                   XF86AudioPlay
+                   XF86AudioStop
+                   XF86AudioPrev
+                   XF86AudioNext
+                   XF86ScreenSaver
+                   XF68Back
+                   XF86Forward
+                   Scroll_Lock
+                   print))
+        (cl-pushnew k exwm-input-prefix-keys))
+
+      (global-set-key (kbd "<XF86AudioRaiseVolume>")
+                      (lambda ()
+                        (interactive)
+                        (call-process-shell-command "amixer set Master 10%+" nil 0)))
+
+      (global-set-key (kbd "<XF86AudioLowerVolume>")
+                      (lambda ()
+                        (interactive)
+                        (call-process-shell-command "amixer set Master 10%-" nil 0)))
+
+      (global-set-key (kbd "<XF86AudioMute>")
+                      (lambda ()
+                        (interactive)
+                        (call-process-shell-command "amixer set Master toggle" nil 0)))
+
+      (global-set-key (kbd "<print>")
+                      (lambda ()
+                        (interactive)
+                        (call-process-shell-command "flameshot gui" nil 0)))
+
+      (exwm-input-set-simulation-keys
+       '(
+         ;; cut/paste
+         ([?\C-w] . ?\C-x)
+         ([?\M-w] . ?\C-c)
+         ([?\C-y] . ?\C-v)
+         ;; search
+         ([?\C-s] . ?\C-f))))
     :config
+    (add-hook 'exwm-init-hook (lambda () (my-exwm-config-fn)))
     (require 'exwm-config)
-	(exwm-config-default)
-	;(exwm-enable)
+    (exwm-config-default)
+
     (require 'exwm-randr)
-	;(exwm-randr-enable)
+
     (setq exwm-randr-workspace-output-plist '(0 "eDP-1" 1 "HDMI-1"))
+
     (add-hook 'exwm-randr-screen-change-hook
               (lambda ()
                 (start-process-shell-command
                  "xrandr" nil "xrandr --output eDP-1 --right-of HDMI-1 --auto")))
-    (exwm-randr-enable)
-                                          ;
-                                          ;(exwm-enable)
-    (defun exwm-async-run (name)
-      (start-process name nil name))
+    (exwm-randr-enable))
 
-    (dolist (k '(XF86AudioLowerVolume
-                 XF86AudioRaiseVolume
-                 XF86PowerOff
-                 XF86AudioMute
-                 XF86AudioPlay
-                 XF86AudioStop
-                 XF86AudioPrev
-                 XF86AudioNext
-                 XF86ScreenSaver
-                 XF68Back
-                 XF86Forward
-                 Scroll_Lock
-                 print))
-      (cl-pushnew k exwm-input-prefix-keys))
 
-    (global-set-key (kbd "<XF86AudioRaiseVolume>")
-                    (lambda ()
-                      (interactive)
-                      (call-process-shell-command "amixer set Master 10%+" nil 0)))
-
-    (global-set-key (kbd "<XF86AudioLowerVolume>")
-                    (lambda ()
-                      (interactive)
-                      (call-process-shell-command "amixer set Master 10%-" nil 0)))
-
-    (global-set-key (kbd "<XF86AudioMute>")
-                    (lambda ()
-                      (interactive)
-                      (call-process-shell-command "amixer set Master toggle" nil 0)))
-
-    (global-set-key (kbd "<print>")
-                    (lambda ()
-                      (interactive)
-                      (call-process-shell-command "flameshot gui" nil 0)))
-
-    (exwm-input-set-simulation-keys
-     '(
-       ;; cut/paste
-       ([?\C-w] . ?\C-x)
-       ([?\M-w] . ?\C-c)
-       ([?\C-y] . ?\C-v)
-       ;; search
-       ([?\C-s] . ?\C-f))))
 #+END_SRC
 
-** Modeline
+*** Modeline
 #+BEGIN_SRC emacs-lisp
 (display-time-mode t)
 
@@ -885,7 +813,7 @@ Requires pass.
   (spaceline-spacemacs-theme))
 #+END_SRC
 
-** Parentheses
+*** Parentheses
 #+BEGIN_SRC emacs-lisp
 (use-package smartparens
   :straight t
@@ -906,7 +834,7 @@ Requires pass.
 (show-paren-mode t)
 #+END_SRC
 
-** Buffer moving
+*** Buffer moving
 #+BEGIN_SRC emacs-lisp
 (use-package buffer-move
   :straight t
@@ -917,7 +845,7 @@ Requires pass.
    ("C-c <C-right>" . buf-move-right)))
 #+END_SRC
 
-** Windows moving
+*** Windows moving
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-c <M-up>") 'windmove-up) 
 (global-set-key (kbd "C-c <M-down>") 'windmove-down) 
@@ -929,7 +857,7 @@ Requires pass.
   :commands ace-window)
 #+END_SRC
 
-** Multiple cursors
+*** Multiple cursors
 #+BEGIN_SRC emacs-lisp
 (use-package multiple-cursors
   :straight t
@@ -939,14 +867,14 @@ Requires pass.
 	 ("C-: C-m <" . mc/mark-previous-like-this)))
 #+END_SRC
 
-** Avy
+*** Avy
 #+BEGIN_SRC emacs-lisp
 (use-package avy
   :straight t
   :commands hydra-avy/body)
 #+END_SRC
 
-** Undo-tree
+*** Undo-tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
     :straight t
@@ -955,7 +883,7 @@ Requires pass.
     :config (global-undo-tree-mode))
 #+END_SRC
 
-** Dired
+*** Dired
 #+BEGIN_SRC emacs-lisp
   (use-package dired
     :hook (dired-mode . (lambda () (dired-omit-mode)))
@@ -996,14 +924,15 @@ Requires pass.
 
 #+END_SRC
 
-** Tabs
+*** Tabs
 #+BEGIN_SRC emacs-lisp
   (use-package centaur-tabs
     :straight t
-    :defer 4.2)
+    :defer 4.2
+    :commands centaur-tabs-mode)
 #+END_SRC
 
-** Windows management
+*** Windows management
 #+BEGIN_SRC emacs-lisp
   (use-package eyebrowse
     :straight t
@@ -1011,14 +940,14 @@ Requires pass.
     :config (eyebrowse-mode t))
 #+END_SRC
 
-** Smart region expanding
+*** Smart region expanding
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :straight t
   :bind (("C-=" . er/expand-region)))
 #+END_SRC
 
-** Tool bar, menu bar, line numbering etc
+*** Tool bar, menu bar, line numbering etc
 #+BEGIN_SRC emacs-lisp
 ;;; Variables
 (global-visual-line-mode)
@@ -1030,7 +959,7 @@ Requires pass.
 (setq visible-bell 1)
 #+END_SRC
 
-** Change backup/autosave folder
+*** Change backup/autosave folder
 #+BEGIN_SRC emacs-lisp
 ;;; Change the backup/autosave folder.
 (defvar backup-dir (expand-file-name "~/.emacs.d/backup/"))
@@ -1040,29 +969,29 @@ Requires pass.
 (setq auto-save-file-name-transforms `((".*" ,autosave-dir t)))
 #+END_SRC
 
-** Read process output
+*** Read process output
 Sets read-process-output-max to 1mb since the default is low. This should improve things that use servers like LSP.
 #+BEGIN_SRC emacs-lisp
 (setq read-process-output-max (* 1024 1024))
 #+END_SRC
 
-** Spell checking
+*** Spell checking
 I use aspell for spell checking.
-*** Config
+**** Config
 #+BEGIN_SRC emacs-lisp
 (defvar ispell-program-name "aspell")
 #+END_SRC
 
-** Diminish
+*** Diminish
 I use aspell for spell checking.
-*** Config
+**** Config
 #+BEGIN_SRC emacs-lisp
   (diminish 'visual-line-mode)
   (diminish 'auto-revert-mode)
   (diminish 'eldoc-mode)
 #+END_SRC
 
-** Change sexp keyword indentation
+*** Change sexp keyword indentation
 This changes the identation style from:
 #+BEGIN_SRC emacs-lisp :tangle no
 (defhydra foo (:color blue
@@ -1255,6 +1184,153 @@ Code from https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords
                normal-indent))))))
 #+END_SRC
 
+** Yasnippets
+*** Config
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :straight t
+    :defer 3.7
+    :hook (lisp-interaction-mode . (lambda () (yas-minor-mode)))
+    :config
+    (yas-reload-all))
+
+  (use-package yasnippet-snippets
+    :straight t
+    :after yasnippet)
+#+end_src
+
+** C and C++
+*** Requirements
+- Requires clang installed on the system.
+- Requires ccls installed on the system. https://github.com/MaskRay/ccls
+I'm assuming that the ccls binary is at /usr/bin/ccls.
+
+*** Config
+#+BEGIN_SRC emacs-lisp
+  (use-package ccls
+    :after lsp-mode
+    :straight t
+    :config (setq ccls-executable "/usr/bin/ccls")
+    :hook ((c-mode c++-mode objc-mode cuda-mode) .
+           (lambda () (require 'ccls))))
+
+  (defun my-c-mode-common-hook ()
+    (c-set-offset 'substatement-open 0)
+    (c-set-offset 'access-label '/)
+    (c-set-offset 'inclass '+)
+    (setq  c-default-style "bsd"
+           c-basic-offset 4
+           c-indent-level 4
+           c-indent-tabs-mode t
+           c-tab-always-indent t
+           c++-tab-always-indent t
+           tab-width 4
+           backward-delete-function nil))
+
+  (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
+  (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+#+END_SRC
+
+** Golang
+*** Requirements
+Autocompletion requires gocode, available at https://github.com/nsf/gocode.
+We can install gocode with go get, then we need to create a symbolic link at /usr/bin.
+
+*** Config
+#+BEGIN_SRC emacs-lisp
+(use-package go-mode
+  :straight t
+  :mode ("\\.go\\'" . go-mode)
+  :config
+  (use-package company-go
+    :requires company
+    :straight t)
+  (use-package go-errcheck
+    :straight t)
+  (defun my-go-mode-hook ()
+    (setq tab-width 4)
+    (setq gofmt-command "goimports")
+    (set (make-local-variable 'company-backends) '(company-go))
+    (company-mode))
+  (add-hook 'go-mode-hook 'my-go-mode-hook))
+#+END_SRC
+
+** Lisp
+I use Steel Bank Common Lisp.
+*** Config
+#+BEGIN_SRC emacs-lisp
+  ;;; Lisp
+  (use-package slime
+    :straight t
+    :commands slime
+    :config
+    (setq inferior-lisp-program "sbcl")
+    (setq slime-contribs '(slime-fancy)))
+
+  (use-package slime-company
+    :after (slime company)
+    :straight t
+    :init
+    (slime-setup '(slime-fancy slime-company)))
+
+  (use-package suggest
+    :straight t
+    :commands suggest)
+#+END_SRC
+
+** Web
+#+BEGIN_SRC emacs-lisp
+  (use-package emmet-mode
+    :straight t
+    :hook (web-mode . (lambda () (emmet-mode))))
+
+  (use-package rainbow-mode
+    :straight t
+    :hook (org-mode . (lambda () (rainbow-mode)))
+    :mode (("\\.html\\'"	. rainbow-mode)
+           ("\\.css\\'"	. rainbow-mode)))
+
+  (use-package web-mode
+    :straight t
+    :mode (("\\.html\\'"	. web-mode)
+           ("\\.css\\'"	. web-mode)))
+
+  (use-package simple-httpd
+    :straight t
+    :commands httpd-start)
+
+  (use-package impatient-mode
+    :straight t
+    :commands impatient-mode)
+
+  (use-package request
+    :straight t
+    :commands request)
+#+END_SRC
+
+** Yaml
+I left the Yaml package disabled, so delete the :disabled line if you want this package.
+#+BEGIN_SRC emacs-lisp
+(use-package yaml-mode
+  :disabled
+  :straight t
+  :mode ("\\.yml\\'" . yaml-mode))
+#+END_SRC
+
+** Docker
+I left the Docker packages disabled, so delete the :disabled line if you want these packages.
+#+BEGIN_SRC emacs-lisp
+(use-package docker
+  :disabled
+  :straight t
+  :commands docker)
+
+(use-package dockerfile-mode
+  :disabled
+  :straight t
+  :mode ("Dockerfile\\'" . dockerfile-mode))
+#+END_SRC
+
 * PDF
 ** Requirements
 See https://github.com/politza/pdf-tools.
@@ -1320,6 +1396,7 @@ cURL.
     :config
     (setq elfeed-feeds
           '("reddit.com/r/emacs.rss"
+            "https://blog.caiohcs.xyz/rss.xml"
             "https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA"
             "https://www.youtube.com/feeds/videos.xml?channel_id=UC7YOGHUfC1Tb6E4pudI9STA"
             "https://www.youtube.com/feeds/videos.xml?channel_id=UCVls1GmFKf6WlTraIb_IaJg"
