@@ -2,8 +2,6 @@
 
 ![img](./imgs/my-emacs.png)
 
-My configuration has around 90 packages installed. It loads fast, in my machine it takes around 0.8s but I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
-
 I use the hydra package to configure my keybindings. There is a modal editing hydra on F1, a hydra for windows management (using Eyebrowse) on F2, a hydra for dumb-jump on F3, a hydra to open programs (e.g. the browser) on F4 and a hydra for Avy shorcuts on M-s. F5 switches between a light theme and a dark theme.
 
 
@@ -18,16 +16,18 @@ I use the hydra package to configure my keybindings. There is a modal editing hy
 
 ## Company
 
+Company is a text completion framework.
+
 ```emacs-lisp
 (use-package company
-  :ensure t
+  :straight t
   :commands company-mode
   :bind (:map company-active-map
 	 ("C-n" . 'company-select-next)
 	 ("C-p" . 'company-select-previous))
   :init
   (use-package company-quickhelp
-    :ensure t)
+    :straight t)
   :config
   (company-quickhelp-mode))
 ```
@@ -35,40 +35,46 @@ I use the hydra package to configure my keybindings. There is a modal editing hy
 
 ## Language Server Protocol
 
-I use LSP for C and C++.
+LSP gives Emacs IDE features.
 
 ```emacs-lisp
 (use-package lsp-mode
-  :ensure t
+  :straight t
   :hook
   ((c++-mode . lsp)
   (c-mode . lsp))
   :commands lsp)
+
+(use-package company-lsp
+  :straight t
+  :after (lsp-mode company)
+  :commands company-lsp)
 ```
 
 
 ## Projectile
 
-I think that LSP requires projectile, so it's going to be installed as a dependency anyway.
+I don't really use projectile, but I think that some other packages in my config require it, so it's going to be installed as a dependency anyway.
 
 ```emacs-lisp
 (use-package projectile
-  :ensure t
-  :commands projectile-command-map) 
+  :straight t
+  :defer 5.2) 
 ```
 
 
 ## Syntax checking
 
 ```emacs-lisp
-;; Provides some syntax checking
 (use-package flycheck
-  :ensure t
+  :straight t
   :defer 4.3)
 ```
 
 
 ## Jump to definition
+
+It's good to have two frameworks for jumping to definition (lsp also provides its own functions).
 
 
 ### Requirements
@@ -80,7 +86,7 @@ Silver searcher: <https://github.com/ggreer/the_silver_searcher>
 
 ```emacs-lisp
 (use-package dumb-jump
-  :ensure t
+  :straight t
   :config
   (setq dumb-jump-selector 'ivy)
   :commands dumb-jump-go)
@@ -101,23 +107,12 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
 ### Config
 
 ```emacs-lisp
-;;; C/C++
-(use-package cmake-ide
-  :disabled
-  :ensure t
-  :config (cmake-ide-setup))
-
 (use-package ccls
   :after lsp-mode
-  :ensure t
+  :straight t
   :config (setq ccls-executable "/usr/bin/ccls")
   :hook ((c-mode c++-mode objc-mode cuda-mode) .
-	 (lambda () (require 'ccls) (lsp))))
-
-(use-package company-lsp
-  :ensure t
-  :after (lsp-mode company)
-  :commands company-lsp)
+	 (lambda () (require 'ccls))))
 
 (defun my-c-mode-common-hook ()
   (c-set-offset 'substatement-open 0)
@@ -148,17 +143,15 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ### Config
 
 ```emacs-lisp
-;; Requires gocode https://github.com/nsf/gocode
-;; After installing gocode, we also have to create a symbolic link
 (use-package go-mode
-  :ensure t
+  :straight t
   :mode ("\\.go\\'" . go-mode)
   :config
   (use-package company-go
     :requires company
-    :ensure t)
+    :straight t)
   (use-package go-errcheck
-    :ensure t)
+    :straight t)
   (defun my-go-mode-hook ()
     (setq tab-width 4)
     (setq gofmt-command "goimports")
@@ -178,7 +171,7 @@ I use Steel Bank Common Lisp.
 ```emacs-lisp
 ;;; Lisp
 (use-package slime
-  :ensure t
+  :straight t
   :commands slime
   :config
   (setq inferior-lisp-program "sbcl")
@@ -186,22 +179,45 @@ I use Steel Bank Common Lisp.
 
 (use-package slime-company
   :after (slime company)
-  :ensure t
+  :straight t
   :init
   (slime-setup '(slime-fancy slime-company)))
 
 (use-package suggest
-  :ensure t
+  :straight t
   :commands suggest)
 ```
 
 
-## HTML
+## Web
 
 ```emacs-lisp
 (use-package emmet-mode
-  :ensure t
-  :mode ("\\.html\\'" . emmet-mode))
+  :straight t
+  :hook (web-mode . (lambda () (emmet-mode))))
+
+(use-package rainbow-mode
+  :straight t
+  :hook (org-mode . (lambda () (rainbow-mode)))
+  :mode (("\\.html\\'"	. rainbow-mode)
+	 ("\\.css\\'"	. rainbow-mode)))
+
+(use-package web-mode
+  :straight t
+  :mode (("\\.html\\'"	. web-mode)
+	 ("\\.css\\'"	. web-mode)))
+
+(use-package simple-httpd
+  :straight t
+  :commands httpd-start)
+
+(use-package impatient-mode
+  :straight t
+  :commands impatient-mode)
+
+(use-package request
+  :straight t
+  :commands request)
 ```
 
 
@@ -212,7 +228,7 @@ I left the Yaml package disabled, so delete the :disabled line if you want this 
 ```emacs-lisp
 (use-package yaml-mode
   :disabled
-  :ensure t
+  :straight t
   :mode ("\\.yml\\'" . yaml-mode))
 ```
 
@@ -224,13 +240,32 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 ```emacs-lisp
 (use-package docker
   :disabled
-  :ensure t
+  :straight t
   :commands docker)
 
 (use-package dockerfile-mode
   :disabled
-  :ensure t
+  :straight t
   :mode ("Dockerfile\\'" . dockerfile-mode))
+```
+
+
+## Yasnippets
+
+
+### Config
+
+```emacs-lisp
+(use-package yasnippet
+  :straight t
+  :defer 3.7
+  :hook (lisp-interaction-mode . (lambda () (yas-minor-mode)))
+  :config
+  (yas-reload-all))
+
+(use-package yasnippet-snippets
+  :straight t
+  :after yasnippet)
 ```
 
 
@@ -238,15 +273,15 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 
 ```emacs-lisp
 (use-package dashboard
-  :ensure t
+  :straight t
   :init
   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
   :config
   ;; Dashboard requirements.
   (use-package page-break-lines
-    :ensure t)
+    :straight t)
   (use-package all-the-icons
-    :ensure t)
+    :straight t)
   ;; Dashboard configuration.
   (dashboard-setup-startup-hook)
   (setq dashboard-banner-logo-title "Welcome to Emacs")
@@ -276,14 +311,14 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
   (add-to-list 'dashboard-items '(custom) t)
 
   (defun test-dashboard () (setq *my-timer* (run-at-time "20 sec" nil #'(lambda ()
-								       (when *my-timer*
-									(cancel-timer *my-timer*)
-									(setq *my-timer* nil))
-									(when (string=
-									       (buffer-name (window-buffer))
-									       "*dashboard*")
-									 (dashboard-refresh-buffer))))))
- (add-hook 'dashboard-mode-hook #'test-dashboard))
+									  (when *my-timer*
+									   (cancel-timer *my-timer*)
+									   (setq *my-timer* nil))
+									  (when (string=
+										 (buffer-name (window-buffer))
+										 "*dashboard*")
+									   (dashboard-refresh-buffer))))))
+  (add-hook 'dashboard-mode-hook #'test-dashboard))
 ```
 
 
@@ -293,23 +328,22 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 ## Config
 
 ```emacs-lisp
-;;; org
 (use-package org
-  :ensure t
+  :straight t
   :mode ("\\.org\\'" . org-mode)
   :diminish org-indent-mode
   :config
   (setq org-startup-indented t)
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '( (python . t)
-      (emacs-lisp . t)
-      (lisp . t)
-      (C . t))))
+   '((python		. t)
+     (emacs-lisp	. t)
+     (lisp		. t)
+     (C			. t))))
 
 (use-package org-bullets
   :after org
-  :ensure t
+  :straight t
   :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
 ```
 
@@ -320,31 +354,31 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 ;; Export to html with syntax highlighting
 (use-package htmlize
   :after org
-  :ensure t
+  :straight t
   :commands org-export-dispatch)
 
 ;; Export to Markdown with syntax highlighting
 (use-package ox-gfm
   :after org
-  :ensure t
+  :straight t
   :commands org-gfm-export-to-markdown)
 ```
 
 
 ### Presentations
 
-1.  Requirements
+-   Requirements
 
     Requires reveal.js to create html presentations.
 
-2.  Config
+-   Config
 
     ```emacs-lisp
     ;; Package used to create presentations using reveal.js.
     ;; Requires the installation of reveaj.js.
     (use-package ox-reveal
       :after org
-      :ensure t
+      :straight t
       :commands org-reveal-export-to-html
       :config
       (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
@@ -355,24 +389,21 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 
 ```emacs-lisp
 (use-package magit
-  :ensure t
-  :defer 9.2)
-
-(global-set-key (kbd "\C-x g") 'magit-status)
+  :straight t
+  :bind (("C-x g" . magit-status)))
 ```
 
 
 # Theme
 
-My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dracula-theme.
+My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dracula-theme. There is a function bound to <f5> to switch between light mode and dark mode.
 
 ```emacs-lisp
-  ;; zerodark-theme kaolin-themes moe-theme dracula-theme are nice themes
 (use-package kaolin-themes
-  :ensure t)
+  :straight t)
 
 (use-package doom-themes
-  :ensure t)
+  :straight t)
 
 (setq *theme-dark* 'kaolin-galaxy)
 (setq *theme-light* 'doom-acario-light)
@@ -397,13 +428,23 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package treemacs
-  :ensure t
-  :commands treemacs
-  :hook (pdf-view-mode . (lambda() (linum-mode -1))))
+  :straight t
+  :commands treemacs)
 ```
 
 
-# Global
+# Password manager
+
+Requires pass.
+
+```emacs-lisp
+(use-package pass
+  :straight t
+  :commands pass)
+```
+
+
+# Global (better UX)
 
 
 ## Hydra
@@ -412,23 +453,9 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package hydra
-  :ensure t
+  :straight t
   :defer 2.5
   :config
-  (defhydra hydra-wind-move (:color amaranth 
-			     :hint nil
-			     :post hydra-movement/cond-body-call)
-    "
-  _b_: left wind   _p_: up wind
-  _f_: right wind  _n_: down wind
-    "
-    ("q" nil "quit")
-    ("<f3>" nil "quit")
-    ("b" windmove-left)
-    ("f" windmove-right)
-    ("p" windmove-up)
-    ("n" windmove-down))
-
   (defhydra hydra-exwm (:color teal
 			:hint nil)
     "
@@ -440,72 +467,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
     ("t" (exwm-async-run "alacritty")))
   (global-set-key (kbd "<f4>") 'hydra-exwm/body)
 
-  (defhydra hydra-dumb-jump (:color teal :columns 3)
-    "Dumb Jump"
-    ("q" nil "quit")
-    ("<f3>" nil "quit")
-    ("j" dumb-jump-go "Go")
-    ("o" dumb-jump-go-other-window "Other window")
-    ("e" dumb-jump-go-prefer-external "Go external")
-    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
-    ("i" dumb-jump-go-prompt "Prompt")
-    ("l" dumb-jump-quick-look "Quick look")
-    ("b" dumb-jump-back "Back"))
-  (global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
-
-  (defhydra hydra-multiple-cursors (:color teal 
-				    :hint nil
-				    :post hydra-movement/cond-body-call)
-    "
-  _l_: edit lines   _a_: all like this
-    "
-    ("q" nil "quit")
-    ("l" mc/edit-lines)
-    ("a" mc/mark-all-like-this))
-
-  (defhydra hydra-eyebrowse (:color amaranth :hint nil)
-    "
-  %s(eyebrowse-mode-line-indicator)  
-  _p_: prev wind   _c_: creat wind  _r_: renam wind
-  _n_: next wind   _C_: close wind  _l_: last wind
-  _0_: switch to 0      ^^...       _9_: switch to 9   
-    "
-    ("q" nil "quit")
-    ("<f2>" nil "quit")
-    ("p" eyebrowse-prev-window-config nil)
-    ("n" eyebrowse-next-window-config nil)
-    ("l" eyebrowse-last-window-config nil)
-    ("r" eyebrowse-rename-window-config nil)
-    ("c" eyebrowse-create-window-config nil)
-    ("C" eyebrowse-close-window-config nil)
-    ("0" eyebrowse-switch-to-window-config-0 nil)
-    ("1" eyebrowse-switch-to-window-config-1 nil)
-    ("2" eyebrowse-switch-to-window-config-2 nil)
-    ("3" eyebrowse-switch-to-window-config-3 nil)
-    ("4" eyebrowse-switch-to-window-config-4 nil)
-    ("5" eyebrowse-switch-to-window-config-5 nil)
-    ("6" eyebrowse-switch-to-window-config-6 nil)
-    ("7" eyebrowse-switch-to-window-config-7 nil)
-    ("8" eyebrowse-switch-to-window-config-8 nil)
-    ("9" eyebrowse-switch-to-window-config-9 nil))
-  (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
-
-  (defhydra hydra-avy (:color teal 
-		       :hint nil
-		       :post hydra-movement/cond-body-call)
-    "
-    _s_: word 1   _n_: word bellow   _p_: word above
-    _l_: line     _c_: char timer    _g_: char timer
-    "
-    ("q" nil "quit")
-    ("s" avy-goto-word-1)
-    ("p" avy-goto-word-1-above)
-    ("n" avy-goto-word-1-below)
-    ("l" avy-goto-line)
-    ("c" avy-goto-char-timer)
-    ("g" avy-goto-char-timer))
-  (global-set-key (kbd "M-s") 'hydra-avy/body)
-
 ;;; hydra-movement to make moving around easier
   (defun hydra-movement/cond-body-call ()
     (if hydra-movement/inside-body
@@ -515,7 +476,8 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
   (defun hydra-movement/call-body () 
     (interactive)
-    (set-cursor-color "#ff0000") 
+    (setq *original-cursor-color* (face-attribute 'cursor :background))
+    (set-cursor-color "#ff0000")
     (setq hydra-is-helpful nil)
     (setq hydra-movement/inside-body t)
     (hydra-movement/body))
@@ -711,7 +673,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
   (defhydra hydra-movement (:hint nil
 			    :color amaranth 
-			    :post (progn (set-cursor-color "#000000") 
+			    :post (progn (set-cursor-color *original-cursor-color*) 
 					 (setq hydra-is-helpful t)))
     "
   Navigation:
@@ -788,21 +750,128 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 ```
 
 
+### Hydra EMMS
+
+```emacs-lisp
+(defhydra hydra-emms (:color teal
+		      :hint nil)
+  "
+    _p_:laylist  _b_:rowse  _r_:eset  _c_:onnect
+    _k_:ill      _u_:pdate
+  "
+  ("q" nil "quit")
+  ("p" emms)
+  ("b" emms-smart-browse)
+  ("r" emms-player-mpd-update-all-reset-cache)
+  ("c" mpd/start-music-daemon)
+  ("k" mpd/kill-music-daemon)
+  ("u" mpd/update-database))
+
+(global-set-key (kbd "s-m") 'hydra-emms/body)
+```
+
+
+### Hydra MC
+
+```emacs-lisp
+(defhydra hydra-multiple-cursors (:color teal 
+				  :hint nil
+				  :post hydra-movement/cond-body-call)
+  "
+    _l_: edit lines   _a_: all like this
+  "
+  ("q" nil "quit")
+  ("l" mc/edit-lines)
+  ("a" mc/mark-all-like-this))
+```
+
+
+### Hydra AVY
+
+```emacs-lisp
+(defhydra hydra-avy (:color teal 
+		     :hint nil
+		     :post hydra-movement/cond-body-call)
+  "
+  _s_: word 1   _n_: word bellow   _p_: word above
+  _l_: line     _c_: char timer    _g_: char timer
+  "
+  ("q" nil "quit")
+  ("s" avy-goto-word-1)
+  ("p" avy-goto-word-1-above)
+  ("n" avy-goto-word-1-below)
+  ("l" avy-goto-line)
+  ("c" avy-goto-char-timer)
+  ("g" avy-goto-char-timer))
+(global-set-key (kbd "M-s") 'hydra-avy/body)
+```
+
+
+### Hydra Eyebrowse
+
+```emacs-lisp
+(defhydra hydra-eyebrowse (:color amaranth :hint nil)
+  "
+%s(eyebrowse-mode-line-indicator)  
+_p_: prev wind   _c_: creat wind  _r_: renam wind
+_n_: next wind   _C_: close wind  _l_: last wind
+_0_: switch to 0      ^^...       _9_: switch to 9   
+  "
+  ("q" nil "quit")
+  ("<f2>" nil "quit")
+  ("p" eyebrowse-prev-window-config nil)
+  ("n" eyebrowse-next-window-config nil)
+  ("l" eyebrowse-last-window-config nil)
+  ("r" eyebrowse-rename-window-config nil)
+  ("c" eyebrowse-create-window-config nil)
+  ("C" eyebrowse-close-window-config nil)
+  ("0" eyebrowse-switch-to-window-config-0 nil)
+  ("1" eyebrowse-switch-to-window-config-1 nil)
+  ("2" eyebrowse-switch-to-window-config-2 nil)
+  ("3" eyebrowse-switch-to-window-config-3 nil)
+  ("4" eyebrowse-switch-to-window-config-4 nil)
+  ("5" eyebrowse-switch-to-window-config-5 nil)
+  ("6" eyebrowse-switch-to-window-config-6 nil)
+  ("7" eyebrowse-switch-to-window-config-7 nil)
+  ("8" eyebrowse-switch-to-window-config-8 nil)
+  ("9" eyebrowse-switch-to-window-config-9 nil))
+(global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
+```
+
+
+### Hydra dump jump
+
+```emacs-lisp
+(defhydra hydra-dumb-jump (:color teal :columns 3)
+  "Dumb Jump"
+  ("q" nil "quit")
+  ("<f3>" nil "quit")
+  ("j" dumb-jump-go "Go")
+  ("o" dumb-jump-go-other-window "Other window")
+  ("e" dumb-jump-go-prefer-external "Go external")
+  ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
+  ("i" dumb-jump-go-prompt "Prompt")
+  ("l" dumb-jump-quick-look "Quick look")
+  ("b" dumb-jump-back "Back"))
+(global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
+```
+
+
 ## Ivy
 
 ```emacs-lisp
 ;;; Global
 ;; Ivy is a generic completion tool
 (use-package ivy
-  :ensure t
+  :straight t
   :diminish ivy-mode
   :defer 0.9
   :config
   (use-package swiper
-    :ensure t
+    :straight t
     :bind (("\C-s" . swiper)))
   (use-package counsel
-    :ensure t
+    :straight t
     :diminish counsel-mode
     :config (counsel-mode))
   (ivy-mode))
@@ -813,7 +882,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package visual-regexp-steroids
-  :ensure t
+  :straight t
   :commands vr/replace)
 ```
 
@@ -822,8 +891,71 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package popup-kill-ring
-  :ensure t
+  :straight t
   :bind (("M-y" . popup-kill-ring))) 
+```
+
+
+## Ido-vertical
+
+```emacs-lisp
+(use-package ido-vertical-mode
+  :straight t
+  :defer 3.3
+  :config
+  (setq ido-vertical-show-count t)
+  (setq ido-vertical-define-keys 'C-n-C-p-up-and-down)
+  (ido-vertical-mode))
+```
+
+
+## EMMS
+
+I use mpd/mpc to play music. I used Uncle Dave's config as a reference for the following settings.
+
+```emacs-lisp
+(use-package emms
+  :straight t
+  :config
+  (require 'emms-setup)
+  (require 'emms-player-mpd)
+  (emms-all)
+  (setq emms-seek-seconds 5)
+  (setq emms-player-list '(emms-player-mpd emms-player-mpv))
+  (setq emms-info-functions '(emms-info-mpd))
+  (setq emms-player-mpd-server-name "localhost")
+  (setq emms-player-mpd-server-port "6601")
+  :commands hydra-emms/body
+  :bind
+  (("<XF86AudioPrev>" . emms-previous)
+  ("<XF86AudioNext>" . emms-next)
+  ("<XF86AudioPlay>" . emms-pause)
+  ("<XF86AudioStop>" . emms-stop)))
+
+(setq mpc-host "localhost:6601")
+
+(defun mpd/start-music-daemon ()
+  "Start MPD, connects to it and syncs the metadata cache."
+  (interactive)
+  (shell-command "mpd")
+  (mpd/update-database)
+  (emms-player-mpd-connect)
+  (emms-cache-set-from-mpd-all)
+  (message "MPD Started!"))
+
+(defun mpd/kill-music-daemon ()
+  "Stops playback and kill the music daemon."
+  (interactive)
+  (emms-stop)
+  (call-process "killall" nil nil nil "mpd")
+  (message "MPD Killed!"))
+
+
+(defun mpd/update-database ()
+  "Updates the MPD database synchronously."
+  (interactive)
+  (call-process "mpc" nil nil nil "update")
+  (message "MPD Database Updated!"))
 ```
 
 
@@ -831,67 +963,72 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package exwm
-  :ensure t
+  :straight t
+  :init
+  (defun my-exwm-config-fn ()
+    (interactive)
+    (defun exwm-async-run (name)
+      (start-process name nil name))
+
+    (dolist (k '(XF86AudioLowerVolume
+		 XF86AudioRaiseVolume
+		 XF86PowerOff
+		 XF86AudioMute
+		 XF86AudioPlay
+		 XF86AudioStop
+		 XF86AudioPrev
+		 XF86AudioNext
+		 XF86ScreenSaver
+		 XF68Back
+		 XF86Forward
+		 Scroll_Lock
+		 print))
+      (cl-pushnew k exwm-input-prefix-keys))
+
+    (global-set-key (kbd "<XF86AudioRaiseVolume>")
+		    (lambda ()
+		      (interactive)
+		      (call-process-shell-command "amixer set Master 10%+" nil 0)))
+
+    (global-set-key (kbd "<XF86AudioLowerVolume>")
+		    (lambda ()
+		      (interactive)
+		      (call-process-shell-command "amixer set Master 10%-" nil 0)))
+
+    (global-set-key (kbd "<XF86AudioMute>")
+		    (lambda ()
+		      (interactive)
+		      (call-process-shell-command "amixer set Master toggle" nil 0)))
+
+    (global-set-key (kbd "<print>")
+		    (lambda ()
+		      (interactive)
+		      (call-process-shell-command "flameshot gui" nil 0)))
+
+    (exwm-input-set-simulation-keys
+     '(
+       ;; cut/paste
+       ([?\C-w] . ?\C-x)
+       ([?\M-w] . ?\C-c)
+       ([?\C-y] . ?\C-v)
+       ;; search
+       ([?\C-s] . ?\C-f))))
   :config
+  (add-hook 'exwm-init-hook (lambda () (my-exwm-config-fn)))
   (require 'exwm-config)
-      (exwm-config-default)
-      ;(exwm-enable)
+  (exwm-config-default)
+
   (require 'exwm-randr)
-      ;(exwm-randr-enable)
+
   (setq exwm-randr-workspace-output-plist '(0 "eDP-1" 1 "HDMI-1"))
+
   (add-hook 'exwm-randr-screen-change-hook
 	    (lambda ()
 	      (start-process-shell-command
 	       "xrandr" nil "xrandr --output eDP-1 --right-of HDMI-1 --auto")))
-  (exwm-randr-enable)
-					;
-					;(exwm-enable)
-  (defun exwm-async-run (name)
-    (start-process name nil name))
+  (exwm-randr-enable))
 
-  (dolist (k '(XF86AudioLowerVolume
-	       XF86AudioRaiseVolume
-	       XF86PowerOff
-	       XF86AudioMute
-	       XF86AudioPlay
-	       XF86AudioStop
-	       XF86AudioPrev
-	       XF86AudioNext
-	       XF86ScreenSaver
-	       XF68Back
-	       XF86Forward
-	       Scroll_Lock
-	       print))
-    (cl-pushnew k exwm-input-prefix-keys))
 
-  (global-set-key (kbd "<XF86AudioRaiseVolume>")
-		  (lambda ()
-		    (interactive)
-		    (call-process-shell-command "amixer set Master 10%+" nil 0)))
-
-  (global-set-key (kbd "<XF86AudioLowerVolume>")
-		  (lambda ()
-		    (interactive)
-		    (call-process-shell-command "amixer set Master 10%-" nil 0)))
-
-  (global-set-key (kbd "<XF86AudioMute>")
-		  (lambda ()
-		    (interactive)
-		    (call-process-shell-command "amixer set Master toggle" nil 0)))
-
-  (global-set-key (kbd "<print>")
-		  (lambda ()
-		    (interactive)
-		    (call-process-shell-command "flameshot gui" nil 0)))
-
-  (exwm-input-set-simulation-keys
-   '(
-     ;; cut/paste
-     ([?\C-w] . ?\C-x)
-     ([?\M-w] . ?\C-c)
-     ([?\C-y] . ?\C-v)
-     ;; search
-     ([?\C-s] . ?\C-f))))
 ```
 
 
@@ -901,7 +1038,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (display-time-mode t)
 
 (use-package spaceline
-  :ensure t
+  :straight t
   :defer 2.2
   :config
   (require 'spaceline-config)
@@ -918,7 +1055,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package smartparens
-  :ensure t
+  :straight t
   :defer 5.1
   :diminish smartparens-mode
   :config 
@@ -927,7 +1064,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   (sp-local-pair 'org-mode "_" "_"))
 
 (use-package highlight-parentheses
-  :ensure t
+  :straight t
   :defer 12.1
   :diminish highlight-parentheses-mode
   :config (global-highlight-parentheses-mode))
@@ -941,7 +1078,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package buffer-move
-  :ensure t
+  :straight t
   :bind
   (("C-c <C-up>"   . buf-move-up)
    ("C-c <C-down>"  . buf-move-down)
@@ -959,7 +1096,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (global-set-key (kbd "C-c <M-left>") 'windmove-left) 
 
 (use-package ace-window
-  :ensure t
+  :straight t
   :commands ace-window)
 ```
 
@@ -968,7 +1105,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package multiple-cursors
-  :ensure t
+  :straight t
   :bind (("C-: C-m b" . mc/edit-lines)
 	 ("C-: C-m a" . mc/mark-all-like-this)
 	 ("C-: C-m >" . mc/mark-next-like-this)
@@ -980,7 +1117,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package avy
-  :ensure t
+  :straight t
   :commands hydra-avy/body)
 ```
 
@@ -989,7 +1126,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package undo-tree
-  :ensure t
+  :straight t
   :defer 4.2
   :diminish undo-tree-mode
   :config (global-undo-tree-mode))
@@ -1000,7 +1137,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package dired
-  :hook (dired-mode . dired-omit-mode)
+  :hook (dired-mode . (lambda () (dired-omit-mode)))
   :bind (:map dired-mode-map
 	 ("<return>" . dired-find-alternate-file)))
 
@@ -1011,7 +1148,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 	"^\\..+$"))
 
 (use-package dired-rainbow
-  :ensure t
+  :straight t
   :defer 3.2
   :config
   (progn
@@ -1043,8 +1180,9 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package centaur-tabs
-  :ensure t
-  :defer 4.2)
+  :straight t
+  :defer 4.2
+  :commands centaur-tabs-mode)
 ```
 
 
@@ -1052,7 +1190,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package eyebrowse
-  :ensure t
+  :straight t
   :commands hydra-eyebrowse/body
   :config (eyebrowse-mode t))
 ```
@@ -1062,7 +1200,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 
 ```emacs-lisp
 (use-package expand-region
-  :ensure t
+  :straight t
   :bind (("C-=" . er/expand-region)))
 ```
 
@@ -1075,7 +1213,6 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
-(global-linum-mode)
 (global-set-key (kbd "TAB") 'self-insert-command)
 (global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)
 (setq visible-bell 1)
@@ -1129,14 +1266,7 @@ I use aspell for spell checking.
 ```
 
 
-## Eshell
-
-```emacs-lisp
-(add-hook 'eshell-mode-hook (lambda () (linum-mode -1)))
-```
-
-
-## Change sexp keyword indentation
+### Change sexp keyword indentation
 
 This changes the identation style from:
 
@@ -1346,9 +1476,52 @@ See <https://github.com/politza/pdf-tools>.
 
 ```emacs-lisp
 (use-package pdf-tools
-  :ensure t
-  :mode ("\\.pdf\\'" . pdf-view-mode)
-  :hook (pdf-view-mode . (lambda() (linum-mode -1))))
+  :straight t
+  :mode ("\\.pdf\\'" . pdf-view-mode))
+```
+
+
+# Blog
+
+```emacs-lisp
+(use-package org-static-blog
+  :straight t
+  :config
+  (setq org-static-blog-publish-title "Caio's Blog")
+  (setq org-static-blog-publish-url "https://blog.caiohcs.xyz/")
+  (setq org-static-blog-publish-directory "~/projects/blog/")
+  (setq org-static-blog-posts-directory "~/projects/blog/posts/")
+  (setq org-static-blog-drafts-directory "~/projects/blog/drafts/")
+  (setq org-static-blog-enable-tags t)
+  (setq org-export-with-toc nil)
+  (setq org-export-with-section-numbers nil)
+
+  ;; This header is inserted into the <head> section of every page:
+  ;;   (you will need to create the style sheet at
+  ;;    ~/projects/blog/static/style.css
+  ;;    and the favicon at
+  ;;    ~/projects/blog/static/favicon.ico)
+  (setq org-static-blog-page-header
+	"<meta name=\"author\" content=\"Caio H C S\">
+<meta name=\"referrer\" content=\"no-referrer\">
+<link href= \"static/style.css\" rel=\"stylesheet\" type=\"text/css\" />
+<link rel=\"icon\" href=\"static/favicon.ico\">")
+
+  ;; This preamble is inserted at the beginning of the <body> of every page:
+  ;;   This particular HTML creates a <div> with a simple linked headline
+  (setq org-static-blog-page-preamble
+	"<div class=\"header\">
+  <a href=\"https://caiohcs.xyz/\">Back to main page</a>
+</div>")
+
+  ;; This postamble is inserted at the end of the <body> of every page:
+  ;;   This particular HTML creates a <div> with a link to the archive page
+  ;;   and a licensing stub.
+  (setq org-static-blog-page-postamble
+	"<div id=\"archive\">
+  <a href=\"https://blog.caiohcs.xyz/archive.html\">Other posts</a>
+</div>
+<center><a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-sa/3.0/88x31.png\" /></a><br /><span xmlns:dct=\"https://purl.org/dc/terms/\" href=\"https://purl.org/dc/dcmitype/Text\" property=\"dct:title\" rel=\"dct:type\">caiohcs.xyz</span> by <a xmlns:cc=\"https://creativecommons.org/ns#\" href=\"https://caiohcs.xyz/\" property=\"cc:attributionName\" rel=\"cc:attributionURL\">Caio H C S</a> is licensed under a <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.</center>"))
 ```
 
 
@@ -1364,12 +1537,16 @@ cURL.
 
 ```emacs-lisp
 (use-package elfeed
-  :ensure t
+  :straight t
   :commands elfeed
   :config
   (setq elfeed-feeds
 	'("reddit.com/r/emacs.rss"
-	  "https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA")))
+	  "https://blog.caiohcs.xyz/rss.xml"
+	  "https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA"
+	  "https://www.youtube.com/feeds/videos.xml?channel_id=UC7YOGHUfC1Tb6E4pudI9STA"
+	  "https://www.youtube.com/feeds/videos.xml?channel_id=UCVls1GmFKf6WlTraIb_IaJg"
+	  "https://lukesmith.xyz/rss.xml")))
 ```
 
 

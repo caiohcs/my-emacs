@@ -6,8 +6,6 @@
 #+ATTR_HTML: :width 100%
 [[./imgs/my-emacs.png]]
 
-My configuration loads around 65 packages. It loads fast, in my machine it takes around 0.8s but I don't care much about startup time since I never close my Emacs, so I haven't tried using advanced optimizations, all I do is defer some things with use-package.
-
 I use the hydra package to configure my keybindings. There is a modal editing hydra on F1, a hydra for windows management (using Eyebrowse) on F2, a hydra for dumb-jump on F3, a hydra to open programs (e.g. the browser) on F4 and a hydra for Avy shorcuts on M-s. F5 switches between a light theme and a dark theme.
 
 * Installation
@@ -75,6 +73,153 @@ Silver searcher: https://github.com/ggreer/the_silver_searcher
     :config
     (setq dumb-jump-selector 'ivy)
     :commands dumb-jump-go)
+#+end_src
+
+** C and C++
+*** Requirements
+- Requires clang installed on the system.
+- Requires ccls installed on the system. https://github.com/MaskRay/ccls
+I'm assuming that the ccls binary is at /usr/bin/ccls.
+
+*** Config
+#+BEGIN_SRC emacs-lisp
+  (use-package ccls
+    :after lsp-mode
+    :straight t
+    :config (setq ccls-executable "/usr/bin/ccls")
+    :hook ((c-mode c++-mode objc-mode cuda-mode) .
+           (lambda () (require 'ccls))))
+
+  (defun my-c-mode-common-hook ()
+    (c-set-offset 'substatement-open 0)
+    (c-set-offset 'access-label '/)
+    (c-set-offset 'inclass '+)
+    (setq  c-default-style "bsd"
+           c-basic-offset 4
+           c-indent-level 4
+           c-indent-tabs-mode t
+           c-tab-always-indent t
+           c++-tab-always-indent t
+           tab-width 4
+           backward-delete-function nil))
+
+  (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
+  (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+#+END_SRC
+
+** Golang
+*** Requirements
+Autocompletion requires gocode, available at https://github.com/nsf/gocode.
+We can install gocode with go get, then we need to create a symbolic link at /usr/bin.
+
+*** Config
+#+BEGIN_SRC emacs-lisp
+(use-package go-mode
+  :straight t
+  :mode ("\\.go\\'" . go-mode)
+  :config
+  (use-package company-go
+    :requires company
+    :straight t)
+  (use-package go-errcheck
+    :straight t)
+  (defun my-go-mode-hook ()
+    (setq tab-width 4)
+    (setq gofmt-command "goimports")
+    (set (make-local-variable 'company-backends) '(company-go))
+    (company-mode))
+  (add-hook 'go-mode-hook 'my-go-mode-hook))
+#+END_SRC
+
+** Lisp
+I use Steel Bank Common Lisp.
+*** Config
+#+BEGIN_SRC emacs-lisp
+  ;;; Lisp
+  (use-package slime
+    :straight t
+    :commands slime
+    :config
+    (setq inferior-lisp-program "sbcl")
+    (setq slime-contribs '(slime-fancy)))
+
+  (use-package slime-company
+    :after (slime company)
+    :straight t
+    :init
+    (slime-setup '(slime-fancy slime-company)))
+
+  (use-package suggest
+    :straight t
+    :commands suggest)
+#+END_SRC
+
+** Web
+#+BEGIN_SRC emacs-lisp
+  (use-package emmet-mode
+    :straight t
+    :hook (web-mode . (lambda () (emmet-mode))))
+
+  (use-package rainbow-mode
+    :straight t
+    :hook (org-mode . (lambda () (rainbow-mode)))
+    :mode (("\\.html\\'"	. rainbow-mode)
+           ("\\.css\\'"	. rainbow-mode)))
+
+  (use-package web-mode
+    :straight t
+    :mode (("\\.html\\'"	. web-mode)
+           ("\\.css\\'"	. web-mode)))
+
+  (use-package simple-httpd
+    :straight t
+    :commands httpd-start)
+
+  (use-package impatient-mode
+    :straight t
+    :commands impatient-mode)
+
+  (use-package request
+    :straight t
+    :commands request)
+#+END_SRC
+
+** Yaml
+I left the Yaml package disabled, so delete the :disabled line if you want this package.
+#+BEGIN_SRC emacs-lisp
+(use-package yaml-mode
+  :disabled
+  :straight t
+  :mode ("\\.yml\\'" . yaml-mode))
+#+END_SRC
+
+** Docker
+I left the Docker packages disabled, so delete the :disabled line if you want these packages.
+#+BEGIN_SRC emacs-lisp
+(use-package docker
+  :disabled
+  :straight t
+  :commands docker)
+
+(use-package dockerfile-mode
+  :disabled
+  :straight t
+  :mode ("Dockerfile\\'" . dockerfile-mode))
+#+END_SRC
+
+** Yasnippets
+*** Config
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :straight t
+    :defer 3.7
+    :hook (lisp-interaction-mode . (lambda () (yas-minor-mode)))
+    :config
+    (yas-reload-all))
+
+  (use-package yasnippet-snippets
+    :straight t
+    :after yasnippet)
 #+end_src
 
 * Dashboard
@@ -535,7 +680,7 @@ Requires pass.
     (global-set-key (kbd "<f1>") 'hydra-movement/call-body))
 #+END_SRC
 
-**** Hydra EMMS
+*** Hydra EMMS
 #+BEGIN_SRC emacs-lisp
   (defhydra hydra-emms (:color teal
                         :hint nil)
@@ -554,7 +699,7 @@ Requires pass.
   (global-set-key (kbd "s-m") 'hydra-emms/body)
 #+END_SRC
 
-**** Hydra MC
+*** Hydra MC
 #+BEGIN_SRC emacs-lisp
   (defhydra hydra-multiple-cursors (:color teal 
                                     :hint nil
@@ -567,7 +712,7 @@ Requires pass.
     ("a" mc/mark-all-like-this))
 #+END_SRC
 
-**** Hydra AVY
+*** Hydra AVY
 #+BEGIN_SRC emacs-lisp
   (defhydra hydra-avy (:color teal 
                        :hint nil
@@ -586,7 +731,7 @@ Requires pass.
   (global-set-key (kbd "M-s") 'hydra-avy/body)
 #+END_SRC
 
-**** Hydra Eyebrowse
+*** Hydra Eyebrowse
 #+BEGIN_SRC emacs-lisp
   (defhydra hydra-eyebrowse (:color amaranth :hint nil)
     "
@@ -616,7 +761,7 @@ Requires pass.
   (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
 #+END_SRC
 
-**** Hydra dump jump
+*** Hydra dump jump
 #+BEGIN_SRC emacs-lisp
   (defhydra hydra-dumb-jump (:color teal :columns 3)
     "Dumb Jump"
@@ -632,7 +777,7 @@ Requires pass.
   (global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
 #+END_SRC
 
-*** Ivy
+** Ivy
 #+BEGIN_SRC emacs-lisp
   ;;; Global
   ;; Ivy is a generic completion tool
@@ -651,21 +796,21 @@ Requires pass.
     (ivy-mode))
 #+END_SRC
 
-*** Regular expressions
+** Regular expressions
 #+begin_src emacs-lisp
 (use-package visual-regexp-steroids
   :straight t
   :commands vr/replace)
 #+end_src
 
-*** Kill ring
+** Kill ring
 #+BEGIN_SRC emacs-lisp
 (use-package popup-kill-ring
   :straight t
   :bind (("M-y" . popup-kill-ring))) 
 #+END_SRC
 
-*** Ido-vertical
+** Ido-vertical
 #+BEGIN_SRC emacs-lisp
   (use-package ido-vertical-mode
     :straight t
@@ -676,7 +821,7 @@ Requires pass.
     (ido-vertical-mode))
 #+END_SRC
 
-*** EMMS
+** EMMS
 I use mpd/mpc to play music.
 I used Uncle Dave's config as a reference for the following settings.
 
@@ -725,7 +870,7 @@ I used Uncle Dave's config as a reference for the following settings.
     (message "MPD Database Updated!"))
 #+END_SRC
 
-*** EXWM
+** EXWM
 #+BEGIN_SRC emacs-lisp
   (use-package exwm
     :straight t
@@ -796,7 +941,7 @@ I used Uncle Dave's config as a reference for the following settings.
 
 #+END_SRC
 
-*** Modeline
+** Modeline
 #+BEGIN_SRC emacs-lisp
 (display-time-mode t)
 
@@ -813,7 +958,7 @@ I used Uncle Dave's config as a reference for the following settings.
   (spaceline-spacemacs-theme))
 #+END_SRC
 
-*** Parentheses
+** Parentheses
 #+BEGIN_SRC emacs-lisp
 (use-package smartparens
   :straight t
@@ -834,7 +979,7 @@ I used Uncle Dave's config as a reference for the following settings.
 (show-paren-mode t)
 #+END_SRC
 
-*** Buffer moving
+** Buffer moving
 #+BEGIN_SRC emacs-lisp
 (use-package buffer-move
   :straight t
@@ -845,7 +990,7 @@ I used Uncle Dave's config as a reference for the following settings.
    ("C-c <C-right>" . buf-move-right)))
 #+END_SRC
 
-*** Windows moving
+** Windows moving
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-c <M-up>") 'windmove-up) 
 (global-set-key (kbd "C-c <M-down>") 'windmove-down) 
@@ -857,7 +1002,7 @@ I used Uncle Dave's config as a reference for the following settings.
   :commands ace-window)
 #+END_SRC
 
-*** Multiple cursors
+** Multiple cursors
 #+BEGIN_SRC emacs-lisp
 (use-package multiple-cursors
   :straight t
@@ -867,14 +1012,14 @@ I used Uncle Dave's config as a reference for the following settings.
 	 ("C-: C-m <" . mc/mark-previous-like-this)))
 #+END_SRC
 
-*** Avy
+** Avy
 #+BEGIN_SRC emacs-lisp
 (use-package avy
   :straight t
   :commands hydra-avy/body)
 #+END_SRC
 
-*** Undo-tree
+** Undo-tree
 #+BEGIN_SRC emacs-lisp
   (use-package undo-tree
     :straight t
@@ -883,7 +1028,7 @@ I used Uncle Dave's config as a reference for the following settings.
     :config (global-undo-tree-mode))
 #+END_SRC
 
-*** Dired
+** Dired
 #+BEGIN_SRC emacs-lisp
   (use-package dired
     :hook (dired-mode . (lambda () (dired-omit-mode)))
@@ -924,7 +1069,7 @@ I used Uncle Dave's config as a reference for the following settings.
 
 #+END_SRC
 
-*** Tabs
+** Tabs
 #+BEGIN_SRC emacs-lisp
   (use-package centaur-tabs
     :straight t
@@ -932,7 +1077,7 @@ I used Uncle Dave's config as a reference for the following settings.
     :commands centaur-tabs-mode)
 #+END_SRC
 
-*** Windows management
+** Windows management
 #+BEGIN_SRC emacs-lisp
   (use-package eyebrowse
     :straight t
@@ -940,14 +1085,14 @@ I used Uncle Dave's config as a reference for the following settings.
     :config (eyebrowse-mode t))
 #+END_SRC
 
-*** Smart region expanding
+** Smart region expanding
 #+BEGIN_SRC emacs-lisp
 (use-package expand-region
   :straight t
   :bind (("C-=" . er/expand-region)))
 #+END_SRC
 
-*** Tool bar, menu bar, line numbering etc
+** Tool bar, menu bar, line numbering etc
 #+BEGIN_SRC emacs-lisp
 ;;; Variables
 (global-visual-line-mode)
@@ -959,7 +1104,7 @@ I used Uncle Dave's config as a reference for the following settings.
 (setq visible-bell 1)
 #+END_SRC
 
-*** Change backup/autosave folder
+** Change backup/autosave folder
 #+BEGIN_SRC emacs-lisp
 ;;; Change the backup/autosave folder.
 (defvar backup-dir (expand-file-name "~/.emacs.d/backup/"))
@@ -969,22 +1114,22 @@ I used Uncle Dave's config as a reference for the following settings.
 (setq auto-save-file-name-transforms `((".*" ,autosave-dir t)))
 #+END_SRC
 
-*** Read process output
+** Read process output
 Sets read-process-output-max to 1mb since the default is low. This should improve things that use servers like LSP.
 #+BEGIN_SRC emacs-lisp
 (setq read-process-output-max (* 1024 1024))
 #+END_SRC
 
-*** Spell checking
+** Spell checking
 I use aspell for spell checking.
-**** Config
+*** Config
 #+BEGIN_SRC emacs-lisp
 (defvar ispell-program-name "aspell")
 #+END_SRC
 
-*** Diminish
+** Diminish
 I use aspell for spell checking.
-**** Config
+*** Config
 #+BEGIN_SRC emacs-lisp
   (diminish 'visual-line-mode)
   (diminish 'auto-revert-mode)
@@ -1182,153 +1327,6 @@ Code from https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords
               (desired-indent)
               (t
                normal-indent))))))
-#+END_SRC
-
-** Yasnippets
-*** Config
-#+begin_src emacs-lisp
-  (use-package yasnippet
-    :straight t
-    :defer 3.7
-    :hook (lisp-interaction-mode . (lambda () (yas-minor-mode)))
-    :config
-    (yas-reload-all))
-
-  (use-package yasnippet-snippets
-    :straight t
-    :after yasnippet)
-#+end_src
-
-** C and C++
-*** Requirements
-- Requires clang installed on the system.
-- Requires ccls installed on the system. https://github.com/MaskRay/ccls
-I'm assuming that the ccls binary is at /usr/bin/ccls.
-
-*** Config
-#+BEGIN_SRC emacs-lisp
-  (use-package ccls
-    :after lsp-mode
-    :straight t
-    :config (setq ccls-executable "/usr/bin/ccls")
-    :hook ((c-mode c++-mode objc-mode cuda-mode) .
-           (lambda () (require 'ccls))))
-
-  (defun my-c-mode-common-hook ()
-    (c-set-offset 'substatement-open 0)
-    (c-set-offset 'access-label '/)
-    (c-set-offset 'inclass '+)
-    (setq  c-default-style "bsd"
-           c-basic-offset 4
-           c-indent-level 4
-           c-indent-tabs-mode t
-           c-tab-always-indent t
-           c++-tab-always-indent t
-           tab-width 4
-           backward-delete-function nil))
-
-  (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
-  (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
-#+END_SRC
-
-** Golang
-*** Requirements
-Autocompletion requires gocode, available at https://github.com/nsf/gocode.
-We can install gocode with go get, then we need to create a symbolic link at /usr/bin.
-
-*** Config
-#+BEGIN_SRC emacs-lisp
-(use-package go-mode
-  :straight t
-  :mode ("\\.go\\'" . go-mode)
-  :config
-  (use-package company-go
-    :requires company
-    :straight t)
-  (use-package go-errcheck
-    :straight t)
-  (defun my-go-mode-hook ()
-    (setq tab-width 4)
-    (setq gofmt-command "goimports")
-    (set (make-local-variable 'company-backends) '(company-go))
-    (company-mode))
-  (add-hook 'go-mode-hook 'my-go-mode-hook))
-#+END_SRC
-
-** Lisp
-I use Steel Bank Common Lisp.
-*** Config
-#+BEGIN_SRC emacs-lisp
-  ;;; Lisp
-  (use-package slime
-    :straight t
-    :commands slime
-    :config
-    (setq inferior-lisp-program "sbcl")
-    (setq slime-contribs '(slime-fancy)))
-
-  (use-package slime-company
-    :after (slime company)
-    :straight t
-    :init
-    (slime-setup '(slime-fancy slime-company)))
-
-  (use-package suggest
-    :straight t
-    :commands suggest)
-#+END_SRC
-
-** Web
-#+BEGIN_SRC emacs-lisp
-  (use-package emmet-mode
-    :straight t
-    :hook (web-mode . (lambda () (emmet-mode))))
-
-  (use-package rainbow-mode
-    :straight t
-    :hook (org-mode . (lambda () (rainbow-mode)))
-    :mode (("\\.html\\'"	. rainbow-mode)
-           ("\\.css\\'"	. rainbow-mode)))
-
-  (use-package web-mode
-    :straight t
-    :mode (("\\.html\\'"	. web-mode)
-           ("\\.css\\'"	. web-mode)))
-
-  (use-package simple-httpd
-    :straight t
-    :commands httpd-start)
-
-  (use-package impatient-mode
-    :straight t
-    :commands impatient-mode)
-
-  (use-package request
-    :straight t
-    :commands request)
-#+END_SRC
-
-** Yaml
-I left the Yaml package disabled, so delete the :disabled line if you want this package.
-#+BEGIN_SRC emacs-lisp
-(use-package yaml-mode
-  :disabled
-  :straight t
-  :mode ("\\.yml\\'" . yaml-mode))
-#+END_SRC
-
-** Docker
-I left the Docker packages disabled, so delete the :disabled line if you want these packages.
-#+BEGIN_SRC emacs-lisp
-(use-package docker
-  :disabled
-  :straight t
-  :commands docker)
-
-(use-package dockerfile-mode
-  :disabled
-  :straight t
-  :mode ("Dockerfile\\'" . dockerfile-mode))
 #+END_SRC
 
 * PDF
