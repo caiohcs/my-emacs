@@ -152,6 +152,14 @@ I use Steel Bank Common Lisp.
   (use-package suggest
     :straight t
     :commands suggest)
+
+  (use-package lispy
+    :straight t
+    :hook (emacs-lisp-mode . (lambda () (lispy-mode))))
+
+  (use-package tiny
+    :straight t
+    :commands tiny-expand)
 #+END_SRC
 
 ** Web
@@ -387,18 +395,6 @@ Requires pass.
     :straight t
     :defer 2.5
     :config
-    (defhydra hydra-exwm (:color teal
-                          :hint nil)
-      "
-    _b_:rave   _t_:erminal
-      "
-      ("q" nil "quit")
-      ("<f4>" nil "quit")
-      ("b" (exwm-async-run "brave-browser"))
-      ("t" (exwm-async-run "alacritty")))
-    (global-set-key (kbd "<f4>") 'hydra-exwm/body)
-
-  ;;; hydra-movement to make moving around easier
     (defun hydra-movement/cond-body-call ()
       (if hydra-movement/inside-body
           (hydra-movement/call-body)))
@@ -637,6 +633,7 @@ Requires pass.
       ("p" previous-line)
       ("+" (enlarge-window 1))
       ("-" (enlarge-window -1))
+      ("t" (tiny-expand))
       ("s" (point-to-register ?g))
       ("j" (jump-to-register ?g))
       ("G" (lambda (arg) (interactive "cInsert char:") (navigate-to-specific-char arg)))
@@ -698,6 +695,26 @@ Requires pass.
 
   (global-set-key (kbd "s-m") 'hydra-emms/body)
 #+END_SRC
+
+*** Hydra to launch programs
+#+BEGIN_SRC emacs-lisp
+  (defun exwm-async-run (name)
+    (start-process name nil name))
+
+  (defhydra hydra-exwm (:color teal
+                        :hint nil)
+    "
+    _b_:rave  _a_:lacritty  _e_:lfeed  _p_:ass
+    "
+    ("q" nil "quit")
+    ("<f4>" nil "quit")
+    ("b" (exwm-async-run "brave-browser"))
+    ("a" (exwm-async-run "alacritty"))
+    ("e" (elfeed))
+    ("p" (pass)))
+  (global-set-key (kbd "<f4>") 'hydra-exwm/body)
+#+END_SRC
+
 
 *** Hydra MC
 #+BEGIN_SRC emacs-lisp
@@ -788,7 +805,7 @@ Requires pass.
     :config
     (use-package swiper
       :straight t
-      :bind (("\C-s" . swiper)))
+      :bind (("C-s" . swiper)))
     (use-package counsel
       :straight t
       :diminish counsel-mode
@@ -814,12 +831,19 @@ Requires pass.
 #+BEGIN_SRC emacs-lisp
   (use-package ido-vertical-mode
     :straight t
-    :defer 3.3
+    :bind (("C-x k" . ido-kill-buffer))
     :config
     (setq ido-vertical-show-count t)
-    (setq ido-vertical-define-keys 'C-n-C-p-up-and-down)
-    (ido-vertical-mode))
+    (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
 #+END_SRC
+
+** Which-key
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :straight t
+    :commands which-key-mode)
+#+END_SRC
+
 
 ** EMMS
 I use mpd/mpc to play music.
@@ -874,61 +898,35 @@ I used Uncle Dave's config as a reference for the following settings.
 #+BEGIN_SRC emacs-lisp
   (use-package exwm
     :straight t
-    :init
-    (defun my-exwm-config-fn ()
-      (interactive)
-      (defun exwm-async-run (name)
-        (start-process name nil name))
-
-      (dolist (k '(XF86AudioLowerVolume
-                   XF86AudioRaiseVolume
-                   XF86PowerOff
-                   XF86AudioMute
-                   XF86AudioPlay
-                   XF86AudioStop
-                   XF86AudioPrev
-                   XF86AudioNext
-                   XF86ScreenSaver
-                   XF68Back
-                   XF86Forward
-                   Scroll_Lock
-                   print))
-        (cl-pushnew k exwm-input-prefix-keys))
-
-      (global-set-key (kbd "<XF86AudioRaiseVolume>")
-                      (lambda ()
-                        (interactive)
-                        (call-process-shell-command "amixer set Master 10%+" nil 0)))
-
-      (global-set-key (kbd "<XF86AudioLowerVolume>")
-                      (lambda ()
-                        (interactive)
-                        (call-process-shell-command "amixer set Master 10%-" nil 0)))
-
-      (global-set-key (kbd "<XF86AudioMute>")
-                      (lambda ()
-                        (interactive)
-                        (call-process-shell-command "amixer set Master toggle" nil 0)))
-
-      (global-set-key (kbd "<print>")
-                      (lambda ()
-                        (interactive)
-                        (call-process-shell-command "flameshot gui" nil 0)))
-
-      (exwm-input-set-simulation-keys
-       '(
-         ;; cut/paste
-         ([?\C-w] . ?\C-x)
-         ([?\M-w] . ?\C-c)
-         ([?\C-y] . ?\C-v)
-         ;; search
-         ([?\C-s] . ?\C-f))))
+    :bind (("<XF86AudioRaiseVolume>" . (lambda ()
+                                         (interactive)
+                                         (call-process-shell-command "amixer set Master 5%+" nil 0)))
+           ("<XF86AudioLowerVolume>" . (lambda ()
+                                         (interactive)
+                                         (call-process-shell-command "amixer set Master 5%-" nil 0)))
+           ("<XF86AudioMute>" . (lambda ()
+                                  (interactive)
+                                  (call-process-shell-command "amixer set Master toggle" nil 0)))
+           ("<print>" . (lambda ()
+                          (interactive)
+                          (call-process-shell-command "flameshot gui" nil 0))))
     :config
-    (add-hook 'exwm-init-hook (lambda () (my-exwm-config-fn)))
+    (add-hook 'exwm-init-hook (lambda ()
+                                (exwm-input-set-simulation-keys
+                                 '(([?\C-w] . ?\C-x)
+                                   ([?\M-w] . ?\C-c)
+                                   ([?\C-y] . ?\C-v)
+                                   ([?\C-s] . ?\C-f)))))
+
+    (setq exwm-replace nil)
+
     (require 'exwm-config)
-    (exwm-config-default)
+
+    (setq exwm-workspace-number 4)
 
     (require 'exwm-randr)
+
+    (exwm-enable)
 
     (setq exwm-randr-workspace-output-plist '(0 "eDP-1" 1 "HDMI-1"))
 
@@ -937,8 +935,6 @@ I used Uncle Dave's config as a reference for the following settings.
                 (start-process-shell-command
                  "xrandr" nil "xrandr --output eDP-1 --right-of HDMI-1 --auto")))
     (exwm-randr-enable))
-
-
 #+END_SRC
 
 ** Modeline
@@ -1033,7 +1029,10 @@ I used Uncle Dave's config as a reference for the following settings.
   (use-package dired
     :hook (dired-mode . (lambda () (dired-omit-mode)))
     :bind (:map dired-mode-map
-           ("<return>" . dired-find-alternate-file)))
+           ("<return>" . dired-find-alternate-file)
+           ("<dead-circumflex>" . dired-up-directory)
+           ("E" . image-dired)
+           ("J" . dired-omit-mode)))
 
   (use-package dired-x
     :config
@@ -1081,7 +1080,7 @@ I used Uncle Dave's config as a reference for the following settings.
 #+BEGIN_SRC emacs-lisp
   (use-package eyebrowse
     :straight t
-    :commands hydra-eyebrowse/body
+    :defer 3.4
     :config (eyebrowse-mode t))
 #+END_SRC
 
@@ -1344,6 +1343,7 @@ See https://github.com/politza/pdf-tools.
 #+BEGIN_SRC emacs-lisp
   (use-package org-static-blog
     :straight t
+    :defer 7.2
     :config
     (setq org-static-blog-publish-title "Caio's Blog")
     (setq org-static-blog-publish-url "https://blog.caiohcs.xyz/")
