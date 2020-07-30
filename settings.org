@@ -13,6 +13,13 @@ I use the hydra package to configure my keybindings. There is a modal editing hy
 - Install all package requirements. For instance, C/C++ utilities requires clang.
 
 * Programming
+** Magit
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :straight t
+  :bind (("C-x g" . magit-status)))
+#+END_SRC
+
 ** Company
 Company is a text completion framework.
 #+BEGIN_SRC emacs-lisp
@@ -46,7 +53,6 @@ LSP gives Emacs IDE features.
 #+END_SRC
 
 ** Projectile
-I don't really use projectile, but I think that some other packages in my config require it, so it's going to be installed as a dependency anyway.
 #+BEGIN_SRC emacs-lisp
   (use-package projectile
     :straight t
@@ -156,10 +162,6 @@ I use Steel Bank Common Lisp.
   (use-package lispy
     :straight t
     :hook (emacs-lisp-mode . (lambda () (lispy-mode))))
-
-  (use-package tiny
-    :straight t
-    :commands tiny-expand)
 #+END_SRC
 
 ** Web
@@ -221,14 +223,24 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
   (use-package yasnippet
     :straight t
     :defer 3.7
-    :hook (lisp-interaction-mode . (lambda () (yas-minor-mode)))
-    :config
-    (yas-reload-all))
+    :hook ((lisp-interaction-mode . (lambda () (yas-minor-mode)))
+           (emacs-lisp-mode . (lambda () (yas-minor-mode)))
+           (org-mode . (lambda () (yas-minor-mode)))
+           (c++-mode . (lambda () (yas-minor-mode)))
+           (c-mode . (lambda () (yas-minor-mode)))))
 
   (use-package yasnippet-snippets
     :straight t
-    :after yasnippet)
+    :after yasnippet
+    :config (yas-reload-all))
 #+end_src
+
+*** Tiny
+#+BEGIN_SRC emacs-lisp
+  (use-package tiny
+    :straight t
+    :commands tiny-expand)
+#+END_SRC
 
 * Dashboard
 #+BEGIN_SRC emacs-lisp
@@ -334,13 +346,6 @@ Requires reveal.js to create html presentations.
   (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
 #+END_SRC
 
-* Magit
-#+BEGIN_SRC emacs-lisp
-(use-package magit
-  :straight t
-  :bind (("C-x g" . magit-status)))
-#+END_SRC
-
 * Theme
 My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dracula-theme.
 There is a function bound to <f5> to switch between light mode and dark mode.
@@ -369,240 +374,226 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (global-set-key (kbd "<f5>") #'my-fn/toggle-theme)
 #+END_SRC
 
-* Treemacs
-#+BEGIN_SRC emacs-lisp
-(use-package treemacs
-  :straight t
-  :commands treemacs)
-#+END_SRC
-
-* Password manager
-Requires pass.
-#+BEGIN_SRC emacs-lisp
-  (use-package pass
-    :straight t
-    :commands pass)
-#+END_SRC
-
 * Global (better UX)
-
 ** Hydra
-
 [[./imgs/hydra.png]]
 
 #+BEGIN_SRC emacs-lisp
   (use-package hydra
     :straight t
-    :defer 2.5
-    :config
-    (defun hydra-movement/cond-body-call ()
-      (if hydra-movement/inside-body
-          (hydra-movement/call-body)))
+    :defer 2.5)
+#+END_SRC
 
-    (setq hydra-movement/inside-body nil)
+*** Hydra Modal editing
+#+BEGIN_SRC emacs-lisp
+  (defun hydra-movement/cond-body-call ()
+    (if hydra-movement/inside-body
+        (hydra-movement/call-body)))
 
-    (defun hydra-movement/call-body () 
-      (interactive)
-      (setq *original-cursor-color* (face-attribute 'cursor :background))
-      (set-cursor-color "#ff0000")
-      (setq hydra-is-helpful nil)
-      (setq hydra-movement/inside-body t)
-      (hydra-movement/body))
+  (setq hydra-movement/inside-body nil)
 
-    (defun hydra-call/hydra-modal-operators (operator)
-      (setq hydra-call-operators/operator operator)
-      (setq hydra-call-operators/repeat nil)
-      (setq hydra-call-operators/backwards nil)
-      (setq hydra-call-operators/inside nil)
-      (setq hydra-call-operators/until nil)
-      (hydra-modal-operators/body))
+  (defun hydra-movement/call-body ()
+    (interactive)
+    (setq *original-cursor-color* (face-attribute 'cursor :background))
+    (set-cursor-color "#ff0000")
+    (setq hydra-is-helpful nil)
+    (setq hydra-movement/inside-body t)
+    (hydra-movement/body))
 
-    (defhydra hydra-modal-operators (:color blue
-                                     :hint nil
-                                     :post hydra-movement/cond-body-call)
-      "
+  (defun hydra-call/hydra-modal-operators (operator)
+    (setq hydra-call-operators/operator operator)
+    (setq hydra-call-operators/repeat nil)
+    (setq hydra-call-operators/backwards nil)
+    (setq hydra-call-operators/inside nil)
+    (setq hydra-call-operators/until nil)
+    (hydra-modal-operators/body))
+
+  (defhydra hydra-modal-operators (:color blue
+                                   :hint nil
+                                   :post hydra-movement/cond-body-call)
+    "
     _b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion  _u_:ntil  _i_:nside
       "
-      ("b" (setq hydra-call-operators/backwards t) :color red)
-      ("i" (progn
-             (call-interactively (lambda (arg) (interactive "c") (setq hydra-call-operators/inside arg)))
-             (funcall hydra-call-operators/operator 'another)))
-      ("u" (progn
-             (call-interactively (lambda (arg) (interactive "c") (setq hydra-call-operators/until arg)))
-             (funcall hydra-call-operators/operator 'another)))
-      ("w" (funcall hydra-call-operators/operator 'word))
-      ("l" (funcall hydra-call-operators/operator 'line))
-      ("p" (funcall hydra-call-operators/operator 'paragraph))
-      ("r" (funcall hydra-call-operators/operator 'region))
+    ("b" (setq hydra-call-operators/backwards t) :color red)
+    ("i" (progn
+           (call-interactively (lambda (arg) (interactive "c") (setq hydra-call-operators/inside arg)))
+           (funcall hydra-call-operators/operator 'another)))
+    ("u" (progn
+           (call-interactively (lambda (arg) (interactive "c") (setq hydra-call-operators/until arg)))
+           (funcall hydra-call-operators/operator 'another)))
+    ("w" (funcall hydra-call-operators/operator 'word))
+    ("l" (funcall hydra-call-operators/operator 'line))
+    ("p" (funcall hydra-call-operators/operator 'paragraph))
+    ("r" (funcall hydra-call-operators/operator 'region))
 
-      ("0" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "0")) :color red)
-      ("1" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "1")) :color red)
-      ("2" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "2")) :color red)
-      ("3" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "3")) :color red)
-      ("4" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "4")) :color red)
-      ("5" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "5")) :color red)
-      ("6" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "6")) :color red)
-      ("7" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "7")) :color red)
-      ("8" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "8")) :color red)
-      ("9" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "9")) :color red))
+    ("0" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "0")) :color red)
+    ("1" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "1")) :color red)
+    ("2" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "2")) :color red)
+    ("3" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "3")) :color red)
+    ("4" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "4")) :color red)
+    ("5" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "5")) :color red)
+    ("6" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "6")) :color red)
+    ("7" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "7")) :color red)
+    ("8" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "8")) :color red)
+    ("9" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "9")) :color red))
 
-    (defhydra hydra-indentation (:color blue
-                                 :hint nil
-                                 :post hydra-movement/cond-body-call)
-      "
+  (defhydra hydra-indentation (:color blue
+                               :hint nil
+                               :post hydra-movement/cond-body-call)
+    "
     Hydra for indentation
     _c_:C  _l_:Lisp
       "
-      ("q" nil "quit")
-      ("l" indent-sexp)
-      ("c" c-indent-defun))
+    ("q" nil "quit")
+    ("l" indent-sexp)
+    ("c" c-indent-defun))
 
-    (defun current-line-blank-p ()
-      (interactive)
-      (string-match-p "\\`$" (thing-at-point 'line)))
+  (defun current-line-blank-p ()
+    (interactive)
+    (string-match-p "\\`$" (thing-at-point 'line)))
 
-    (defun navigate-to-specific-char (char &optional increment)
-      (or increment (setq increment 1))
-      (let ((tmp-pos (point)))
-        (while (not (= char (char-after tmp-pos))) (setq tmp-pos (+ increment tmp-pos)))
-        (goto-char tmp-pos)))
+  (defun navigate-to-specific-char (char &optional increment)
+    (or increment (setq increment 1))
+    (let ((tmp-pos (point)))
+      (while (not (= char (char-after tmp-pos))) (setq tmp-pos (+ increment tmp-pos)))
+      (goto-char tmp-pos)))
 
-    (defun hydra-modal-operator/mark (operand)
-      (let ((times (if (not hydra-call-operators/repeat) 1 (string-to-number hydra-call-operators/repeat))))
+  (defun hydra-modal-operator/mark (operand)
+    (let ((times (if (not hydra-call-operators/repeat) 1 (string-to-number hydra-call-operators/repeat))))
+      (cond
+
+       ((eq 'another operand)
         (cond
-
-         ((eq 'another operand)
-          (cond
-           (hydra-call-operators/until
-            (call-interactively 'set-mark-command)
-            (if hydra-call-operators/backwards
-                (navigate-to-specific-char hydra-call-operators/until -1)
-              (navigate-to-specific-char hydra-call-operators/until +1)))
-
-           (hydra-call-operators/inside
-            (cond
-             ((= hydra-call-operators/inside ?w)
-              (backward-word)
-              (call-interactively 'set-mark-command)
-              (mark-word))
-
-             ((member hydra-call-operators/inside '(?\" ?' ?` ?\ ?* ?\\ ?/))
-              (navigate-to-specific-char hydra-call-operators/inside -1)
-              (forward-char 1)
-              (call-interactively 'set-mark-command)
-              (navigate-to-specific-char hydra-call-operators/inside 1))
-
-             (t (funcall #'(lambda (arg)
-                             (let ((delimiters `((,?( ,?)) (,?< ,?>) (,?{ ?}) (,?[ ?]))))
-                              (while delimiters
-                               (let ((del-pair (pop delimiters)))
-                                (when (member arg del-pair)
-                                 (navigate-to-specific-char (car del-pair) -1)
-                                 (forward-char 1)
-                                 (call-interactively 'set-mark-command)
-                                 (navigate-to-specific-char (cadr del-pair) 1))))))
-                         hydra-call-operators/inside))))))
-
-         ((eq 'line operand)
-          (cond (hydra-call-operators/backwards
-                 (end-of-visual-line)
-                 (call-interactively 'set-mark-command)
-                 (previous-line (1- times))
-                 (beginning-of-visual-line))
-                (t (beginning-of-visual-line)
-                   (call-interactively 'set-mark-command)
-                   (next-line (1- times))
-                   (end-of-visual-line))))
-
-         ((eq 'word operand)
+         (hydra-call-operators/until
           (call-interactively 'set-mark-command)
           (if hydra-call-operators/backwards
-              (backward-word times)
-            (forward-word times))))))
+              (navigate-to-specific-char hydra-call-operators/until -1)
+            (navigate-to-specific-char hydra-call-operators/until +1)))
 
-    (defun hydra-modal-operator/delete (operand)
-      (interactive)
-      (cond
+         (hydra-call-operators/inside
+          (cond
+           ((= hydra-call-operators/inside ?w)
+            (backward-word)
+            (call-interactively 'set-mark-command)
+            (mark-word))
+
+           ((member hydra-call-operators/inside '(?\" ?' ?` ?\ ?* ?\\ ?/))
+            (navigate-to-specific-char hydra-call-operators/inside -1)
+            (forward-char 1)
+            (call-interactively 'set-mark-command)
+            (navigate-to-specific-char hydra-call-operators/inside 1))
+
+           (t (funcall #'(lambda (arg)
+                           (let ((delimiters `((,?( ,?)) (,?< ,?>) (,?{ ?}) (,?[ ?]))))
+                            (while delimiters
+                             (let ((del-pair (pop delimiters)))
+                              (when (member arg del-pair)
+                               (navigate-to-specific-char (car del-pair) -1)
+                               (forward-char 1)
+                               (call-interactively 'set-mark-command)
+                               (navigate-to-specific-char (cadr del-pair) 1))))))
+                       hydra-call-operators/inside))))))
+
        ((eq 'line operand)
-        (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
-            (kill-line)
-          (hydra-modal-operator/mark operand)
-          (delete-region (region-beginning) (region-end))
-          (kill-line)))
+        (cond (hydra-call-operators/backwards
+               (end-of-visual-line)
+               (call-interactively 'set-mark-command)
+               (previous-line (1- times))
+               (beginning-of-visual-line))
+              (t (beginning-of-visual-line)
+                 (call-interactively 'set-mark-command)
+                 (next-line (1- times))
+                 (end-of-visual-line))))
 
-       ((or hydra-call-operators/until hydra-call-operators/inside)
-        (hydra-modal-operator/mark 'another)
-        (delete-forward-char 1))
+       ((eq 'word operand)
+        (call-interactively 'set-mark-command)
+        (if hydra-call-operators/backwards
+            (backward-word times)
+          (forward-word times))))))
 
-       (t (hydra-modal-operator/mark operand)
-          (delete-forward-char 1))))
+  (defun hydra-modal-operator/delete (operand)
+    (interactive)
+    (cond
+     ((eq 'line operand)
+      (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+          (kill-line)
+        (hydra-modal-operator/mark operand)
+        (delete-region (region-beginning) (region-end))
+        (kill-line)))
 
-    (defun hydra-modal-operator/cut (operand)
-      (interactive)
-      (cond
-       ((eq 'line operand)
-        (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
-            (kill-line)
-          (hydra-modal-operator/mark operand)
-          (kill-region -1 -1 t)
-          (kill-line)))
+     ((or hydra-call-operators/until hydra-call-operators/inside)
+      (hydra-modal-operator/mark 'another)
+      (delete-forward-char 1))
 
-       ((or hydra-call-operators/until hydra-call-operators/inside)
-        (hydra-modal-operator/mark 'another)
-        (kill-region -1 -1 t))
+     (t (hydra-modal-operator/mark operand)
+        (delete-forward-char 1))))
 
-       (t (hydra-modal-operator/mark operand)
-          (kill-region -1 -1 t))))
+  (defun hydra-modal-operator/cut (operand)
+    (interactive)
+    (cond
+     ((eq 'line operand)
+      (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+          (kill-line)
+        (hydra-modal-operator/mark operand)
+        (kill-region -1 -1 t)
+        (kill-line)))
 
-    (defun hydra-modal-operator/copy (operand)
-      (interactive)
-      (cond
-       ((eq 'line operand)
-        (unless (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
-          (hydra-modal-operator/mark operand)
-          (let ((str (buffer-substring (region-beginning) (region-end))))
-            (remove-text-properties 0 (length str) '(read-only t) str)
-            (kill-new str t))
-          (deactivate-mark)))
+     ((or hydra-call-operators/until hydra-call-operators/inside)
+      (hydra-modal-operator/mark 'another)
+      (kill-region -1 -1 t))
 
-       ((eq 'region operand)
+     (t (hydra-modal-operator/mark operand)
+        (kill-region -1 -1 t))))
+
+  (defun hydra-modal-operator/copy (operand)
+    (interactive)
+    (cond
+     ((eq 'line operand)
+      (unless (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+        (hydra-modal-operator/mark operand)
         (let ((str (buffer-substring (region-beginning) (region-end))))
           (remove-text-properties 0 (length str) '(read-only t) str)
           (kill-new str t))
-        (deactivate-mark))
+        (deactivate-mark)))
 
-       ((or hydra-call-operators/until hydra-call-operators/inside)
-        (hydra-modal-operator/mark 'another)
+     ((eq 'region operand)
+      (let ((str (buffer-substring (region-beginning) (region-end))))
+        (remove-text-properties 0 (length str) '(read-only t) str)
+        (kill-new str t))
+      (deactivate-mark))
+
+     ((or hydra-call-operators/until hydra-call-operators/inside)
+      (hydra-modal-operator/mark 'another)
+      (let ((str (buffer-substring (region-beginning) (region-end))))
+        (remove-text-properties 0 (length str) '(read-only t) str)
+        (kill-new str t))
+      (deactivate-mark))
+
+     (t (hydra-modal-operator/mark operand)
         (let ((str (buffer-substring (region-beginning) (region-end))))
           (remove-text-properties 0 (length str) '(read-only t) str)
           (kill-new str t))
-        (deactivate-mark))
+        (deactivate-mark))))
 
-       (t (hydra-modal-operator/mark operand)
-          (let ((str (buffer-substring (region-beginning) (region-end))))
-            (remove-text-properties 0 (length str) '(read-only t) str)
-            (kill-new str t))
-          (deactivate-mark))))
+  (defun hydra-modal-operator/case (operand)
+    (interactive)
+    (hydra-modal-operator/mark operand)
+    (let ((hydra-case-arg nil))
+      (call-interactively #'(lambda (arg)
+                              (interactive "c") (setq hydra-case-arg arg)))
+      (cond
+       ((= hydra-case-arg ?u)
+        (upcase-region (region-beginning) (region-end)))
+       ((= hydra-case-arg ?d)
+        (downcase-region (region-beginning) (region-end)))
+       ((= hydra-case-arg ?c)
+        (capitalize-region (region-beginning) (region-end))))))
 
-    (defun hydra-modal-operator/case (operand)
-      (interactive)
-      (hydra-modal-operator/mark operand)
-      (let ((hydra-case-arg nil))
-        (call-interactively #'(lambda (arg)
-                                (interactive "c") (setq hydra-case-arg arg)))
-        (cond
-         ((= hydra-case-arg ?u)
-          (upcase-region (region-beginning) (region-end)))
-         ((= hydra-case-arg ?d)
-          (downcase-region (region-beginning) (region-end)))
-         ((= hydra-case-arg ?c)
-          (capitalize-region (region-beginning) (region-end))))))
-
-    (defhydra hydra-movement (:hint nil
-                              :color amaranth 
-                              :post (progn (set-cursor-color *original-cursor-color*) 
-                                           (setq hydra-is-helpful t)))
-      "
+  (defhydra hydra-movement (:hint nil
+                            :color amaranth
+                            :post (progn (set-cursor-color *original-cursor-color*)
+                                         (setq hydra-is-helpful t)))
+    "
     Navigation:
     _f_: forward     _b_: backward   _F_: forward word  _B_: backward word
     _n_: next line   _p_: prev line  _v_: page down     _V_: page up
@@ -616,65 +607,66 @@ Requires pass.
     Operators:
     _m_: mark  _d_: delete  _w_: cut  _W_: copy  _c_: case
       "
-      ("<f1>" (setq hydra-movement/inside-body nil) :exit t)
-      ("q" (setq hydra-movement/inside-body nil) :exit t)
-      ("h" (setq hydra-is-helpful (not hydra-is-helpful)))
-      ("o" (progn (end-of-line) (newline)))
-      ("F" forward-word)
-      ("B" backward-word)
-      ("C-f" forward-sexp)
-      ("C-b" backward-sexp)
-      ("C-n" down-list)
-      ("C-p" backward-up-list)
-      ("M-f" counsel-find-file)
-      ("P" (move-to-window-line 0))
-      ("n" next-line)
-      ("N" (move-to-window-line -1))
-      ("p" previous-line)
-      ("+" (enlarge-window 1))
-      ("-" (enlarge-window -1))
-      ("t" (tiny-expand))
-      ("s" (point-to-register ?g))
-      ("j" (jump-to-register ?g))
-      ("G" (lambda (arg) (interactive "cInsert char:") (navigate-to-specific-char arg)))
-      ("W" (hydra-call/hydra-modal-operators 'hydra-modal-operator/copy) :exit t)
-      ("<SPC>" set-mark-command)
-      ("y" popup-kill-ring)
-      ("Y" yank)
-      ("<tab>" hydra-indentation/body :exit t)
-      ("v" scroll-up)
-      ("c" (hydra-call/hydra-modal-operators 'hydra-modal-operator/case) :exit t)
-      ("V" scroll-down)
-      ("l" recenter-top-bottom)
-      ("L" (move-to-window-line (/ (window-height) 2)))
-      ("a" beginning-of-line)
-      ("r" (lambda (arg) (interactive "cChoose a register:") (copy-to-register arg 1 1 nil t)))
-      ("e" end-of-line)
-      ("C-e" eval-last-sexp)
-      ("f" (when (= (skip-syntax-forward "-") 0) (forward-char 1)))
-      ("b" (when (= (skip-syntax-backward "-") 0) (backward-char 1)))
-      ("g" hydra-avy/body :exit t)
-      ("I" (lambda (arg) (interactive "cChoose a register:") (insert-register arg)))
-      ("i" (lambda (txt)
-             (interactive "sQuick insertion:")
-             (insert txt)))
-      ("=" er/expand-region)
-      ("m" (hydra-call/hydra-modal-operators 'hydra-modal-operator/mark) :exit t)
-      ("M" hydra-multiple-cursors/body :exit t)
-      ("U" universal-argument)
-      ("S" swiper)
-      ("C-s" save-buffer)
-      ("<" beginning-of-buffer)
-      (">" end-of-buffer)
-      ("u" undo)
-      ("<return>" newline)
-      ("<DEL>" delete-backward-char)
-      ("<deletechar>" delete-forward-char)
-      ("M-w" ace-window)
-      ("d" (hydra-call/hydra-modal-operators 'hydra-modal-operator/delete) :exit t)
-      ("w" (hydra-call/hydra-modal-operators 'hydra-modal-operator/cut) :exit t))
-    (global-set-key (kbd "C-!") 'hydra-movement/call-body)
-    (global-set-key (kbd "<f1>") 'hydra-movement/call-body))
+    ("<f1>" (setq hydra-movement/inside-body nil) :exit t)
+    ("q" (setq hydra-movement/inside-body nil) :exit t)
+    ("h" (setq hydra-is-helpful (not hydra-is-helpful)))
+    ("o" (progn (end-of-line) (newline)))
+    ("F" forward-word)
+    ("B" backward-word)
+    ("C-f" forward-sexp)
+    ("C-b" backward-sexp)
+    ("C-n" down-list)
+    ("C-p" backward-up-list)
+    ("M-f" counsel-find-file)
+    ("P" (move-to-window-line 0))
+    ("n" next-line)
+    ("N" (move-to-window-line -1))
+    ("p" previous-line)
+    ("+" (enlarge-window 1))
+    ("-" (enlarge-window -1))
+    ("t" (tiny-expand))
+    ("s" (point-to-register ?g))
+    ("j" (jump-to-register ?g))
+    ("G" (lambda (arg) (interactive "cInsert char:") (navigate-to-specific-char arg)))
+    ("W" (hydra-call/hydra-modal-operators 'hydra-modal-operator/copy) :exit t)
+    ("<SPC>" set-mark-command)
+    ("y" popup-kill-ring)
+    ("Y" yank)
+    ("<tab>" hydra-indentation/body :exit t)
+    ("v" scroll-up)
+    ("c" (hydra-call/hydra-modal-operators 'hydra-modal-operator/case) :exit t)
+    ("V" scroll-down)
+    ("l" recenter-top-bottom)
+    ("L" (move-to-window-line (/ (window-height) 2)))
+    ("a" beginning-of-line)
+    ("r" (lambda (arg) (interactive "cChoose a register:") (copy-to-register arg 1 1 nil t)))
+    ("e" end-of-line)
+    ("C-e" eval-last-sexp)
+    ("f" (when (= (skip-syntax-forward "-") 0) (forward-char 1)))
+    ("b" (when (= (skip-syntax-backward "-") 0) (backward-char 1)))
+    ("g" hydra-avy/body :exit t)
+    ("I" (lambda (arg) (interactive "cChoose a register:") (insert-register arg)))
+    ("i" (lambda (txt)
+           (interactive "sQuick insertion:")
+           (insert txt)))
+    ("=" er/expand-region)
+    ("m" (hydra-call/hydra-modal-operators 'hydra-modal-operator/mark) :exit t)
+    ("M" hydra-multiple-cursors/body :exit t)
+    ("U" universal-argument)
+    ("S" swiper)
+    ("C-s" save-buffer)
+    ("<" beginning-of-buffer)
+    (">" end-of-buffer)
+    ("u" undo)
+    ("<return>" newline)
+    ("<DEL>" delete-backward-char)
+    ("<deletechar>" delete-forward-char)
+    ("M-w" ace-window)
+    ("d" (hydra-call/hydra-modal-operators 'hydra-modal-operator/delete) :exit t)
+    ("w" (hydra-call/hydra-modal-operators 'hydra-modal-operator/cut) :exit t))
+
+  (global-set-key (kbd "C-!") 'hydra-movement/call-body)
+  (global-set-key (kbd "<f1>") 'hydra-movement/call-body)
 #+END_SRC
 
 *** Hydra EMMS
@@ -704,17 +696,17 @@ Requires pass.
   (defhydra hydra-exwm (:color teal
                         :hint nil)
     "
-    _b_:rave  _a_:lacritty  _e_:lfeed  _p_:ass
+    _b_:rave  _a_:lacritty  _e_:lfeed  _p_:ass  _y_:tdl
     "
     ("q" nil "quit")
     ("<f4>" nil "quit")
     ("b" (exwm-async-run "brave-browser"))
     ("a" (exwm-async-run "alacritty"))
     ("e" (elfeed))
-    ("p" (pass)))
+    ("p" (pass))
+    ("y" (hydra-ytdl/body)))
   (global-set-key (kbd "<f4>") 'hydra-exwm/body)
 #+END_SRC
-
 
 *** Hydra MC
 #+BEGIN_SRC emacs-lisp
@@ -727,6 +719,23 @@ Requires pass.
     ("q" nil "quit")
     ("l" mc/edit-lines)
     ("a" mc/mark-all-like-this))
+#+END_SRC
+
+*** Hydra Org
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-org (:color amaranth
+                        :hint nil)
+    "
+    _n_:ext  _p_:revious  _f_:orward  _b_:backward
+    "
+    ("q" nil "quit")
+    ("n" org-next-visible-heading)
+    ("p" org-previous-visible-heading)
+    ("f" org-forward-heading-same-level)
+    ("b" org-backward-heading-same-level)
+    ("<tab>" org-cycle))
+
+  (global-set-key (kbd "C-: a") 'hydra-org/body)
 #+END_SRC
 
 *** Hydra AVY
@@ -746,6 +755,20 @@ Requires pass.
     ("c" avy-goto-char-timer)
     ("g" avy-goto-char-timer))
   (global-set-key (kbd "M-s") 'hydra-avy/body)
+#+END_SRC
+
+*** Hydra Youtube dl
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-ytdl (:color teal 
+                       :hint nil)
+    "
+    _d_:ownload   _l_:ist  _o_:pen  _p_:laylist
+    "
+    ("q" nil "quit")
+    ("d" ytdl-download)
+    ("o" ytdl-download-open)
+    ("l" ytdl-show-list)
+    ("p" ytdl-download-playlist))
 #+END_SRC
 
 *** Hydra Eyebrowse
@@ -792,6 +815,28 @@ Requires pass.
     ("l" dumb-jump-quick-look "Quick look")
     ("b" dumb-jump-back "Back"))
   (global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
+#+END_SRC
+
+*** Hydra lsp
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-lsp (:color teal
+                       :hint nil)
+    "
+    _b_:ack  _j_:ump def  _d_:ecl  _D_:escribe  _h_:ighlight  _H_:ighlight doc
+    _l_:ens  _r_:ename _L_: avy lens
+    "
+    ("q" nil "quit")
+    ("b" xref-pop-marker-stack)
+    ("j" lsp-find-definition)
+    ("d" lsp-find-declaration)
+    ("D" lsp-describe-thing-at-point)
+    ("H" lsp-document-highlight)
+    ("h" lsp-toggle-symbol-highlight)
+    ("l" lsp-lens-mode)
+    ("r" lsp-rename)
+    ("L" lsp-avy-lens)
+    ("f" lsp-format-region))
+  (global-set-key (kbd "<f6>") 'hydra-lsp/body)
 #+END_SRC
 
 ** Ivy
@@ -844,99 +889,6 @@ Requires pass.
     :commands which-key-mode)
 #+END_SRC
 
-
-** EMMS
-I use mpd/mpc to play music.
-I used Uncle Dave's config as a reference for the following settings.
-
-#+BEGIN_SRC emacs-lisp
-  (use-package emms
-    :straight t
-    :config
-    (require 'emms-setup)
-    (require 'emms-player-mpd)
-    (emms-all)
-    (setq emms-seek-seconds 5)
-    (setq emms-player-list '(emms-player-mpd emms-player-mpv))
-    (setq emms-info-functions '(emms-info-mpd))
-    (setq emms-player-mpd-server-name "localhost")
-    (setq emms-player-mpd-server-port "6601")
-    :commands hydra-emms/body
-    :bind
-    (("<XF86AudioPrev>" . emms-previous)
-    ("<XF86AudioNext>" . emms-next)
-    ("<XF86AudioPlay>" . emms-pause)
-    ("<XF86AudioStop>" . emms-stop)))
-
-  (setq mpc-host "localhost:6601")
-
-  (defun mpd/start-music-daemon ()
-    "Start MPD, connects to it and syncs the metadata cache."
-    (interactive)
-    (shell-command "mpd")
-    (mpd/update-database)
-    (emms-player-mpd-connect)
-    (emms-cache-set-from-mpd-all)
-    (message "MPD Started!"))
-
-  (defun mpd/kill-music-daemon ()
-    "Stops playback and kill the music daemon."
-    (interactive)
-    (emms-stop)
-    (call-process "killall" nil nil nil "mpd")
-    (message "MPD Killed!"))
-
-
-  (defun mpd/update-database ()
-    "Updates the MPD database synchronously."
-    (interactive)
-    (call-process "mpc" nil nil nil "update")
-    (message "MPD Database Updated!"))
-#+END_SRC
-
-** EXWM
-#+BEGIN_SRC emacs-lisp
-  (use-package exwm
-    :straight t
-    :bind (("<XF86AudioRaiseVolume>" . (lambda ()
-                                         (interactive)
-                                         (call-process-shell-command "amixer set Master 5%+" nil 0)))
-           ("<XF86AudioLowerVolume>" . (lambda ()
-                                         (interactive)
-                                         (call-process-shell-command "amixer set Master 5%-" nil 0)))
-           ("<XF86AudioMute>" . (lambda ()
-                                  (interactive)
-                                  (call-process-shell-command "amixer set Master toggle" nil 0)))
-           ("<print>" . (lambda ()
-                          (interactive)
-                          (call-process-shell-command "flameshot gui" nil 0))))
-    :config
-    (add-hook 'exwm-init-hook (lambda ()
-                                (exwm-input-set-simulation-keys
-                                 '(([?\C-w] . ?\C-x)
-                                   ([?\M-w] . ?\C-c)
-                                   ([?\C-y] . ?\C-v)
-                                   ([?\C-s] . ?\C-f)))))
-
-    (setq exwm-replace nil)
-
-    (require 'exwm-config)
-
-    (setq exwm-workspace-number 4)
-
-    (require 'exwm-randr)
-
-    (exwm-enable)
-
-    (setq exwm-randr-workspace-output-plist '(0 "eDP-1" 1 "HDMI-1"))
-
-    (add-hook 'exwm-randr-screen-change-hook
-              (lambda ()
-                (start-process-shell-command
-                 "xrandr" nil "xrandr --output eDP-1 --right-of HDMI-1 --auto")))
-    (exwm-randr-enable))
-#+END_SRC
-
 ** Modeline
 #+BEGIN_SRC emacs-lisp
 (display-time-mode t)
@@ -956,23 +908,23 @@ I used Uncle Dave's config as a reference for the following settings.
 
 ** Parentheses
 #+BEGIN_SRC emacs-lisp
-(use-package smartparens
-  :straight t
-  :defer 5.1
-  :diminish smartparens-mode
-  :config 
-  (smartparens-global-mode)
-  (sp-local-pair 'org-mode "*" "*")
-  (sp-local-pair 'org-mode "_" "_"))
+  (use-package smartparens
+    :straight t
+    :defer 5.1
+    :diminish smartparens-mode
+    :config 
+    (smartparens-global-mode)
+    (sp-local-pair 'org-mode "*" "*")
+    (sp-local-pair 'org-mode "_" "_"))
 
-(use-package highlight-parentheses
-  :straight t
-  :defer 12.1
-  :diminish highlight-parentheses-mode
-  :config (global-highlight-parentheses-mode))
+  (use-package highlight-parentheses
+    :straight t
+    :defer 5.3
+    :diminish highlight-parentheses-mode
+    :config (global-highlight-parentheses-mode))
 
-(defvar show-paren-delay 0)
-(show-paren-mode t)
+  (defvar show-paren-delay 0)
+  (show-paren-mode t)
 #+END_SRC
 
 ** Buffer moving
@@ -1072,7 +1024,6 @@ I used Uncle Dave's config as a reference for the following settings.
 #+BEGIN_SRC emacs-lisp
   (use-package centaur-tabs
     :straight t
-    :defer 4.2
     :commands centaur-tabs-mode)
 #+END_SRC
 
@@ -1127,7 +1078,6 @@ I use aspell for spell checking.
 #+END_SRC
 
 ** Diminish
-I use aspell for spell checking.
 *** Config
 #+BEGIN_SRC emacs-lisp
   (diminish 'visual-line-mode)
@@ -1135,7 +1085,7 @@ I use aspell for spell checking.
   (diminish 'eldoc-mode)
 #+END_SRC
 
-*** Change sexp keyword indentation
+** Change sexp keyword indentation
 This changes the identation style from:
 #+BEGIN_SRC emacs-lisp :tangle no
 (defhydra foo (:color blue
@@ -1328,77 +1278,151 @@ Code from https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords
                normal-indent))))))
 #+END_SRC
 
-* PDF
-** Requirements
+** Treemacs
+#+BEGIN_SRC emacs-lisp
+(use-package treemacs
+  :straight t
+  :commands treemacs)
+#+END_SRC
+
+** Display commands
+#+BEGIN_SRC emacs-lisp
+  (use-package command-log-mode
+    :straight t
+    :commands (global-command-log-mode))
+#+END_SRC
+
+* Programs
+** Password manager
+Requires pass.
+#+BEGIN_SRC emacs-lisp
+  (use-package pass
+    :straight t
+    :commands pass)
+#+END_SRC
+
+** PDF
+*** Requirements
 See https://github.com/politza/pdf-tools.
 
-** Config
+*** Config
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
   :straight t
   :mode ("\\.pdf\\'" . pdf-view-mode))
 #+END_SRC
 
-* Blog
+** EMMS
+I use mpd/mpc to play music.
+I used Uncle Dave's config as a reference for the following settings.
+
 #+BEGIN_SRC emacs-lisp
-  (use-package org-static-blog
+  (use-package emms
     :straight t
-    :defer 7.2
     :config
-    (setq org-static-blog-publish-title "Caio's Blog")
-    (setq org-static-blog-publish-url "https://blog.caiohcs.xyz/")
-    (setq org-static-blog-publish-directory "~/projects/blog/")
-    (setq org-static-blog-posts-directory "~/projects/blog/posts/")
-    (setq org-static-blog-drafts-directory "~/projects/blog/drafts/")
-    (setq org-static-blog-enable-tags t)
-    (setq org-export-with-toc nil)
-    (setq org-export-with-section-numbers nil)
+    (require 'emms-setup)
+    (require 'emms-player-mpd)
+    (emms-all)
+    (setq emms-seek-seconds 5)
+    (setq emms-player-list '(emms-player-mpd emms-player-mpv))
+    (setq emms-info-functions '(emms-info-mpd))
+    (setq emms-player-mpd-server-name "localhost")
+    (setq emms-player-mpd-server-port "6601")
+    :commands hydra-emms/body
+    :bind
+    (("<XF86AudioPrev>" . emms-previous)
+    ("<XF86AudioNext>" . emms-next)
+    ("<XF86AudioPlay>" . emms-pause)
+    ("<XF86AudioStop>" . emms-stop)))
 
-    ;; This header is inserted into the <head> section of every page:
-    ;;   (you will need to create the style sheet at
-    ;;    ~/projects/blog/static/style.css
-    ;;    and the favicon at
-    ;;    ~/projects/blog/static/favicon.ico)
-    (setq org-static-blog-page-header
-          "<meta name=\"author\" content=\"Caio H C S\">
-  <meta name=\"referrer\" content=\"no-referrer\">
-  <link href= \"static/style.css\" rel=\"stylesheet\" type=\"text/css\" />
-  <link rel=\"icon\" href=\"static/favicon.ico\">")
+  (setq mpc-host "localhost:6601")
 
-    ;; This preamble is inserted at the beginning of the <body> of every page:
-    ;;   This particular HTML creates a <div> with a simple linked headline
-    (setq org-static-blog-page-preamble
-          "<div class=\"header\">
-    <a href=\"https://caiohcs.xyz/\">Back to main page</a>
-  </div>")
+  (defun mpd/start-music-daemon ()
+    "Start MPD, connects to it and syncs the metadata cache."
+    (interactive)
+    (shell-command "mpd")
+    (mpd/update-database)
+    (emms-player-mpd-connect)
+    (emms-cache-set-from-mpd-all)
+    (message "MPD Started!"))
 
-    ;; This postamble is inserted at the end of the <body> of every page:
-    ;;   This particular HTML creates a <div> with a link to the archive page
-    ;;   and a licensing stub.
-    (setq org-static-blog-page-postamble
-          "<div id=\"archive\">
-    <a href=\"https://blog.caiohcs.xyz/archive.html\">Other posts</a>
-  </div>
-  <center><a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-sa/3.0/88x31.png\" /></a><br /><span xmlns:dct=\"https://purl.org/dc/terms/\" href=\"https://purl.org/dc/dcmitype/Text\" property=\"dct:title\" rel=\"dct:type\">caiohcs.xyz</span> by <a xmlns:cc=\"https://creativecommons.org/ns#\" href=\"https://caiohcs.xyz/\" property=\"cc:attributionName\" rel=\"cc:attributionURL\">Caio H C S</a> is licensed under a <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.</center>"))
+  (defun mpd/kill-music-daemon ()
+    "Stops playback and kill the music daemon."
+    (interactive)
+    (emms-stop)
+    (call-process "killall" nil nil nil "mpd")
+    (message "MPD Killed!"))
+
+
+  (defun mpd/update-database ()
+    "Updates the MPD database synchronously."
+    (interactive)
+    (call-process "mpc" nil nil nil "update")
+    (message "MPD Database Updated!"))
 #+END_SRC
 
-* RSS
-** Requirements
+** RSS
+*** Requirements
 cURL.
 
-** Config
+*** Config
 #+BEGIN_SRC emacs-lisp
   (use-package elfeed
     :straight t
     :commands elfeed
+    :config (load-file "~/.emacs.d/feeds.el"))
+#+END_SRC
+
+** Youtube-dl
+#+BEGIN_SRC emacs-lisp
+  (use-package ytdl
+    :straight t
+    :commands (ytdl-download)
     :config
-    (setq elfeed-feeds
-          '("reddit.com/r/emacs.rss"
-            "https://blog.caiohcs.xyz/rss.xml"
-            "https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA"
-            "https://www.youtube.com/feeds/videos.xml?channel_id=UC7YOGHUfC1Tb6E4pudI9STA"
-            "https://www.youtube.com/feeds/videos.xml?channel_id=UCVls1GmFKf6WlTraIb_IaJg"
-            "https://lukesmith.xyz/rss.xml")))
+    (setq ytdl-media-player 'mpv))
+#+END_SRC
+
+** EXWM
+#+BEGIN_SRC emacs-lisp
+  (use-package exwm
+    :straight t
+    :bind (("<XF86AudioRaiseVolume>" . (lambda ()
+                                         (interactive)
+                                         (call-process-shell-command "amixer set Master 5%+" nil 0)))
+           ("<XF86AudioLowerVolume>" . (lambda ()
+                                         (interactive)
+                                         (call-process-shell-command "amixer set Master 5%-" nil 0)))
+           ("<XF86AudioMute>" . (lambda ()
+                                  (interactive)
+                                  (call-process-shell-command "amixer set Master toggle" nil 0)))
+           ("<print>" . (lambda ()
+                          (interactive)
+                          (call-process-shell-command "flameshot gui" nil 0))))
+    :config
+    (add-hook 'exwm-init-hook (lambda ()
+                                (exwm-input-set-simulation-keys
+                                 '(([?\C-w] . ?\C-x)
+                                   ([?\M-w] . ?\C-c)
+                                   ([?\C-y] . ?\C-v)
+                                   ([?\C-s] . ?\C-f)))))
+
+    (setq exwm-replace nil)
+
+    (require 'exwm-config)
+
+    (setq exwm-workspace-number 4)
+
+    (require 'exwm-randr)
+
+    (exwm-enable)
+
+    (setq exwm-randr-workspace-output-plist '(0 "eDP-1" 1 "HDMI-1"))
+
+    (add-hook 'exwm-randr-screen-change-hook
+              (lambda ()
+                (start-process-shell-command
+                 "xrandr" nil "xrandr --output eDP-1 --right-of HDMI-1 --auto")))
+    (exwm-randr-enable))
 #+END_SRC
 
 * Latin accents
@@ -1427,4 +1451,14 @@ I created this function to insert the latin accents that I use the most.
 	      ((cmp-and-fixcase regionp "to" "õ"))
 	      ((cmp-and-fixcase regionp "ai" "í"))))))
 (global-set-key (kbd "C-: C-a") 'my-latin-accents-function)
+#+END_SRC
+
+* Blog
+#+BEGIN_SRC emacs-lisp
+  (use-package org-static-blog
+    :straight t
+    :commands (org-static-blog-create-new-post
+               org-static-blog-publish
+               org-static-blog-publish-file)
+    :config (load-file "~/.emacs.d/blog.el"))
 #+END_SRC
