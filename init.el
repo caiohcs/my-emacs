@@ -21,7 +21,11 @@
 (require 'bind-key)
 
 (use-package org
+  :straight (:type built-in))
+
+(use-package use-package-ensure-system-package
   :straight t)
+
 (org-babel-load-file
  (expand-file-name "settings.org"
                    user-emacs-directory))

@@ -51,7 +51,8 @@ LSP gives Emacs IDE features.
   :straight t
   :hook
   ((c++-mode . lsp)
-  (c-mode . lsp))
+   (c-mode . lsp)
+   (js-mode . lsp))
   :commands lsp)
 
 (use-package company-lsp
@@ -202,10 +203,18 @@ I use Steel Bank Common Lisp.
 
 ## Web
 
+
+### HTML/CSS
+
 ```emacs-lisp
 (use-package emmet-mode
   :straight t
-  :hook (web-mode . (lambda () (emmet-mode))))
+  :hook ((web-mode . (lambda () (emmet-mode)))
+	 (css-mode . (lambda () (emmet-mode)))))
+
+(use-package web-mode
+  :straight t
+  :mode (("\\.html\\'"	. web-mode)))
 
 (use-package rainbow-mode
   :straight t
@@ -213,22 +222,45 @@ I use Steel Bank Common Lisp.
   :mode (("\\.html\\'"	. rainbow-mode)
 	 ("\\.css\\'"	. rainbow-mode)))
 
-(use-package web-mode
+(use-package impatient-mode
   :straight t
-  :mode (("\\.html\\'"	. web-mode)
-	 ("\\.css\\'"	. web-mode)))
+  :commands impatient-mode)
+```
 
+
+### HTTP
+
+```emacs-lisp
 (use-package simple-httpd
   :straight t
   :commands httpd-start)
 
-(use-package impatient-mode
-  :straight t
-  :commands impatient-mode)
-
 (use-package request
   :straight t
   :commands request)
+```
+
+
+### JS
+
+```emacs-lisp
+(use-package js2-mode
+  :straight t
+  :mode ("\\.js\\'" . js2-mode))
+
+(use-package tide
+  :straight t
+  :hook (js-mode . (lambda () (setup-tide-mode)))
+  :config
+  (defun setup-tide-mode ()
+    (interactive)
+    (tide-setup)
+    (flycheck-mode)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled))
+    (setq company-tooltip-align-annotations t)
+    (eldoc-mode)
+    (tide-hl-identifier-mode)
+    (company-mode)))
 ```
 
 
@@ -261,7 +293,7 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 ```
 
 
-## Yasnippets
+## Yasnippet
 
 
 ### Config
@@ -284,6 +316,8 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
 
 
 ### Tiny
+
+Tiny Is Not Yasnippet
 
 ```emacs-lisp
 (use-package tiny
@@ -361,6 +395,7 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
    'org-babel-load-languages
    '((python		. t)
      (emacs-lisp	. t)
+     (shell		. t)
      (lisp		. t)
      (C			. t))))
 
@@ -368,6 +403,53 @@ I left the Docker packages disabled, so delete the :disabled line if you want th
   :after org
   :straight t
   :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
+
+;; Asynchronous code block execution, very useful!
+(use-package ob-async
+  :straight t
+  :defer 4.3)
+```
+
+
+## Roam
+
+```emacs-lisp
+(use-package org-roam
+  :straight t
+  ;; :ensure-system-package
+  ;; ((sqlite3)
+  ;;  (graphviz))
+  :commands (org-roam-mode)
+  :bind
+  (:map org-roam-mode-map
+   (("C-c n l" . org-roam)
+    ("C-c n f" . org-roam-find-file)
+    ("C-c n g" . org-roam-graph-show))
+   :map org-mode-map
+   (("C-c n i" . org-roam-insert))
+   (("C-c n I" . org-roam-insert-immediate)))
+  :config
+  (setq org-roam-directory "~/notes/roam/")
+  (setq org-roam-index-file "Index.org")
+  (setq org-roam-graph-viewer "brave-browser"))
+
+(use-package org-roam-protocol
+  :straight (:type built-in)
+  :after org-roam)
+
+(use-package org-roam-server
+  :straight t
+  :commands (org-roam-server-mode)
+  :config
+  (setq org-roam-server-host "127.0.0.1"
+	org-roam-server-port 8082
+	org-roam-server-export-inline-images t
+	org-roam-server-authenticate nil
+	org-roam-server-network-poll t
+	org-roam-server-network-arrows nil
+	org-roam-server-network-label-truncate t
+	org-roam-server-network-label-truncate-length 60
+	org-roam-server-network-label-wrap-length 20))
 ```
 
 
@@ -757,6 +839,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   ("u" mpd/update-database))
 
 (global-set-key (kbd "s-m") 'hydra-emms/body)
+(global-set-key (kbd "C-: m") 'hydra-emms/body)
 ```
 
 
@@ -812,7 +895,7 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
   ("b" org-backward-heading-same-level)
   ("<tab>" org-cycle))
 
-(global-set-key (kbd "C-: a") 'hydra-org/body)
+(global-set-key (kbd "C-: o") 'hydra-org/body)
 ```
 
 
@@ -924,6 +1007,23 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("L" lsp-avy-lens)
   ("f" lsp-format-region))
 (global-set-key (kbd "<f6>") 'hydra-lsp/body)
+```
+
+
+### Hydra Org Roam
+
+```emacs-lisp
+(defhydra hydra-roam (:color teal
+		      :hint nil)
+  "
+  _f_:ind file  _i_:nsert
+  "
+  ("q" nil "quit")
+  ("f" org-roam-find-file)
+  ("i" org-roam-insert)
+  ("o" org-roam))
+
+(global-set-key (kbd "C-: r") 'hydra-roam/body)
 ```
 
 
@@ -1104,6 +1204,11 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   (setq dired-omit-verbose nil)
   (setq dired-omit-files
 	"^\\..+$"))
+
+(use-package peep-dired
+  :straight t
+  :bind (:map dired-mode-map
+	 ("P" . 'peep-dired)))
 
 (use-package dired-rainbow
   :straight t
