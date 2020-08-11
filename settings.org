@@ -419,6 +419,32 @@ Requires reveal.js to create html presentations.
   (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
 #+END_SRC
 
+* LaTeX
+#+BEGIN_SRC emacs-lisp
+  (use-package tex
+    :straight auctex
+    :defer t
+    :hook (TeX-mode . (lambda ()
+                        (flycheck-mode)
+                        (company-mode)))
+    :config
+    (setq TeX-auto-save t)
+    (setq TeX-parse-self t))
+
+  (use-package company-auctex
+    :straight t
+    :after (auctex company)
+    :config
+    (company-auctex-init))
+
+  (use-package ivy-bibtex
+    :straight t
+    :after auctex
+    :config
+    (setq bibtex-completion-bibliography
+          '("~/projects/tex/test.bib")))
+#+END_SRC
+
 * Theme
 My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dracula-theme.
 There is a function bound to <f5> to switch between light mode and dark mode.
@@ -698,6 +724,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     ("+" (enlarge-window 1))
     ("-" (enlarge-window -1))
     ("t" (tiny-expand))
+    ("T" (insert "m3\\n10|%d^2 = %(* x x)"))
     ("s" (point-to-register ?g))
     ("j" (jump-to-register ?g))
     ("G" (lambda (arg) (interactive "cInsert char:") (navigate-to-specific-char arg)))
@@ -788,11 +815,15 @@ There is a function bound to <f5> to switch between light mode and dark mode.
                                     :hint nil
                                     :post hydra-movement/cond-body-call)
     "
-      _l_: edit lines   _a_: all like this
+      _e_:dit lines   _a_:ll like this  _l_:etters  _n_:umbers
     "
     ("q" nil "quit")
-    ("l" mc/edit-lines)
+    ("e" mc/edit-lines)
+    ("l" mc/insert-letters)
+    ("n" mc/insert-numbers)
     ("a" mc/mark-all-like-this))
+
+  (global-set-key (kbd "C-: c") 'hydra-multiple-cursors/body)
 #+END_SRC
 
 *** Hydra Org
