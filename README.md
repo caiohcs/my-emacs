@@ -2,13 +2,23 @@
 
 ![img](./imgs/my-emacs.png)
 
-I use the hydra package to configure my keybindings. There is a modal editing hydra on F1, a hydra for windows management (using Eyebrowse) on F2, a hydra for dumb-jump on F3, a hydra to open programs (e.g. the browser) on F4 and a hydra for Avy shorcuts on M-s. F5 switches between a light theme and a dark theme.
+This is my Emacs configuration, I use it for:
+
+-   Programming languages (C, C++, Go, Javascript, Python, Lisp, Shell script)
+-   Markup languages (Latex, HTML, CSS, Org)
+-   Other languages (Makefile, yaml, dockerfile)
+-   RSS
+-   Media player
+-   Window manager
+-   File manager
+-   Password manager
+-   Wiki
+-   Blog
 
 
 # Installation
 
--   Copy init.el and settings.org to ~/.emacs.d/
--   Install all package requirements. For instance, C/C++ utilities requires clang.
+-   Copy init.el and settings.org to ~/.emacs.d/ or ~/.config/emacs
 
 
 # Programming
@@ -266,11 +276,8 @@ I use Steel Bank Common Lisp.
 
 ## Yaml
 
-I left the Yaml package disabled, so delete the :disabled line if you want this package.
-
 ```emacs-lisp
 (use-package yaml-mode
-  :disabled
   :straight t
   :mode ("\\.yml\\'" . yaml-mode))
 ```
@@ -278,16 +285,12 @@ I left the Yaml package disabled, so delete the :disabled line if you want this 
 
 ## Docker
 
-I left the Docker packages disabled, so delete the :disabled line if you want these packages.
-
 ```emacs-lisp
 (use-package docker
-  :disabled
   :straight t
   :commands docker)
 
 (use-package dockerfile-mode
-  :disabled
   :straight t
   :mode ("Dockerfile\\'" . dockerfile-mode))
 ```
@@ -408,6 +411,13 @@ Tiny Is Not Yasnippet
 (use-package ob-async
   :straight t
   :defer 4.3)
+
+;; references
+(use-package org-ref
+  :straight t
+  :config
+  (setq reftex-default-bibliography '("~/notes/roam/math.bib")
+	org-ref-default-bibliography '("~/notes/roam/math.bib")))
 ```
 
 
@@ -431,7 +441,14 @@ Tiny Is Not Yasnippet
   :config
   (setq org-roam-directory "~/notes/roam/")
   (setq org-roam-index-file "Index.org")
-  (setq org-roam-graph-viewer "brave-browser"))
+  (setq org-roam-graph-viewer "brave-browser")
+  (setq org-roam-capture-templates (list `("d" "default" plain #'org-roam--capture-get-point
+					   "%?"
+					   :file-name "%<%Y%m%d%H%M%S>-${slug}"
+					   :head ,(concat "#+title: ${title}\n"
+						   "#+author: \"Caio Henrique\"\n"
+						   "#+date: <%<%Y-%m-%d>>\n")
+					   :unnarrowed t))))
 
 (use-package org-roam-protocol
   :straight (:type built-in)
@@ -441,7 +458,7 @@ Tiny Is Not Yasnippet
   :straight t
   :commands (org-roam-server-mode)
   :config
-  (setq org-roam-server-host "127.0.0.1"
+  (setq org-roam-server-host "0.0.0.0"
 	org-roam-server-port 8082
 	org-roam-server-export-inline-images t
 	org-roam-server-authenticate nil
@@ -1049,12 +1066,16 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 (defhydra hydra-roam (:color teal
 		      :hint nil)
   "
-  _f_:ind file  _i_:nsert
+  _f_:ind file  _i_:nsert  _I_:ndex  _g_:raph
+  _c_:apture  _s_:erver
   "
   ("q" nil "quit")
   ("f" org-roam-find-file)
   ("i" org-roam-insert)
-  ("o" org-roam))
+  ("I" org-roam-jump-to-index)
+  ("g" org-roam-graph)
+  ("c" org-roam-capture)
+  ("s" org-roam-server-mode))
 
 (global-set-key (kbd "C-: r") 'hydra-roam/body)
 ```
@@ -1077,6 +1098,8 @@ _0_: switch to 0      ^^...       _9_: switch to 9
     :straight t
     :diminish counsel-mode
     :config (counsel-mode))
+  (use-package ivy-avy
+    :straight t)
   (ivy-mode))
 ```
 
@@ -1305,12 +1328,15 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```emacs-lisp
 ;;; Variables
 (global-visual-line-mode)
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
 (global-set-key (kbd "TAB") 'self-insert-command)
 (global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)
 (setq visible-bell 1)
+
+;; For versions >= 27, this is done on early-init.el
+(when (< emacs-major-version 27)
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1))
 ```
 
 
@@ -1318,11 +1344,23 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 
 ```emacs-lisp
 ;;; Change the backup/autosave folder.
-(defvar backup-dir (expand-file-name "~/.emacs.d/backup/"))
-(defvar autosave-dir (expand-file-name "~/.emacs.d/autosave/"))
+(defvar backup-dir (expand-file-name (concat user-emacs-directory "backup/")))
+(defvar autosave-dir (expand-file-name (concat user-emacs-directory "autosave/")))
 (setq backup-directory-alist (list (cons ".*" backup-dir)))
 (setq auto-save-list-file-prefix autosave-dir)
 (setq auto-save-file-name-transforms `((".*" ,autosave-dir t)))
+```
+
+
+## Sticky buffers
+
+<https://lists.gnu.org/archive/html/help-gnu-emacs/2007-05/msg00975.html>
+
+```emacs-lisp
+(define-minor-mode sticky-buffer-mode
+  "Make the current window always display this buffer."
+  nil " sticky" nil
+  (set-window-dedicated-p (selected-window) sticky-buffer-mode))
 ```
 
 
@@ -1670,7 +1708,7 @@ cURL.
 (use-package elfeed
   :straight t
   :commands elfeed
-  :config (load-file "~/.emacs.d/feeds.el"))
+  :config (load-file (concat user-emacs-directory "feeds.el")))
 ```
 
 
@@ -1769,5 +1807,5 @@ I created this function to insert the latin accents that I use the most.
   :commands (org-static-blog-create-new-post
 	     org-static-blog-publish
 	     org-static-blog-publish-file)
-  :config (load-file "~/.emacs.d/blog.el"))
+  :config (load-file (concat user-emacs-directory "blog.el")))
 ```

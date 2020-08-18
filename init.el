@@ -1,4 +1,5 @@
-(setq gc-cons-threshold 100000000)
+(when (< emacs-major-version 27)
+  (setq gc-cons-threshold 100000000))
 
 (defvar bootstrap-version)
 (let ((bootstrap-file

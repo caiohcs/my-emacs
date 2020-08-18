@@ -6,11 +6,20 @@
 #+ATTR_HTML: :width 100%
 [[./imgs/my-emacs.png]]
 
-I use the hydra package to configure my keybindings. There is a modal editing hydra on F1, a hydra for windows management (using Eyebrowse) on F2, a hydra for dumb-jump on F3, a hydra to open programs (e.g. the browser) on F4 and a hydra for Avy shorcuts on M-s. F5 switches between a light theme and a dark theme.
+This is my Emacs configuration, I use it for:
+- Programming languages (C, C++, Go, Javascript, Python, Lisp, Shell script)
+- Markup languages (Latex, HTML, CSS, Org)
+- Other languages (Makefile, yaml, dockerfile)
+- RSS
+- Media player
+- Window manager
+- File manager
+- Password manager
+- Wiki
+- Blog
 
 * Installation
-- Copy init.el and settings.org to ~/.emacs.d/
-- Install all package requirements. For instance, C/C++ utilities requires clang.
+- Copy init.el and settings.org to ~/.emacs.d/ or ~/.config/emacs
 
 * Programming
 ** Magit
@@ -221,26 +230,21 @@ I use Steel Bank Common Lisp.
 #+END_SRC
 
 ** Yaml
-I left the Yaml package disabled, so delete the :disabled line if you want this package.
 #+BEGIN_SRC emacs-lisp
-(use-package yaml-mode
-  :disabled
-  :straight t
-  :mode ("\\.yml\\'" . yaml-mode))
+  (use-package yaml-mode
+    :straight t
+    :mode ("\\.yml\\'" . yaml-mode))
 #+END_SRC
 
 ** Docker
-I left the Docker packages disabled, so delete the :disabled line if you want these packages.
 #+BEGIN_SRC emacs-lisp
-(use-package docker
-  :disabled
-  :straight t
-  :commands docker)
+  (use-package docker
+    :straight t
+    :commands docker)
 
-(use-package dockerfile-mode
-  :disabled
-  :straight t
-  :mode ("Dockerfile\\'" . dockerfile-mode))
+  (use-package dockerfile-mode
+    :straight t
+    :mode ("Dockerfile\\'" . dockerfile-mode))
 #+END_SRC
 
 ** Yasnippet
@@ -346,6 +350,13 @@ Tiny Is Not Yasnippet
   (use-package ob-async
     :straight t
     :defer 4.3)
+
+  ;; references
+  (use-package org-ref
+    :straight t
+    :config
+    (setq reftex-default-bibliography '("~/notes/roam/math.bib")
+          org-ref-default-bibliography '("~/notes/roam/math.bib")))
 #+END_SRC
 
 ** Roam
@@ -367,7 +378,14 @@ Tiny Is Not Yasnippet
     :config
     (setq org-roam-directory "~/notes/roam/")
     (setq org-roam-index-file "Index.org")
-    (setq org-roam-graph-viewer "brave-browser"))
+    (setq org-roam-graph-viewer "brave-browser")
+    (setq org-roam-capture-templates (list `("d" "default" plain #'org-roam--capture-get-point
+                                             "%?"
+                                             :file-name "%<%Y%m%d%H%M%S>-${slug}"
+                                             :head ,(concat "#+title: ${title}\n"
+                                                     "#+author: \"Caio Henrique\"\n"
+                                                     "#+date: <%<%Y-%m-%d>>\n")
+                                             :unnarrowed t))))
 
   (use-package org-roam-protocol
     :straight (:type built-in)
@@ -377,7 +395,7 @@ Tiny Is Not Yasnippet
     :straight t
     :commands (org-roam-server-mode)
     :config
-    (setq org-roam-server-host "127.0.0.1"
+    (setq org-roam-server-host "0.0.0.0"
           org-roam-server-port 8082
           org-roam-server-export-inline-images t
           org-roam-server-authenticate nil
@@ -390,17 +408,17 @@ Tiny Is Not Yasnippet
 
 ** Exporting
 #+BEGIN_SRC emacs-lisp
-;; Export to html with syntax highlighting
-(use-package htmlize
-  :after org
-  :straight t
-  :commands org-export-dispatch)
+  ;; Export to html with syntax highlighting
+  (use-package htmlize
+    :after org
+    :straight t
+    :commands org-export-dispatch)
 
-;; Export to Markdown with syntax highlighting
-(use-package ox-gfm
-  :after org
-  :straight t
-  :commands org-gfm-export-to-markdown)
+  ;; Export to Markdown with syntax highlighting
+  (use-package ox-gfm
+    :after org
+    :straight t
+    :commands org-gfm-export-to-markdown)
 #+END_SRC
 
 *** Presentations
@@ -949,12 +967,16 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (defhydra hydra-roam (:color teal
                         :hint nil)
     "
-    _f_:ind file  _i_:nsert
+    _f_:ind file  _i_:nsert  _I_:ndex  _g_:raph
+    _c_:apture  _s_:erver
     "
     ("q" nil "quit")
     ("f" org-roam-find-file)
     ("i" org-roam-insert)
-    ("o" org-roam))
+    ("I" org-roam-jump-to-index)
+    ("g" org-roam-graph)
+    ("c" org-roam-capture)
+    ("s" org-roam-server-mode))
 
   (global-set-key (kbd "C-: r") 'hydra-roam/body)
 #+END_SRC
@@ -975,6 +997,8 @@ There is a function bound to <f5> to switch between light mode and dark mode.
       :straight t
       :diminish counsel-mode
       :config (counsel-mode))
+    (use-package ivy-avy
+      :straight t)
     (ivy-mode))
 #+END_SRC
 
@@ -1169,24 +1193,36 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 
 ** Tool bar, menu bar, line numbering etc
 #+BEGIN_SRC emacs-lisp
-;;; Variables
-(global-visual-line-mode)
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(global-set-key (kbd "TAB") 'self-insert-command)
-(global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)
-(setq visible-bell 1)
+  ;;; Variables
+  (global-visual-line-mode)
+  (global-set-key (kbd "TAB") 'self-insert-command)
+  (global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)
+  (setq visible-bell 1)
+
+  ;; For versions >= 27, this is done on early-init.el
+  (when (< emacs-major-version 27)
+    (menu-bar-mode -1)
+    (tool-bar-mode -1)
+    (scroll-bar-mode -1))
 #+END_SRC
 
 ** Change backup/autosave folder
 #+BEGIN_SRC emacs-lisp
-;;; Change the backup/autosave folder.
-(defvar backup-dir (expand-file-name "~/.emacs.d/backup/"))
-(defvar autosave-dir (expand-file-name "~/.emacs.d/autosave/"))
-(setq backup-directory-alist (list (cons ".*" backup-dir)))
-(setq auto-save-list-file-prefix autosave-dir)
-(setq auto-save-file-name-transforms `((".*" ,autosave-dir t)))
+  ;;; Change the backup/autosave folder.
+  (defvar backup-dir (expand-file-name (concat user-emacs-directory "backup/")))
+  (defvar autosave-dir (expand-file-name (concat user-emacs-directory "autosave/")))
+  (setq backup-directory-alist (list (cons ".*" backup-dir)))
+  (setq auto-save-list-file-prefix autosave-dir)
+  (setq auto-save-file-name-transforms `((".*" ,autosave-dir t)))
+#+END_SRC
+
+** Sticky buffers
+https://lists.gnu.org/archive/html/help-gnu-emacs/2007-05/msg00975.html
+#+BEGIN_SRC emacs-lisp
+  (define-minor-mode sticky-buffer-mode
+    "Make the current window always display this buffer."
+    nil " sticky" nil
+    (set-window-dedicated-p (selected-window) sticky-buffer-mode))
 #+END_SRC
 
 ** Read process output
@@ -1495,7 +1531,7 @@ cURL.
   (use-package elfeed
     :straight t
     :commands elfeed
-    :config (load-file "~/.emacs.d/feeds.el"))
+    :config (load-file (concat user-emacs-directory "feeds.el")))
 #+END_SRC
 
 ** Youtube-dl
@@ -1585,5 +1621,5 @@ I created this function to insert the latin accents that I use the most.
     :commands (org-static-blog-create-new-post
                org-static-blog-publish
                org-static-blog-publish-file)
-    :config (load-file "~/.emacs.d/blog.el"))
+    :config (load-file (concat user-emacs-directory "blog.el")))
 #+END_SRC
