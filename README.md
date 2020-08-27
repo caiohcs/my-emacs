@@ -44,11 +44,10 @@ Company is a text completion framework.
   :bind (:map company-active-map
 	 ("C-n" . 'company-select-next)
 	 ("C-p" . 'company-select-previous))
-  :init
-  (use-package company-quickhelp
-    :straight t)
   :config
-  (company-quickhelp-mode))
+  (use-package company-quickhelp
+    :straight t
+    :hook (company-mode . (lambda () (company-quickhelp-local-mode)))))
 ```
 
 
@@ -62,7 +61,8 @@ LSP gives Emacs IDE features.
   :hook
   ((c++-mode . lsp)
    (c-mode . lsp)
-   (js-mode . lsp))
+   (js-mode . lsp)
+   (python-mode . lsp))
   :commands lsp)
 
 (use-package company-lsp
@@ -208,6 +208,20 @@ I use Steel Bank Common Lisp.
 (use-package lispy
   :straight t
   :hook (emacs-lisp-mode . (lambda () (lispy-mode))))
+```
+
+
+## Python
+
+```emacs-lisp
+(use-package lsp-python-ms
+  :straight t
+  :after lsp-mode
+  :init (setq lsp-python-ms-auto-install-server t))
+
+(use-package lpy
+  :straight t
+  :hook (python-mode . (lambda () (lpy-mode))))
 ```
 
 
@@ -441,6 +455,11 @@ Tiny Is Not Yasnippet
   :config
   (setq org-roam-directory "~/notes/roam/")
   (setq org-roam-index-file "Index.org")
+  (setq org-roam-graph-node-extra-config '(("shape" . "ellipse")
+					 ("style" . "rounded,filled")
+					 ("fillcolor" . "#EFEFFF")
+					 ("color" . "#DEDEFF")
+					 ("fontcolor" . "#111111")))
   (setq org-roam-graph-viewer "brave-browser")
   (setq org-roam-capture-templates (list `("d" "default" plain #'org-roam--capture-get-point
 					   "%?"
@@ -1765,6 +1784,24 @@ cURL.
 	      (start-process-shell-command
 	       "xrandr" nil "xrandr --output eDP-1 --right-of HDMI-1 --auto")))
   (exwm-randr-enable))
+```
+
+
+## Screenshots
+
+Requires Emacs built with cairo.
+
+```emacs-lisp
+(defun screenshot-svg ()
+  "Save a screenshot of the current frame as an SVG image.
+Saves to a temp file and puts the filename in the kill ring."
+  (interactive)
+  (let* ((filename (make-temp-file "Emacs" nil ".svg"))
+	 (data (x-export-frames nil 'svg)))
+    (with-temp-file filename
+      (insert data))
+    (kill-new filename)
+    (message filename)))
 ```
 
 
