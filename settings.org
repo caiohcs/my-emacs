@@ -341,14 +341,17 @@ Tiny Is Not Yasnippet
     :mode ("\\.org\\'" . org-mode)
     :diminish org-indent-mode
     :config
+    (require 'ox-html)
+    (require 'ox-latex)
+    (require 'ox-md)
     (setq org-startup-indented t)
     (org-babel-do-load-languages
      'org-babel-load-languages
-     '((python		. t)
-       (emacs-lisp	. t)
-       (shell		. t)
-       (lisp		. t)
-       (C			. t))))
+     '((python . t)
+       (emacs-lisp . t)
+       (shell . t)
+       (lisp . t)
+       (C . t))))
 
   (use-package org-bullets
     :after org
