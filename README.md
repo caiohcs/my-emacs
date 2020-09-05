@@ -128,9 +128,7 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
 (use-package ccls
   :after lsp-mode
   :straight t
-  :config (setq ccls-executable "/usr/bin/ccls")
-  :hook ((c-mode c++-mode objc-mode cuda-mode) .
-	 (lambda () (require 'ccls))))
+  :config (setq ccls-executable "/usr/bin/ccls"))
 
 (defun my-c-mode-common-hook ()
   (c-set-offset 'substatement-open 0)
@@ -242,9 +240,8 @@ I use Steel Bank Common Lisp.
 
 (use-package rainbow-mode
   :straight t
-  :hook (org-mode . (lambda () (rainbow-mode)))
-  :mode (("\\.html\\'"	. rainbow-mode)
-	 ("\\.css\\'"	. rainbow-mode)))
+  :hook ((org-mode . (lambda () (rainbow-mode)))
+	 (web-mode . (lambda () (rainbow-mode)))))
 
 (use-package impatient-mode
   :straight t
