@@ -366,6 +366,7 @@ Tiny Is Not Yasnippet
   ;; references
   (use-package org-ref
     :straight t
+    :commands org-ref-ivy-insert-cite-link
     :config
     (setq reftex-default-bibliography '("~/notes/roam/math.bib")
           org-ref-default-bibliography '("~/notes/roam/math.bib")))
@@ -1009,7 +1010,8 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     :config
     (use-package swiper
       :straight t
-      :bind (("C-s" . swiper)))
+      :bind (("C-s" . swiper)
+             ("C-M-s" . swiper-thing-at-point)))
     (use-package counsel
       :straight t
       :diminish counsel-mode
@@ -1477,6 +1479,13 @@ Requires pass.
   (use-package pass
     :straight t
     :commands pass)
+#+END_SRC
+
+** Debbugs
+#+BEGIN_SRC emacs-lisp
+  (use-package debbugs
+    :straight t
+    :commands debbugs-gnu)
 #+END_SRC
 
 ** PDF
