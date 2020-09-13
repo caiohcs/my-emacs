@@ -404,14 +404,17 @@ Tiny Is Not Yasnippet
   :mode ("\\.org\\'" . org-mode)
   :diminish org-indent-mode
   :config
+  (require 'ox-html)
+  (require 'ox-latex)
+  (require 'ox-md)
   (setq org-startup-indented t)
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '((python		. t)
-     (emacs-lisp	. t)
-     (shell		. t)
-     (lisp		. t)
-     (C			. t))))
+   '((python . t)
+     (emacs-lisp . t)
+     (shell . t)
+     (lisp . t)
+     (C . t))))
 
 (use-package org-bullets
   :after org
@@ -426,6 +429,7 @@ Tiny Is Not Yasnippet
 ;; references
 (use-package org-ref
   :straight t
+  :commands org-ref-ivy-insert-cite-link
   :config
   (setq reftex-default-bibliography '("~/notes/roam/math.bib")
 	org-ref-default-bibliography '("~/notes/roam/math.bib")))
@@ -562,22 +566,43 @@ My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dra
 (use-package doom-themes
   :straight t)
 
-(setq *theme-dark* 'kaolin-galaxy)
-(setq *theme-light* 'doom-acario-light)
-(setq *current-theme* *theme-dark*)
+(defun toggle-light-dark-theme--custom-choices (theme)
+  "Used to create the choice widget options of the
+toggle-light-dark-theme custom variables."
+  `(const :tag ,(symbol-name theme) ,theme))
 
-(defun my-fn/next-theme (theme)
-  (disable-theme *current-theme*)
-  (load-theme theme t)
-  (powerline-reset)
-  (setq *current-theme* theme))
+(defcustom toggle-light-dark-theme-light-theme 'doom-acario-light
+  "The light theme that the function toggle-light-dark-theme will use."
+  :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
+		    (custom-available-themes))))
 
-(defun my-fn/toggle-theme ()
+(defcustom toggle-light-dark-theme-dark-theme 'kaolin-galaxy
+  "The dark theme that the function toggle-light-dark-theme will use."
+  :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
+		    (custom-available-themes))))
+
+(defvar toggle-light-dark-theme--current-theme 'light)
+
+(defun toggle-light-dark-theme ()
+  "Disables all custom enabled themes and then toggles between a
+light and a dark theme, which are the values of the variables
+toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   (interactive)
-  (cond ((eq *current-theme* *theme-dark*) (my-fn/next-theme *theme-light*))
-	((eq *current-theme* *theme-light*) (my-fn/next-theme *theme-dark*))))
+  (mapc #'disable-theme custom-enabled-themes)
+  (cond ((eq toggle-light-dark-theme--current-theme 'light)
+	 (load-theme toggle-light-dark-theme-dark-theme)
+	 (setq toggle-light-dark-theme--current-theme 'dark))
+	(t
+	 (load-theme toggle-light-dark-theme-light-theme)
+	 (setq toggle-light-dark-theme--current-theme 'light))))
 
-(global-set-key (kbd "<f5>") #'my-fn/toggle-theme)
+(define-key-after
+  global-map
+  [menu-bar options customize customize-toggle-light-dark-theme]
+  '("Toggle light and dark theme" . toggle-light-dark-theme)
+  'customize-themes)
+
+(global-set-key (kbd "<f5>") #'toggle-light-dark-theme)
 ```
 
 
@@ -1109,7 +1134,8 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   :config
   (use-package swiper
     :straight t
-    :bind (("C-s" . swiper)))
+    :bind (("C-s" . swiper)
+	   ("C-M-s" . swiper-thing-at-point)))
   (use-package counsel
     :straight t
     :diminish counsel-mode
@@ -1640,6 +1666,15 @@ Requires pass.
 (use-package pass
   :straight t
   :commands pass)
+```
+
+
+## Debbugs
+
+```emacs-lisp
+(use-package debbugs
+  :straight t
+  :commands debbugs-gnu)
 ```
 
 

@@ -491,22 +491,43 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (use-package doom-themes
     :straight t)
 
-  (setq *theme-dark* 'kaolin-galaxy)
-  (setq *theme-light* 'doom-acario-light)
-  (setq *current-theme* *theme-dark*)
+  (defun toggle-light-dark-theme--custom-choices (theme)
+    "Used to create the choice widget options of the
+  toggle-light-dark-theme custom variables."
+    `(const :tag ,(symbol-name theme) ,theme))
 
-  (defun my-fn/next-theme (theme)
-    (disable-theme *current-theme*)
-    (load-theme theme t)
-    (powerline-reset)
-    (setq *current-theme* theme))
+  (defcustom toggle-light-dark-theme-light-theme 'doom-acario-light
+    "The light theme that the function toggle-light-dark-theme will use."
+    :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
+                      (custom-available-themes))))
 
-  (defun my-fn/toggle-theme ()
+  (defcustom toggle-light-dark-theme-dark-theme 'kaolin-galaxy
+    "The dark theme that the function toggle-light-dark-theme will use."
+    :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
+                      (custom-available-themes))))
+
+  (defvar toggle-light-dark-theme--current-theme 'light)
+
+  (defun toggle-light-dark-theme ()
+    "Disables all custom enabled themes and then toggles between a
+  light and a dark theme, which are the values of the variables
+  toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
     (interactive)
-    (cond ((eq *current-theme* *theme-dark*) (my-fn/next-theme *theme-light*))
-          ((eq *current-theme* *theme-light*) (my-fn/next-theme *theme-dark*))))
+    (mapc #'disable-theme custom-enabled-themes)
+    (cond ((eq toggle-light-dark-theme--current-theme 'light)
+           (load-theme toggle-light-dark-theme-dark-theme)
+           (setq toggle-light-dark-theme--current-theme 'dark))
+          (t
+           (load-theme toggle-light-dark-theme-light-theme)
+           (setq toggle-light-dark-theme--current-theme 'light))))
 
-  (global-set-key (kbd "<f5>") #'my-fn/toggle-theme)
+  (define-key-after
+    global-map
+    [menu-bar options customize customize-toggle-light-dark-theme]
+    '("Toggle light and dark theme" . toggle-light-dark-theme)
+    'customize-themes)
+
+  (global-set-key (kbd "<f5>") #'toggle-light-dark-theme)
 #+END_SRC
 
 * Global (better UX)
