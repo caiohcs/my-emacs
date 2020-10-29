@@ -42,12 +42,13 @@ Company is a text completion framework.
   :straight t
   :commands company-mode
   :bind (:map company-active-map
-	 ("C-n" . 'company-select-next)
-	 ("C-p" . 'company-select-previous))
-  :config
-  (use-package company-quickhelp
-    :straight t
-    :hook (company-mode . (lambda () (company-quickhelp-local-mode)))))
+	      ("C-n" . 'company-select-next)
+	      ("C-p" . 'company-select-previous)))
+
+(use-package company-quickhelp
+  :straight t
+  :after company-mode
+  :hook (company-mode . (lambda () (company-quickhelp-local-mode))))
 ```
 
 
@@ -64,11 +65,6 @@ LSP gives Emacs IDE features.
    (js-mode . lsp)
    (python-mode . lsp))
   :commands lsp)
-
-(use-package company-lsp
-  :straight t
-  :after (lsp-mode company)
-  :commands company-lsp)
 ```
 
 
@@ -77,7 +73,7 @@ LSP gives Emacs IDE features.
 ```emacs-lisp
 (use-package projectile
   :straight t
-  :defer 5.2) 
+  :commands projectile-mode)
 ```
 
 
@@ -134,14 +130,14 @@ I'm assuming that the ccls binary is at /usr/bin/ccls.
   (c-set-offset 'substatement-open 0)
   (c-set-offset 'access-label '/)
   (c-set-offset 'inclass '+)
-  (setq  c-default-style "bsd"
-	 c-basic-offset 4
-	 c-indent-level 4
-	 c-indent-tabs-mode t
-	 c-tab-always-indent t
-	 c++-tab-always-indent t
-	 tab-width 4
-	 backward-delete-function nil))
+  (setq c-default-style "bsd"
+	c-basic-offset 4
+	c-indent-level 4
+	c-indent-tabs-mode t
+	c-tab-always-indent t
+	c++-tab-always-indent t
+	tab-width 4
+	backward-delete-function nil))
 
 (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
@@ -163,41 +159,35 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
   :straight t
   :mode ("\\.go\\'" . go-mode)
   :config
-  (use-package company-go
-    :requires company
-    :straight t)
-  (use-package go-errcheck
-    :straight t)
   (defun my-go-mode-hook ()
     (setq tab-width 4)
     (setq gofmt-command "goimports")
     (set (make-local-variable 'company-backends) '(company-go))
     (company-mode))
   (add-hook 'go-mode-hook 'my-go-mode-hook))
+
+(use-package company-go
+  :after (company go-mode)
+  :straight t)
+
+(use-package go-errcheck
+  :after go-mode
+  :straight t)
 ```
 
 
 ## Lisp
-
-I use Steel Bank Common Lisp.
 
 
 ### Config
 
 ```emacs-lisp
 ;;; Lisp
-(use-package slime
+(use-package sly
   :straight t
-  :commands slime
+  :defer 3.2
   :config
-  (setq inferior-lisp-program "sbcl")
-  (setq slime-contribs '(slime-fancy)))
-
-(use-package slime-company
-  :after (slime company)
-  :straight t
-  :init
-  (slime-setup '(slime-fancy slime-company)))
+  (setq inferior-lisp-program "sbcl"))
 
 (use-package suggest
   :straight t
@@ -205,7 +195,8 @@ I use Steel Bank Common Lisp.
 
 (use-package lispy
   :straight t
-  :hook (emacs-lisp-mode . (lambda () (lispy-mode))))
+  :hook ((emacs-lisp-mode . lispy-mode)
+	 (sly-mode . lispy-mode)))
 ```
 
 
@@ -219,7 +210,7 @@ I use Steel Bank Common Lisp.
 
 (use-package lpy
   :straight t
-  :hook (python-mode . (lambda () (lpy-mode))))
+  :hook (python-mode . lpy-mode))
 ```
 
 
@@ -231,17 +222,17 @@ I use Steel Bank Common Lisp.
 ```emacs-lisp
 (use-package emmet-mode
   :straight t
-  :hook ((web-mode . (lambda () (emmet-mode)))
-	 (css-mode . (lambda () (emmet-mode)))))
+  :hook ((web-mode . emmet-mode)
+	 (css-mode . emmet-mode)))
 
 (use-package web-mode
   :straight t
-  :mode (("\\.html\\'"	. web-mode)))
+  :mode (("\\.html\\'" . web-mode)))
 
 (use-package rainbow-mode
   :straight t
-  :hook ((org-mode . (lambda () (rainbow-mode)))
-	 (web-mode . (lambda () (rainbow-mode)))))
+  :hook ((org-mode . rainbow-mode)
+	 (web-mode . rainbow-mode)))
 
 (use-package impatient-mode
   :straight t
@@ -271,17 +262,15 @@ I use Steel Bank Common Lisp.
 
 (use-package tide
   :straight t
-  :hook (js-mode . (lambda () (setup-tide-mode)))
+  :hook (js-mode . tide-mode)
   :config
-  (defun setup-tide-mode ()
-    (interactive)
-    (tide-setup)
-    (flycheck-mode)
-    (setq flycheck-check-syntax-automatically '(save mode-enabled))
-    (setq company-tooltip-align-annotations t)
-    (eldoc-mode)
-    (tide-hl-identifier-mode)
-    (company-mode)))
+  (tide-setup)
+  (flycheck-mode)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (setq company-tooltip-align-annotations t)
+  (eldoc-mode)
+  (tide-hl-identifier-mode)
+  (company-mode))
 ```
 
 
@@ -315,16 +304,16 @@ I use Steel Bank Common Lisp.
 ```emacs-lisp
 (use-package yasnippet
   :straight t
-  :defer 3.7
-  :hook ((lisp-interaction-mode . (lambda () (yas-minor-mode)))
-	 (emacs-lisp-mode . (lambda () (yas-minor-mode)))
-	 (org-mode . (lambda () (yas-minor-mode)))
-	 (c++-mode . (lambda () (yas-minor-mode)))
-	 (c-mode . (lambda () (yas-minor-mode)))))
+  :hook ((lisp-interaction-mode . yas-minor-mode)
+	 (emacs-lisp-mode . yas-minor-mode)
+	 (org-mode . yas-minor-mode)
+	 (c++-mode . yas-minor-mode)
+	 (c-mode . yas-minor-mode)))
 
 (use-package yasnippet-snippets
   :straight t
   :after yasnippet
+  :defer 3.2
   :config (yas-reload-all))
 ```
 
@@ -419,7 +408,7 @@ Tiny Is Not Yasnippet
 (use-package org-bullets
   :after org
   :straight t
-  :config (add-hook 'org-mode-hook (lambda () (org-bullets-mode))))
+  :hook (org-mode . org-bullets-mode))
 
 ;; Asynchronous code block execution, very useful!
 (use-package ob-async
@@ -444,39 +433,37 @@ Tiny Is Not Yasnippet
   ;; :ensure-system-package
   ;; ((sqlite3)
   ;;  (graphviz))
-  :commands (org-roam-mode)
+  :commands org-roam-mode
   :bind
   (:map org-roam-mode-map
-   (("C-c n l" . org-roam)
-    ("C-c n f" . org-roam-find-file)
-    ("C-c n g" . org-roam-graph-show))
-   :map org-mode-map
-   (("C-c n i" . org-roam-insert))
-   (("C-c n I" . org-roam-insert-immediate)))
+	(("C-c n l" . org-roam)
+	 ("C-c n f" . org-roam-find-file)
+	 ("C-c n g" . org-roam-graph-show))
+	:map org-mode-map
+	(("C-c n i" . org-roam-insert))
+	(("C-c n I" . org-roam-insert-immediate)))
   :config
   (setq org-roam-directory "~/notes/roam/")
   (setq org-roam-index-file "Index.org")
   (setq org-roam-graph-node-extra-config '(("shape" . "ellipse")
-					 ("style" . "rounded,filled")
-					 ("fillcolor" . "#EFEFFF")
-					 ("color" . "#DEDEFF")
-					 ("fontcolor" . "#111111")))
+					   ("style" . "rounded,filled")
+					   ("fillcolor" . "#EFEFFF")
+					   ("color" . "#DEDEFF")
+					   ("fontcolor" . "#111111")))
   (setq org-roam-graph-viewer "brave-browser")
-  (setq org-roam-capture-templates (list `("d" "default" plain #'org-roam--capture-get-point
-					   "%?"
-					   :file-name "%<%Y%m%d%H%M%S>-${slug}"
-					   :head ,(concat "#+title: ${title}\n"
-						   "#+author: \"Caio Henrique\"\n"
-						   "#+date: <%<%Y-%m-%d>>\n")
-					   :unnarrowed t))))
-
-(use-package org-roam-protocol
-  :straight (:type built-in)
-  :after org-roam)
+  (setq org-roam-capture-templates
+	(list `("d" "default" plain #'org-roam--capture-get-point
+		"%?"
+		:file-name "%<%Y%m%d%H%M%S>-${slug}"
+		:head ,(concat "#+title: ${title}\n"
+			       "#+author: \"Caio Henrique\"\n"
+			       "#+date: <%<%Y-%m-%d>>\n")
+		:unnarrowed t)))
+  (require 'org-roam-protocol))
 
 (use-package org-roam-server
   :straight t
-  :commands (org-roam-server-mode)
+  :commands org-roam-server-mode
   :config
   (setq org-roam-server-host "0.0.0.0"
 	org-roam-server-port 8082
@@ -532,7 +519,6 @@ Tiny Is Not Yasnippet
 ```emacs-lisp
 (use-package tex
   :straight auctex
-  :defer t
   :hook (TeX-mode . (lambda ()
 		      (flycheck-mode)
 		      (company-mode)))
@@ -574,12 +560,12 @@ toggle-light-dark-theme custom variables."
 (defcustom toggle-light-dark-theme-light-theme 'doom-acario-light
   "The light theme that the function toggle-light-dark-theme will use."
   :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
-		    (custom-available-themes))))
+			   (custom-available-themes))))
 
 (defcustom toggle-light-dark-theme-dark-theme 'kaolin-galaxy
   "The dark theme that the function toggle-light-dark-theme will use."
   :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
-		    (custom-available-themes))))
+			   (custom-available-themes))))
 
 (defvar toggle-light-dark-theme--current-theme 'light)
 
@@ -646,8 +632,8 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   (hydra-modal-operators/body))
 
 (defhydra hydra-modal-operators (:color blue
-				 :hint nil
-				 :post hydra-movement/cond-body-call)
+					:hint nil
+					:post hydra-movement/cond-body-call)
   "
   _b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion  _u_:ntil  _i_:nside
     "
@@ -675,8 +661,8 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("9" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "9")) :color red))
 
 (defhydra hydra-indentation (:color blue
-			     :hint nil
-			     :post hydra-movement/cond-body-call)
+				    :hint nil
+				    :post hydra-movement/cond-body-call)
   "
   Hydra for indentation
   _c_:C  _l_:Lisp
@@ -696,16 +682,17 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
     (goto-char tmp-pos)))
 
 (defun hydra-modal-operator/mark (operand)
-  (let ((times (if (not hydra-call-operators/repeat) 1 (string-to-number hydra-call-operators/repeat))))
+  (let ((times (if (not hydra-call-operators/repeat)
+		   1
+		 (string-to-number hydra-call-operators/repeat))))
     (cond
-
      ((eq 'another operand)
       (cond
        (hydra-call-operators/until
 	(call-interactively 'set-mark-command)
 	(if hydra-call-operators/backwards
 	    (navigate-to-specific-char hydra-call-operators/until -1)
-	  (navigate-to-specific-char hydra-call-operators/until +1)))
+	  (navigate-to-specific-char hydra-call-operators/until 1)))
 
        (hydra-call-operators/inside
 	(cond
@@ -827,9 +814,9 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
       (capitalize-region (region-beginning) (region-end))))))
 
 (defhydra hydra-movement (:hint nil
-			  :color amaranth
-			  :post (progn (set-cursor-color *original-cursor-color*)
-				       (setq hydra-is-helpful t)))
+				:color amaranth
+				:post (progn (set-cursor-color *original-cursor-color*)
+					     (setq hydra-is-helpful t)))
   "
   Navigation:
   _f_: forward     _b_: backward   _F_: forward word  _B_: backward word
@@ -912,7 +899,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 
 ```emacs-lisp
 (defhydra hydra-emms (:color teal
-		      :hint nil)
+			     :hint nil)
   "
     _p_:laylist  _b_:rowse  _r_:eset  _c_:onnect
     _k_:ill      _u_:pdate
@@ -937,9 +924,10 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   (start-process name nil name))
 
 (defhydra hydra-exwm (:color teal
-		      :hint nil)
+			     :hint nil)
   "
   _b_:rave  _a_:lacritty  _e_:lfeed  _p_:ass  _y_:tdl
+  _g_:nus   _d_:ebbugs    _s_:hell
   "
   ("q" nil "quit")
   ("<f4>" nil "quit")
@@ -947,6 +935,9 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("a" (exwm-async-run "alacritty"))
   ("e" (elfeed))
   ("p" (pass))
+  ("g" (gnus))
+  ("d" debbugs-gnu)
+  ("s" eshell)
   ("y" (hydra-ytdl/body)))
 (global-set-key (kbd "<f4>") 'hydra-exwm/body)
 ```
@@ -955,9 +946,9 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ### Hydra MC
 
 ```emacs-lisp
-(defhydra hydra-multiple-cursors (:color teal 
-				  :hint nil
-				  :post hydra-movement/cond-body-call)
+(defhydra hydra-multiple-cursors (:color teal
+					 :hint nil
+					 :post hydra-movement/cond-body-call)
   "
     _e_:dit lines   _a_:ll like this  _l_:etters  _n_:umbers
   "
@@ -975,7 +966,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 
 ```emacs-lisp
 (defhydra hydra-org (:color amaranth
-		      :hint nil)
+			    :hint nil)
   "
   _n_:ext  _p_:revious  _f_:orward  _b_:backward
   "
@@ -993,9 +984,9 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ### Hydra AVY
 
 ```emacs-lisp
-(defhydra hydra-avy (:color teal 
-		     :hint nil
-		     :post hydra-movement/cond-body-call)
+(defhydra hydra-avy (:color teal
+			    :hint nil
+			    :post hydra-movement/cond-body-call)
   "
   _s_: word 1   _n_: word bellow   _p_: word above
   _l_: line     _c_: char timer    _g_: char timer
@@ -1007,6 +998,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("l" avy-goto-line)
   ("c" avy-goto-char-timer)
   ("g" avy-goto-char-timer))
+
 (global-set-key (kbd "M-s") 'hydra-avy/body)
 ```
 
@@ -1014,8 +1006,8 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ### Hydra Youtube dl
 
 ```emacs-lisp
-(defhydra hydra-ytdl (:color teal 
-		     :hint nil)
+(defhydra hydra-ytdl (:color teal
+			     :hint nil)
   "
   _d_:ownload   _l_:ist  _o_:pen  _p_:laylist
   "
@@ -1055,6 +1047,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("7" eyebrowse-switch-to-window-config-7 nil)
   ("8" eyebrowse-switch-to-window-config-8 nil)
   ("9" eyebrowse-switch-to-window-config-9 nil))
+
 (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
 ```
 
@@ -1073,6 +1066,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("i" dumb-jump-go-prompt "Prompt")
   ("l" dumb-jump-quick-look "Quick look")
   ("b" dumb-jump-back "Back"))
+
 (global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
 ```
 
@@ -1081,7 +1075,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 
 ```emacs-lisp
 (defhydra hydra-lsp (:color teal
-		     :hint nil)
+			    :hint nil)
   "
   _b_:ack  _j_:ump def  _d_:ecl  _D_:escribe  _h_:ighlight  _H_:ighlight doc
   _l_:ens  _r_:ename _L_: avy lens
@@ -1097,6 +1091,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("r" lsp-rename)
   ("L" lsp-avy-lens)
   ("f" lsp-format-region))
+
 (global-set-key (kbd "<f6>") 'hydra-lsp/body)
 ```
 
@@ -1105,7 +1100,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 
 ```emacs-lisp
 (defhydra hydra-roam (:color teal
-		      :hint nil)
+			     :hint nil)
   "
   _f_:ind file  _i_:nsert  _I_:ndex  _g_:raph
   _c_:apture  _s_:erver
@@ -1132,17 +1127,24 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   :diminish ivy-mode
   :defer 0.9
   :config
-  (use-package swiper
-    :straight t
-    :bind (("C-s" . swiper)
-	   ("C-M-s" . swiper-thing-at-point)))
-  (use-package counsel
-    :straight t
-    :diminish counsel-mode
-    :config (counsel-mode))
-  (use-package ivy-avy
-    :straight t)
   (ivy-mode))
+
+(use-package swiper
+  :straight t
+  :after ivy
+  :bind (("C-s" . swiper)
+	 ("C-M-s" . swiper-thing-at-point)))
+
+(use-package counsel
+  :straight t
+  :after ivy
+  :diminish counsel-mode
+  :config
+  (counsel-mode))
+
+(use-package ivy-avy
+  :straight t
+  :after (ivy avy))
 ```
 
 
@@ -1160,7 +1162,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```emacs-lisp
 (use-package popup-kill-ring
   :straight t
-  :bind (("M-y" . popup-kill-ring))) 
+  :bind (("M-y" . popup-kill-ring)))
 ```
 
 
@@ -1195,7 +1197,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   :defer 2.2
   :config
   (require 'spaceline-config)
-  (setq powerline-default-separator (quote arrow))
+  (setq powerline-default-separator 'arrow)
   (setq spaceline-line-column-p nil)
   (setq spaceline-buffer-size nil)
   (setq spaceline-workspace-numbers-unicode t)
@@ -1211,7 +1213,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   :straight t
   :defer 5.1
   :diminish smartparens-mode
-  :config 
+  :config
   (smartparens-global-mode)
   (sp-local-pair 'org-mode "*" "*")
   (sp-local-pair 'org-mode "_" "_"))
@@ -1233,9 +1235,9 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 (use-package buffer-move
   :straight t
   :bind
-  (("C-c <C-up>"   . buf-move-up)
-   ("C-c <C-down>"  . buf-move-down)
-   ("C-c <C-left>"  . buf-move-left)
+  (("C-c <C-up>" . buf-move-up)
+   ("C-c <C-down>" . buf-move-down)
+   ("C-c <C-left>" . buf-move-left)
    ("C-c <C-right>" . buf-move-right)))
 ```
 
@@ -1280,7 +1282,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```emacs-lisp
 (use-package undo-tree
   :straight t
-  :defer 4.2
+  :defer 3.1
   :diminish undo-tree-mode
   :config (global-undo-tree-mode))
 ```
@@ -1290,12 +1292,12 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 
 ```emacs-lisp
 (use-package dired
-  :hook (dired-mode . (lambda () (dired-omit-mode)))
+  :hook (dired-mode . dired-omit-mode)
   :bind (:map dired-mode-map
-	 ("<return>" . dired-find-alternate-file)
-	 ("<dead-circumflex>" . dired-up-directory)
-	 ("E" . image-dired)
-	 ("J" . dired-omit-mode)))
+	      ("<return>" . dired-find-alternate-file)
+	      ("<dead-circumflex>" . dired-up-directory)
+	      ("E" . image-dired)
+	      ("J" . dired-omit-mode)))
 
 (use-package dired-x
   :config
@@ -1306,34 +1308,50 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 (use-package peep-dired
   :straight t
   :bind (:map dired-mode-map
-	 ("P" . 'peep-dired)))
+	      ("P" . 'peep-dired)))
 
 (use-package dired-rainbow
   :straight t
   :defer 3.2
   :config
-  (progn
-    (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
-    (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html" "jhtm" "mht" "eml" "mustache" "xhtml"))
-    (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib" "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
-    (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt" "pdb" "pdf" "ps" "rtf" "djvu" "epub" "odp" "ppt" "pptx"))
-    (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown" "md" "mkd" "nfo" "pod" "rst" "tex" "textfile" "txt"))
-    (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb" "sqlite" "nc"))
-    (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg" "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
-    (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico" "jpeg" "jpg" "png" "psd" "eps" "svg"))
-    (dired-rainbow-define log "#c17d11" ("log"))
-    (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
-    (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql" "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
-    (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++" "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp" "go" "f" "for" "ftn" "f90" "f95" "f03" "f08" "s" "rs" "hi" "hs" "pyc" ".java"))
-    (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
-    (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz" "xz" "z" "Z" "jar" "war" "ear" "rar" "sar" "xpi" "apk" "xz" "tar"))
-    (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak" "pk3" "vdf" "vpk" "bsp"))
-    (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature" "sig" "p12" "pem"))
-    (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
-    (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast" "vcd" "vmdk" "bak"))
-    (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
-    (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*")))
-
+  (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
+  (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html"
+					"jhtm" "mht" "eml" "mustache" "xhtml"))
+  (dired-rainbow-define xml "#f2d024" ("xml" "xsd" "xsl" "xslt" "wsdl" "bib"
+				       "json" "msg" "pgn" "rss" "yaml" "yml" "rdata"))
+  (dired-rainbow-define document "#9561e2" ("docm" "doc" "docx" "odb" "odt"
+					    "pdb" "pdf" "ps" "rtf" "djvu" "epub"
+					    "odp" "ppt" "pptx"))
+  (dired-rainbow-define markdown "#ffed4a" ("org" "etx" "info" "markdown"
+					    "md" "mkd" "nfo" "pod" "rst"
+					    "tex" "textfile" "txt"))
+  (dired-rainbow-define database "#6574cd" ("xlsx" "xls" "csv" "accdb" "db" "mdb"
+					    "sqlite" "nc"))
+  (dired-rainbow-define media "#de751f" ("mp3" "mp4" "MP3" "MP4" "avi" "mpeg" "mpg"
+					 "flv" "ogg" "mov" "mid" "midi" "wav" "aiff" "flac"))
+  (dired-rainbow-define image "#f66d9b" ("tiff" "tif" "cdr" "gif" "ico"
+					 "jpeg" "jpg" "png" "psd" "eps" "svg"))
+  (dired-rainbow-define log "#c17d11" ("log"))
+  (dired-rainbow-define shell "#f6993f" ("awk" "bash" "bat" "sed" "sh" "zsh" "vim"))
+  (dired-rainbow-define interpreted "#38c172" ("py" "ipynb" "rb" "pl" "t" "msql" "mysql"
+					       "pgsql" "sql" "r" "clj" "cljs" "scala" "js"))
+  (dired-rainbow-define compiled "#4dc0b5" ("asm" "cl" "lisp" "el" "c" "h" "c++"
+					    "h++" "hpp" "hxx" "m" "cc" "cs" "cp" "cpp"
+					    "go" "f" "for" "ftn" "f90" "f95" "f03" "f08"
+					    "s" "rs" "hi" "hs" "pyc" ".java"))
+  (dired-rainbow-define executable "#8cc4ff" ("exe" "msi"))
+  (dired-rainbow-define compressed "#51d88a" ("7z" "zip" "bz2" "tgz" "txz" "gz"
+					      "xz" "z" "Z" "jar" "war" "ear" "rar"
+					      "sar" "xpi" "apk" "xz" "tar"))
+  (dired-rainbow-define packaged "#faad63" ("deb" "rpm" "apk" "jad" "jar" "cab" "pak"
+					    "pk3" "vdf" "vpk" "bsp"))
+  (dired-rainbow-define encrypted "#ffed4a" ("gpg" "pgp" "asc" "bfe" "enc" "signature"
+					     "sig" "p12" "pem"))
+  (dired-rainbow-define fonts "#6cb2eb" ("afm" "fon" "fnt" "pfb" "pfm" "ttf" "otf"))
+  (dired-rainbow-define partition "#e3342f" ("dmg" "iso" "bin" "nrg" "qcow" "toast"
+					     "vcd" "vmdk" "bak"))
+  (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
+  (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 ```
 
 
@@ -1439,204 +1457,6 @@ I use aspell for spell checking.
 ```
 
 
-## Change sexp keyword indentation
-
-This changes the identation style from:
-
-```emacs-lisp
-(defhydra foo (:color blue
-		    :help nil))
-```
-
-to:
-
-```emacs-lisp
-(defhydra foo (:color blue
-	       :help nil))
-```
-
-Code from <https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords-aligned> posted by the user Aquaactress.
-
-```emacs-lisp
-(advice-add #'calculate-lisp-indent :override #'void~calculate-lisp-indent)
-
-(defun void~calculate-lisp-indent (&optional parse-start)
-  "Add better indentation for quoted and backquoted lists."
-  ;; This line because `calculate-lisp-indent-last-sexp` was defined with `defvar` 
-  ;; with it's value ommited, marking it special and only defining it locally. So  
-  ;; if you don't have this, you'll get a void variable error.
-  (defvar calculate-lisp-indent-last-sexp)
-  (save-excursion
-    (beginning-of-line)
-    (let ((indent-point (point))
-	  state
-	  ;; setting this to a number inhibits calling hook
-	  (desired-indent nil)
-	  (retry t)
-	  calculate-lisp-indent-last-sexp containing-sexp)
-      (cond ((or (markerp parse-start) (integerp parse-start))
-	     (goto-char parse-start))
-	    ((null parse-start) (beginning-of-defun))
-	    (t (setq state parse-start)))
-      (unless state
-	;; Find outermost containing sexp
-	(while (< (point) indent-point)
-	  (setq state (parse-partial-sexp (point) indent-point 0))))
-      ;; Find innermost containing sexp
-      (while (and retry
-		  state
-		  (> (elt state 0) 0))
-	(setq retry nil)
-	(setq calculate-lisp-indent-last-sexp (elt state 2))
-	(setq containing-sexp (elt state 1))
-	;; Position following last unclosed open.
-	(goto-char (1+ containing-sexp))
-	;; Is there a complete sexp since then?
-	(if (and calculate-lisp-indent-last-sexp
-		 (> calculate-lisp-indent-last-sexp (point)))
-	    ;; Yes, but is there a containing sexp after that?
-	       (let ((peek (parse-partial-sexp calculate-lisp-indent-last-sexp
-					       indent-point 0)))
-		 (if (setq retry (car (cdr peek))) (setq state peek)))))
-      (if retry
-	  nil
-	;; Innermost containing sexp found
-	(goto-char (1+ containing-sexp))
-	(if (not calculate-lisp-indent-last-sexp)
-	    ;; indent-point immediately follows open paren.
-	       ;; Don't call hook.
-	       (setq desired-indent (current-column))
-	       ;; Find the start of first element of containing sexp.
-	       (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
-	       (cond ((looking-at "\\s(")
-		      ;; First element of containing sexp is a list.
-		      ;; Indent under that list.
-		      )
-		     ((> (save-excursion (forward-line 1) (point))
-			 calculate-lisp-indent-last-sexp)
-		      ;; This is the first line to start within the containing sexp.
-		      ;; It's almost certainly a function call.
-		      (if (or
-			   ;; Containing sexp has nothing before this line
-			   ;; except the first element. Indent under that element.
-			   (= (point) calculate-lisp-indent-last-sexp)
-
-			   ;; First sexp after `containing-sexp' is a keyword. This
-			   ;; condition is more debatable. It's so that I can have
-			   ;; unquoted plists in macros. It assumes that you won't
-			   ;; make a function whose name is a keyword.
-			   (when-let (char-after (char-after (1+ containing-sexp)))
-			     (char-equal char-after ?:))
-
-			   ;; Check for quotes or backquotes around.
-			   (let* ((positions (elt state 9))
-				  (last (car (last positions)))
-				  (rest (reverse (butlast positions)))
-				  (any-quoted-p nil)
-				  (point nil))
-			     (or
-			      (when-let (char (char-before last))
-				(or (char-equal char ?')
-				    (char-equal char ?`)))
-			      (progn
-				(while (and rest (not any-quoted-p))
-				  (setq point (pop rest))
-				  (setq any-quoted-p
-					(or
-					 (when-let (char (char-before point))
-					   (or (char-equal char ?')
-					       (char-equal char ?`)))
-					 (save-excursion
-					   (goto-char (1+ point))
-					   (looking-at-p
-					    "\\(?:back\\)?quote[\t\n\f\s]+(")))))
-				any-quoted-p))))
-			  ;; Containing sexp has nothing before this line
-			     ;; except the first element.  Indent under that element.
-			     nil
-			     ;; Skip the first element, find start of second (the first
-										  ;; argument of the function call) and indent under.
-			     (progn (forward-sexp 1)
-				    (parse-partial-sexp (point)
-							calculate-lisp-indent-last-sexp
-							0 t)))
-		      (backward-prefix-chars))
-		     (t
-		      ;; Indent beneath first sexp on same line as
-		      ;; `calculate-lisp-indent-last-sexp'.  Again, it's
-		      ;; almost certainly a function call.
-		      (goto-char calculate-lisp-indent-last-sexp)
-		      (beginning-of-line)
-		      (parse-partial-sexp (point) calculate-lisp-indent-last-sexp
-					  0 t)
-		      (backward-prefix-chars)))))
-      ;; Point is at the point to indent under unless we are inside a string.
-      ;; Call indentation hook except when overridden by lisp-indent-offset
-      ;; or if the desired indentation has already been computed.
-      (let ((normal-indent (current-column)))
-	(cond ((elt state 3)
-	       ;; Inside a string, don't change indentation.
-	       nil)
-	      ((and (integerp lisp-indent-offset) containing-sexp)
-	       ;; Indent by constant offset
-	       (goto-char containing-sexp)
-	       (+ (current-column) lisp-indent-offset))
-	      ;; in this case calculate-lisp-indent-last-sexp is not nil
-	      (calculate-lisp-indent-last-sexp
-	       (or
-		;; try to align the parameters of a known function
-		(and lisp-indent-function
-		     (not retry)
-		     (funcall lisp-indent-function indent-point state))
-		;; If the function has no special alignment
-		;; or it does not apply to this argument,
-		;; try to align a constant-symbol under the last
-		;; preceding constant symbol, if there is such one of
-		;; the last 2 preceding symbols, in the previous
-		;; uncommented line.
-		(and (save-excursion
-		       (goto-char indent-point)
-		       (skip-chars-forward " \t")
-		       (looking-at ":"))
-		     ;; The last sexp may not be at the indentation
-		     ;; where it begins, so find that one, instead.
-		     (save-excursion
-		       (goto-char calculate-lisp-indent-last-sexp)
-		       ;; Handle prefix characters and whitespace
-		       ;; following an open paren.  (Bug#1012)
-		       (backward-prefix-chars)
-		       (while (not (or (looking-back "^[ \t]*\\|([ \t]+"
-						     (line-beginning-position))
-				       (and containing-sexp
-					    (>= (1+ containing-sexp) (point)))))
-			 (forward-sexp -1)
-			 (backward-prefix-chars))
-		       (setq calculate-lisp-indent-last-sexp (point)))
-		     (> calculate-lisp-indent-last-sexp
-			(save-excursion
-			  (goto-char (1+ containing-sexp))
-			  (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
-			  (point)))
-		     (let ((parse-sexp-ignore-comments t)
-			   indent)
-		       (goto-char calculate-lisp-indent-last-sexp)
-		       (or (and (looking-at ":")
-				(setq indent (current-column)))
-			   (and (< (line-beginning-position)
-				   (prog2 (backward-sexp) (point)))
-				(looking-at ":")
-				(setq indent (current-column))))
-		       indent))
-		;; another symbols or constants not preceded by a constant
-		;; as defined above.
-		normal-indent))
-	      ;; in this case calculate-lisp-indent-last-sexp is nil
-	      (desired-indent)
-	      (t
-	       normal-indent))))))
-```
-
-
 ## Treemacs
 
 ```emacs-lisp
@@ -1651,7 +1471,7 @@ Code from <https://emacs.stackexchange.com/questions/10230/how-to-indent-keyword
 ```emacs-lisp
 (use-package command-log-mode
   :straight t
-  :commands (global-command-log-mode))
+  :commands global-command-log-mode)
 ```
 
 
@@ -1714,9 +1534,9 @@ I use mpd/mpc to play music. I used Uncle Dave's config as a reference for the f
   :commands hydra-emms/body
   :bind
   (("<XF86AudioPrev>" . emms-previous)
-  ("<XF86AudioNext>" . emms-next)
-  ("<XF86AudioPlay>" . emms-pause)
-  ("<XF86AudioStop>" . emms-stop)))
+   ("<XF86AudioNext>" . emms-next)
+   ("<XF86AudioPlay>" . emms-pause)
+   ("<XF86AudioStop>" . emms-stop)))
 
 (setq mpc-host "localhost:6601")
 
@@ -1768,7 +1588,7 @@ cURL.
 ```emacs-lisp
 (use-package ytdl
   :straight t
-  :commands (ytdl-download)
+  :commands ytdl-download
   :config
   (setq ytdl-media-player 'mpv))
 ```
@@ -1834,37 +1654,6 @@ Saves to a temp file and puts the filename in the kill ring."
       (insert data))
     (kill-new filename)
     (message filename)))
-```
-
-
-# Latin accents
-
-I created this function to insert the latin accents that I use the most.
-
-```emacs-lisp
-;; latin accents
-(defun my-latin-accents-function (start end)
-  (interactive "r")
-  (defun cmp-and-fixcase (reg cmp out)
-    (let ((case-fold-search t))
-      (if (string-match-p reg cmp)
-	  (let ((case-fold-search nil))
-	    (if (string-match-p "\\`[a-z]*\\'" reg)
-		(progn (delete-region start end) (insert out))
-	      (progn (delete-region start end) (insert (upcase out))))) nil)))
-  (if (use-region-p)
-      (let ((regionp (buffer-substring start end)))
-	(cond ((cmp-and-fixcase regionp "aa" "á"))
-	      ((cmp-and-fixcase regionp "ga" "à"))
-	      ((cmp-and-fixcase regionp "ta" "ã"))
-	      ((cmp-and-fixcase regionp "ae" "é"))
-	      ((cmp-and-fixcase regionp "ge" "è"))
-	      ((cmp-and-fixcase regionp "te" "ẽ"))
-	      ((cmp-and-fixcase regionp "ce" "ê"))
-	      ((cmp-and-fixcase regionp "co" "ô"))
-	      ((cmp-and-fixcase regionp "to" "õ"))
-	      ((cmp-and-fixcase regionp "ai" "í"))))))
-(global-set-key (kbd "C-: C-a") 'my-latin-accents-function)
 ```
 
 
