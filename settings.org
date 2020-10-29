@@ -628,14 +628,14 @@ There is a function bound to <f5> to switch between light mode and dark mode.
             (navigate-to-specific-char hydra-call-operators/inside 1))
 
            (t (funcall #'(lambda (arg)
-                           (let ((delimiters `((,?( ,?)) (,?< ,?>) (,?{ ?}) (,?[ ?]))))
-                            (while delimiters
-                             (let ((del-pair (pop delimiters)))
-                              (when (member arg del-pair)
-                               (navigate-to-specific-char (car del-pair) -1)
-                               (forward-char 1)
-                               (call-interactively 'set-mark-command)
-                               (navigate-to-specific-char (cadr del-pair) 1))))))
+                           (let ((delimiters `((,?( ,?)) (,?< ,?>) (,?{ ,?}) (,?[ ,?]))))
+                             (while delimiters
+                               (let ((del-pair (pop delimiters)))
+                                 (when (member arg del-pair)
+                                   (navigate-to-specific-char (car del-pair) -1)
+                                   (forward-char 1)
+                                   (call-interactively 'set-mark-command)
+                                   (navigate-to-specific-char (cadr del-pair) 1))))))
                        hydra-call-operators/inside))))))
 
        ((eq 'line operand)
