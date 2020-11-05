@@ -164,6 +164,16 @@ We can install gocode with go get, then we need to create a symbolic link at /us
            (sly-mode . lispy-mode)))
 #+END_SRC
 
+** Scheme
+#+BEGIN_SRC emacs-lisp
+  (use-package geiser
+    :straight t
+    :commands run-geiser
+    :config
+    ;; I have to use the guile2.2 binary because of Fedora
+    (setq geiser-guile-binary "guile2.2"))
+#+END_SRC
+
 ** Python
 #+BEGIN_SRC emacs-lisp
   (use-package lsp-python-ms
@@ -174,6 +184,13 @@ We can install gocode with go get, then we need to create a symbolic link at /us
   (use-package lpy
     :straight t
     :hook (python-mode . lpy-mode))
+#+END_SRC
+
+** Haskell
+#+BEGIN_SRC emacs-lisp
+  (use-package haskell-mode
+    :straight t
+    :mode ("\\.hs\\'" . haskell-mode))
 #+END_SRC
 
 ** Web

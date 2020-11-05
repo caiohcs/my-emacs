@@ -200,6 +200,18 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ```
 
 
+## Scheme
+
+```emacs-lisp
+(use-package geiser
+  :straight t
+  :commands run-geiser
+  :config
+  ;; I have to use the guile2.2 binary because of Fedora
+  (setq geiser-guile-binary "guile2.2"))
+```
+
+
 ## Python
 
 ```emacs-lisp
@@ -211,6 +223,15 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 (use-package lpy
   :straight t
   :hook (python-mode . lpy-mode))
+```
+
+
+## Haskell
+
+```emacs-lisp
+(use-package haskell-mode
+  :straight t
+  :mode ("\\.hs\\'" . haskell-mode))
 ```
 
 
@@ -708,14 +729,14 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 	  (navigate-to-specific-char hydra-call-operators/inside 1))
 
 	 (t (funcall #'(lambda (arg)
-			 (let ((delimiters `((,?( ,?)) (,?< ,?>) (,?{ ?}) (,?[ ?]))))
-			  (while delimiters
-			   (let ((del-pair (pop delimiters)))
-			    (when (member arg del-pair)
-			     (navigate-to-specific-char (car del-pair) -1)
-			     (forward-char 1)
-			     (call-interactively 'set-mark-command)
-			     (navigate-to-specific-char (cadr del-pair) 1))))))
+			 (let ((delimiters `((,?( ,?)) (,?< ,?>) (,?{ ,?}) (,?[ ,?]))))
+			   (while delimiters
+			     (let ((del-pair (pop delimiters)))
+			       (when (member arg del-pair)
+				 (navigate-to-specific-char (car del-pair) -1)
+				 (forward-char 1)
+				 (call-interactively 'set-mark-command)
+				 (navigate-to-specific-char (cadr del-pair) 1))))))
 		     hydra-call-operators/inside))))))
 
      ((eq 'line operand)
