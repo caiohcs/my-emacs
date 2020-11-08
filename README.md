@@ -182,7 +182,6 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ### Config
 
 ```emacs-lisp
-;;; Lisp
 (use-package sly
   :straight t
   :defer 3.2
@@ -196,8 +195,9 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 (use-package lispy
   :straight t
   :hook ((emacs-lisp-mode . lispy-mode)
-	 (sly-mode . lispy-mode)
-	 (clojure-mode . lispy-mode)))
+	 (lisp-mode . lispy-mode)
+	 (clojure-mode . lispy-mode)
+	 (scheme-mode . lispy-mode)))
 ```
 
 

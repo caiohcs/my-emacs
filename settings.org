@@ -147,7 +147,6 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 ** Lisp
 *** Config
 #+BEGIN_SRC emacs-lisp
-  ;;; Lisp
   (use-package sly
     :straight t
     :defer 3.2
@@ -161,8 +160,9 @@ We can install gocode with go get, then we need to create a symbolic link at /us
   (use-package lispy
     :straight t
     :hook ((emacs-lisp-mode . lispy-mode)
-           (sly-mode . lispy-mode)
-           (clojure-mode . lispy-mode)))
+           (lisp-mode . lispy-mode)
+           (clojure-mode . lispy-mode)
+           (scheme-mode . lispy-mode)))
 #+END_SRC
 
 ** Scheme
@@ -181,7 +181,6 @@ We can install gocode with go get, then we need to create a symbolic link at /us
     :straight t
     :commands cider-jack-in)
 #+END_SRC
-
 
 ** Python
 #+BEGIN_SRC emacs-lisp
