@@ -161,7 +161,8 @@ We can install gocode with go get, then we need to create a symbolic link at /us
   (use-package lispy
     :straight t
     :hook ((emacs-lisp-mode . lispy-mode)
-           (sly-mode . lispy-mode)))
+           (sly-mode . lispy-mode)
+           (clojure-mode . lispy-mode)))
 #+END_SRC
 
 ** Scheme
@@ -173,6 +174,14 @@ We can install gocode with go get, then we need to create a symbolic link at /us
     ;; I have to use the guile2.2 binary because of Fedora
     (setq geiser-guile-binary "guile2.2"))
 #+END_SRC
+
+** Clojure
+#+BEGIN_SRC emacs-lisp
+  (use-package cider
+    :straight t
+    :commands cider-jack-in)
+#+END_SRC
+
 
 ** Python
 #+BEGIN_SRC emacs-lisp

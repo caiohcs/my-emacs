@@ -196,7 +196,8 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 (use-package lispy
   :straight t
   :hook ((emacs-lisp-mode . lispy-mode)
-	 (sly-mode . lispy-mode)))
+	 (sly-mode . lispy-mode)
+	 (clojure-mode . lispy-mode)))
 ```
 
 
@@ -209,6 +210,15 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
   :config
   ;; I have to use the guile2.2 binary because of Fedora
   (setq geiser-guile-binary "guile2.2"))
+```
+
+
+## Clojure
+
+```emacs-lisp
+(use-package cider
+  :straight t
+  :commands cider-jack-in)
 ```
 
 
