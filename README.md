@@ -43,12 +43,14 @@ Company is a text completion framework.
   :commands company-mode
   :bind (:map company-active-map
 	      ("C-n" . 'company-select-next)
-	      ("C-p" . 'company-select-previous)))
+	      ("C-p" . 'company-select-previous))
+  :hook ((emacs-lisp-mode . company-mode)
+	 (lisp-mode . company-mode)
+	 (sly-mrepl-mode . company-mode)))
 
 (use-package company-quickhelp
   :straight t
-  :after company-mode
-  :hook (company-mode . (lambda () (company-quickhelp-local-mode))))
+  :hook (company-mode . company-quickhelp-local-mode))
 ```
 
 
@@ -197,7 +199,8 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
   :hook ((emacs-lisp-mode . lispy-mode)
 	 (lisp-mode . lispy-mode)
 	 (clojure-mode . lispy-mode)
-	 (scheme-mode . lispy-mode)))
+	 (scheme-mode . lispy-mode)
+	 (sly-mrepl-mode . lispy-mode)))
 ```
 
 
