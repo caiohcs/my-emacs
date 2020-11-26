@@ -187,10 +187,10 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 
 ** Python
 #+BEGIN_SRC emacs-lisp
-  (use-package lsp-python-ms
+  (use-package elpy
     :straight t
-    :after lsp-mode
-    :init (setq lsp-python-ms-auto-install-server t))
+    :hook (python-mode . elpy-enable)
+    :config (setq elpy-rpc-backend "jedi"))
 
   (use-package lpy
     :straight t
