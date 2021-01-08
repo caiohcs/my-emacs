@@ -1,59 +1,61 @@
-;;;; A hydra for modal text editing.
+;;; A hydra for modal text editing.
 
-(defun hydra-movement/cond-body-call ()
-  (if hydra-movement/inside-body
-      (hydra-movement/call-body)))
+(defun hydra-modal--cond-body-call ()
+  ""
+  (if hydra-modal--inside-body-p
+      (hydra-modal--call-body)))
 
-(setq hydra-movement/inside-body nil)
+(setq hydra-modal--inside-body-p nil)
 
-(defun hydra-movement/call-body ()
+(defun hydra-modal--call-body ()
+  "Change the cursor color and set auxiliary variables, then call `hydra-modal/body'."
   (interactive)
   (setq *original-cursor-color* (face-attribute 'cursor :background))
   (set-cursor-color "#ff0000")
   (setq hydra-is-helpful nil)
-  (setq hydra-movement/inside-body t)
-  (hydra-movement/body))
+  (setq hydra-modal--inside-body-p t)
+  (hydra-modal/body))
 
-(defun hydra-call/hydra-modal-operators (operator)
-  (setq hydra-call-operators/operator operator)
-  (setq hydra-call-operators/repeat nil)
-  (setq hydra-call-operators/backwards nil)
-  (setq hydra-call-operators/inside nil)
-  (setq hydra-call-operators/until nil)
-  (hydra-modal-operators/body))
+(defun hydra-modal--call-operators (operator)
+  (setq hydra-modal--call-operators-operator operator)
+  (setq hydra-modal--call-operators-repeat nil)
+  (setq hydra-modal--call-operators-backwards nil)
+  (setq hydra-modal--call-operators-inside nil)
+  (setq hydra-modal--call-operators-until nil)
+  (hydra-modal--operators/body))
 
-(defhydra hydra-modal-operators (:color blue
+(defhydra hydra-modal--operators (:color blue
                                         :hint nil
-                                        :post hydra-movement/cond-body-call)
+                                        :post hydra-modal--cond-body-call)
   "
   _b_:ackwards  _w_:ord  _l_:ine  _p_:aragraph  _r_:egion  _u_:ntil  _i_:nside
     "
-  ("b" (setq hydra-call-operators/backwards t) :color red)
+  ("b" (setq hydra-modal--call-operators-backwards t) :color red)
   ("i" (progn
-         (call-interactively (lambda (arg) (interactive "c") (setq hydra-call-operators/inside arg)))
-         (funcall hydra-call-operators/operator 'another)))
+         (call-interactively (lambda (arg) (interactive "c") (setq hydra-modal--call-operators-inside arg)))
+         (funcall hydra-modal--call-operators-operator 'another)))
   ("u" (progn
-         (call-interactively (lambda (arg) (interactive "c") (setq hydra-call-operators/until arg)))
-         (funcall hydra-call-operators/operator 'another)))
-  ("w" (funcall hydra-call-operators/operator 'word))
-  ("l" (funcall hydra-call-operators/operator 'line))
-  ("p" (funcall hydra-call-operators/operator 'paragraph))
-  ("r" (funcall hydra-call-operators/operator 'region))
+         (call-interactively (lambda (arg) (interactive "c") (setq hydra-modal--call-operators-until arg)))
+         (funcall hydra-modal--call-operators-operator 'another)))
+  ("w" (funcall hydra-modal--call-operators-operator 'word))
+  ("l" (funcall hydra-modal--call-operators-operator 'line))
+  ("p" (funcall hydra-modal--call-operators-operator 'paragraph))
+  ("r" (funcall hydra-modal--call-operators-operator 'region))
 
-  ("0" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "0")) :color red)
-  ("1" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "1")) :color red)
-  ("2" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "2")) :color red)
-  ("3" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "3")) :color red)
-  ("4" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "4")) :color red)
-  ("5" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "5")) :color red)
-  ("6" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "6")) :color red)
-  ("7" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "7")) :color red)
-  ("8" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "8")) :color red)
-  ("9" (setq hydra-call-operators/repeat (concat hydra-call-operators/repeat "9")) :color red))
+  ("0" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "0")) :color red)
+  ("1" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "1")) :color red)
+  ("2" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "2")) :color red)
+  ("3" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "3")) :color red)
+  ("4" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "4")) :color red)
+  ("5" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "5")) :color red)
+  ("6" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "6")) :color red)
+  ("7" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "7")) :color red)
+  ("8" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "8")) :color red)
+  ("9" (setq hydra-modal--call-operators-repeat (concat hydra-modal--call-operators-repeat "9")) :color red))
 
 (defhydra hydra-indentation (:color blue
                                     :hint nil
-                                    :post hydra-movement/cond-body-call)
+                                    :post hydra-modal--cond-body-call)
   "
   Hydra for indentation
   _c_:C  _l_:Lisp
@@ -62,8 +64,8 @@
   ("l" indent-sexp)
   ("c" c-indent-defun))
 
-(defun current-line-blank-p ()
-  (interactive)
+(defun current-line-empty-p ()
+  "Returns non-nil if the current line is empty."
   (string-match-p "\\`$" (thing-at-point 'line)))
 
 (defun navigate-to-specific-char (char &optional increment)
@@ -72,100 +74,100 @@
     (while (not (= char (char-after tmp-pos))) (setq tmp-pos (+ increment tmp-pos)))
     (goto-char tmp-pos)))
 
-(defun hydra-modal-operator/mark (operand)
-  (let ((times (if (not hydra-call-operators/repeat)
-                   1
-                 (string-to-number hydra-call-operators/repeat))))
+(defun hydra-modal--operator-mark (operand)
+  (let ((times (if (not hydra-modal--call-operators-repeat)
+		   1
+		 (string-to-number hydra-modal--call-operators-repeat))))
     (cond
      ((eq 'another operand)
       (cond
-       (hydra-call-operators/until
-        (call-interactively 'set-mark-command)
-        (if hydra-call-operators/backwards
-            (navigate-to-specific-char hydra-call-operators/until -1)
-          (navigate-to-specific-char hydra-call-operators/until 1)))
+       (hydra-modal--call-operators-until
+	(call-interactively 'set-mark-command)
+	(if hydra-modal--call-operators-backwards
+	    (navigate-to-specific-char hydra-modal--call-operators-until -1)
+	  (navigate-to-specific-char hydra-modal--call-operators-until 1)))
 
-       (hydra-call-operators/inside
-        (cond
-         ((= hydra-call-operators/inside ?w)
-          (backward-word)
-          (call-interactively 'set-mark-command)
-          (mark-word))
+       (hydra-modal--call-operators-inside
+	(cond
+	 ((= hydra-modal--call-operators-inside ?w)
+	  (backward-word)
+	  (call-interactively 'set-mark-command)
+	  (mark-word))
 
-         ((member hydra-call-operators/inside '(?\" ?' ?` ?\ ?* ?\\ ?/))
-          (navigate-to-specific-char hydra-call-operators/inside -1)
-          (forward-char 1)
-          (call-interactively 'set-mark-command)
-          (navigate-to-specific-char hydra-call-operators/inside 1))
+	 ((member hydra-modal--call-operators-inside '(?\" ?' ?` ?\ ?* ?\\ ?/))
+	  (navigate-to-specific-char hydra-modal--call-operators-inside -1)
+	  (forward-char 1)
+	  (call-interactively 'set-mark-command)
+	  (navigate-to-specific-char hydra-modal--call-operators-inside 1))
 
-         (t (funcall #'(lambda (arg)
-                         (let ((delimiters `((,?( ,?)) (,?< ,?>) (,?{ ,?}) (,?[ ,?]))))
-                           (while delimiters
-                             (let ((del-pair (pop delimiters)))
-                               (when (member arg del-pair)
-                                 (navigate-to-specific-char (car del-pair) -1)
-                                 (forward-char 1)
-                                 (call-interactively 'set-mark-command)
-                                 (navigate-to-specific-char (cadr del-pair) 1))))))
-                     hydra-call-operators/inside))))))
+	 (t (funcall #'(lambda (arg)
+			 (let ((delimiters `((,?\( ,?\)) (,?\< ,?\>) (,?\{ ,?\}) (,?\[ ,?\]))))
+			   (while delimiters
+			     (let ((del-pair (pop delimiters)))
+			       (when (member arg del-pair)
+				 (navigate-to-specific-char (car del-pair) -1)
+				 (forward-char 1)
+				 (call-interactively 'set-mark-command)
+				 (navigate-to-specific-char (cadr del-pair) 1))))))
+		     hydra-modal--call-operators-inside))))))
 
      ((eq 'line operand)
-      (cond (hydra-call-operators/backwards
-             (end-of-visual-line)
-             (call-interactively 'set-mark-command)
-             (previous-line (1- times))
-             (beginning-of-visual-line))
-            (t (beginning-of-visual-line)
-               (call-interactively 'set-mark-command)
-               (next-line (1- times))
-               (end-of-visual-line))))
+      (cond (hydra-modal--call-operators-backwards
+	     (end-of-visual-line)
+	     (call-interactively 'set-mark-command)
+	     (previous-line (1- times))
+	     (beginning-of-visual-line))
+	    (t (beginning-of-visual-line)
+	       (call-interactively 'set-mark-command)
+	       (next-line (1- times))
+	       (end-of-visual-line))))
 
      ((eq 'word operand)
       (call-interactively 'set-mark-command)
-      (if hydra-call-operators/backwards
-          (backward-word times)
-        (forward-word times))))))
+      (if hydra-modal--call-operators-backwards
+	  (backward-word times)
+	(forward-word times))))))
 
-(defun hydra-modal-operator/delete (operand)
+(defun hydra-modal--operator-delete (operand)
   (interactive)
   (cond
    ((eq 'line operand)
-    (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+    (if (and (current-line-empty-p) (not hydra-modal--call-operators-repeat) (string= hydra-modal--call-operators-repeat "1"))
         (kill-line)
-      (hydra-modal-operator/mark operand)
+      (hydra-modal--operator-mark operand)
       (delete-region (region-beginning) (region-end))
       (kill-line)))
 
-   ((or hydra-call-operators/until hydra-call-operators/inside)
-    (hydra-modal-operator/mark 'another)
+   ((or hydra-modal--call-operators-until hydra-modal--call-operators-inside)
+    (hydra-modal--operator-mark 'another)
     (delete-forward-char 1))
 
-   (t (hydra-modal-operator/mark operand)
+   (t (hydra-modal--operator-mark operand)
       (delete-forward-char 1))))
 
-(defun hydra-modal-operator/cut (operand)
+(defun hydra-modal--operator-cut (operand)
   (interactive)
   (cond
    ((eq 'line operand)
-    (if (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
+    (if (and (current-line-empty-p) (not hydra-modal--call-operators-repeat) (string= hydra-modal--call-operators-repeat "1"))
         (kill-line)
-      (hydra-modal-operator/mark operand)
+      (hydra-modal--operator-mark operand)
       (kill-region -1 -1 t)
       (kill-line)))
 
-   ((or hydra-call-operators/until hydra-call-operators/inside)
-    (hydra-modal-operator/mark 'another)
+   ((or hydra-modal--call-operators-until hydra-modal--call-operators-inside)
+    (hydra-modal--operator-mark 'another)
     (kill-region -1 -1 t))
 
-   (t (hydra-modal-operator/mark operand)
+   (t (hydra-modal--operator-mark operand)
       (kill-region -1 -1 t))))
 
-(defun hydra-modal-operator/copy (operand)
+(defun hydra-modal--operator-copy (operand)
   (interactive)
   (cond
    ((eq 'line operand)
-    (unless (and (current-line-blank-p) (not hydra-call-operators/repeat) (string= hydra-call-operators/repeat "1"))
-      (hydra-modal-operator/mark operand)
+    (unless (and (current-line-empty-p) (not hydra-modal--call-operators-repeat) (string= hydra-modal--call-operators-repeat "1"))
+      (hydra-modal--operator-mark operand)
       (let ((str (buffer-substring (region-beginning) (region-end))))
         (remove-text-properties 0 (length str) '(read-only t) str)
         (kill-new str t))
@@ -177,22 +179,22 @@
       (kill-new str t))
     (deactivate-mark))
 
-   ((or hydra-call-operators/until hydra-call-operators/inside)
-    (hydra-modal-operator/mark 'another)
+   ((or hydra-modal--call-operators-until hydra-modal--call-operators-inside)
+    (hydra-modal--operator-mark 'another)
     (let ((str (buffer-substring (region-beginning) (region-end))))
       (remove-text-properties 0 (length str) '(read-only t) str)
       (kill-new str t))
     (deactivate-mark))
 
-   (t (hydra-modal-operator/mark operand)
+   (t (hydra-modal--operator-mark operand)
       (let ((str (buffer-substring (region-beginning) (region-end))))
         (remove-text-properties 0 (length str) '(read-only t) str)
         (kill-new str t))
       (deactivate-mark))))
 
-(defun hydra-modal-operator/case (operand)
+(defun hydra-modal--operator-case (operand)
   (interactive)
-  (hydra-modal-operator/mark operand)
+  (hydra-modal--operator-mark operand)
   (let ((hydra-case-arg nil))
     (call-interactively #'(lambda (arg)
                             (interactive "c") (setq hydra-case-arg arg)))
@@ -204,7 +206,7 @@
      ((= hydra-case-arg ?c)
       (capitalize-region (region-beginning) (region-end))))))
 
-(defhydra hydra-movement (:hint nil
+(defhydra hydra-modal (:hint nil
                                 :color amaranth
                                 :post (progn (set-cursor-color *original-cursor-color*)
                                              (setq hydra-is-helpful t)))
@@ -222,8 +224,8 @@
   Operators:
   _m_: mark  _d_: delete  _w_: cut  _W_: copy  _c_: case
     "
-  ("<f1>" (setq hydra-movement/inside-body nil) :exit t)
-  ("q" (setq hydra-movement/inside-body nil) :exit t)
+  ("<f1>" (setq hydra-modal--inside-body-p nil) :exit t)
+  ("q" (setq hydra-modal--inside-body-p nil) :exit t)
   ("h" (setq hydra-is-helpful (not hydra-is-helpful)))
   ("o" (progn (end-of-line) (newline)))
   ("F" forward-word)
@@ -244,13 +246,13 @@
   ("s" (point-to-register ?g))
   ("j" (jump-to-register ?g))
   ("G" (lambda (arg) (interactive "cInsert char:") (navigate-to-specific-char arg)))
-  ("W" (hydra-call/hydra-modal-operators 'hydra-modal-operator/copy) :exit t)
+  ("W" (hydra-modal--call-operators 'hydra-modal--operator-copy) :exit t)
   ("<SPC>" set-mark-command)
   ("y" popup-kill-ring)
   ("Y" yank)
-  ("<tab>" hydra-indentation/body :exit t)
+  ("<tab>" hydra-indentation--body :exit t)
   ("v" scroll-up)
-  ("c" (hydra-call/hydra-modal-operators 'hydra-modal-operator/case) :exit t)
+  ("c" (hydra-modal--call-operators 'hydra-modal--operator-case) :exit t)
   ("V" scroll-down)
   ("l" recenter-top-bottom)
   ("L" (move-to-window-line (/ (window-height) 2)))
@@ -260,14 +262,14 @@
   ("C-e" eval-last-sexp)
   ("f" (when (= (skip-syntax-forward "-") 0) (forward-char 1)))
   ("b" (when (= (skip-syntax-backward "-") 0) (backward-char 1)))
-  ("g" hydra-avy/body :exit t)
+  ("g" hydra-avy--body :exit t)
   ("I" (lambda (arg) (interactive "cChoose a register:") (insert-register arg)))
   ("i" (lambda (txt)
          (interactive "sQuick insertion:")
          (insert txt)))
-  ("=" er/expand-region)
-  ("m" (hydra-call/hydra-modal-operators 'hydra-modal-operator/mark) :exit t)
-  ("M" hydra-multiple-cursors/body :exit t)
+  ("=" er--expand-region)
+  ("m" (hydra-modal--call-operators 'hydra-modal--operator-mark) :exit t)
+  ("M" hydra-multiple-cursors--body :exit t)
   ("U" universal-argument)
   ("S" swiper)
   ("C-s" save-buffer)
@@ -278,8 +280,7 @@
   ("<DEL>" delete-backward-char)
   ("<deletechar>" delete-forward-char)
   ("M-w" ace-window)
-  ("d" (hydra-call/hydra-modal-operators 'hydra-modal-operator/delete) :exit t)
-  ("w" (hydra-call/hydra-modal-operators 'hydra-modal-operator/cut) :exit t))
+  ("d" (hydra-modal--call-operators 'hydra-modal--operator-delete) :exit t)
+  ("w" (hydra-modal--call-operators 'hydra-modal--operator-cut) :exit t))
 
-(global-set-key (kbd "C-!") 'hydra-movement/call-body)
-(global-set-key (kbd "<f1>") 'hydra-movement/call-body)
+(global-set-key (kbd "<f1>") 'hydra-modal--call-body)

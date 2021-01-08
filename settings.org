@@ -317,39 +317,11 @@ Tiny Is Not Yasnippet
     (dashboard-setup-startup-hook)
     (setq dashboard-banner-logo-title "Welcome to Emacs")
     (setq dashboard-startup-banner 'logo)
-    (setq dashboard-items '((recents   . 5)
-                            (agenda    . 5)))
+    (setq dashboard-items '((recents . 5)
+                            (agenda . 5)))
     (setq dashboard-set-init-info t)
     (setq dashboard-set-heading-icons t)
-    (setq dashboard-set-file-icons t)
-
-    ;; adds a clock
-    (defun dashboard-insert-custom (list-size)
-      (defun string-centralized (str)
-        (let* ((indent
-                (concat "%"
-                        (number-to-string
-                         (/ (- (window-body-width) (string-width str)) 2))
-                        "s"))
-               (str (concat indent str indent)))
-          (format str " " " ")))
-
-      (insert (propertize (string-centralized (format-time-string "%a %d %b %Y" (current-time))) 'font-lock-face '('bold :foreground "#6c4c7b")))
-      (newline)
-      (insert (propertize (string-centralized (format-time-string "%H:%M" (current-time))) 'font-lock-face '('bold :foreground "#6c4c7b"))))
-
-    (add-to-list 'dashboard-item-generators  '(custom . dashboard-insert-custom))
-    (add-to-list 'dashboard-items '(custom) t)
-
-    (defun test-dashboard () (setq *my-timer* (run-at-time "20 sec" nil #'(lambda ()
-                                                                            (when *my-timer*
-                                                                             (cancel-timer *my-timer*)
-                                                                             (setq *my-timer* nil))
-                                                                            (when (string=
-                                                                                   (buffer-name (window-buffer))
-                                                                                   "*dashboard*")
-                                                                             (dashboard-refresh-buffer))))))
-    (add-hook 'dashboard-mode-hook #'test-dashboard))
+    (setq dashboard-set-file-icons t))
 #+END_SRC
 
 * Org
@@ -360,6 +332,7 @@ Tiny Is Not Yasnippet
     :mode ("\\.org\\'" . org-mode)
     :diminish org-indent-mode
     :config
+    (setq org-agenda-files (list "~/notes/agenda.org"))
     (require 'ox-html)
     (require 'ox-latex)
     (require 'ox-md)
@@ -379,7 +352,6 @@ Tiny Is Not Yasnippet
     :straight t
     :hook (org-mode . org-bullets-mode))
 
-  ;; Asynchronous code block execution, very useful!
   (use-package ob-async
     :straight t
     :defer 4.3)
@@ -532,6 +504,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
     (interactive)
     (mapc #'disable-theme custom-enabled-themes)
+    (powerline-reset)
     (cond ((eq toggle-light-dark-theme--current-theme 'light)
            (load-theme toggle-light-dark-theme-dark-theme)
            (setq toggle-light-dark-theme--current-theme 'dark))
@@ -550,8 +523,6 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 
 * Global (better UX)
 ** Hydra
-[[./imgs/hydra.png]]
-
 #+BEGIN_SRC emacs-lisp
   (use-package hydra
     :straight t
@@ -559,6 +530,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 *** Hydra Modal editing
+[[./imgs/hydra.png]]
 #+BEGIN_SRC emacs-lisp
   (load-file (concat user-emacs-directory "other-settings/hydra-modal.el"))
 #+END_SRC
@@ -624,23 +596,6 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (global-set-key (kbd "C-: c") 'hydra-multiple-cursors/body)
 #+END_SRC
 
-*** Hydra Org
-#+BEGIN_SRC emacs-lisp
-  (defhydra hydra-org (:color amaranth
-                              :hint nil)
-    "
-    _n_:ext  _p_:revious  _f_:orward  _b_:backward
-    "
-    ("q" nil "quit")
-    ("n" org-next-visible-heading)
-    ("p" org-previous-visible-heading)
-    ("f" org-forward-heading-same-level)
-    ("b" org-backward-heading-same-level)
-    ("<tab>" org-cycle))
-
-  (global-set-key (kbd "C-: o") 'hydra-org/body)
-#+END_SRC
-
 *** Hydra AVY
 #+BEGIN_SRC emacs-lisp
   (defhydra hydra-avy (:color teal
@@ -658,7 +613,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     ("c" avy-goto-char-timer)
     ("g" avy-goto-char-timer))
 
-  (global-set-key (kbd "C-c s") 'hydra-avy/body)
+  (global-set-key (kbd "M-s s") 'hydra-avy/body)
 #+END_SRC
 
 *** Hydra Youtube dl
@@ -770,15 +725,17 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (defhydra hydra-frames-windows (:color teal
                                          :hint nil)
     "
-    m: make frame  d: delete frame  Z: suspend frame
-    b: buffer other frame  f: find file other frame
-    q: quit
+    m: make-frame   d: delete-frame          Z: suspend-frame
+    q: quit         b: buffer-other-frame    M: toggle-maximize
+    o: other-frame  f: find-file-other-frame
     "
     ("m" make-frame-command)
     ("b" switch-to-buffer-other-frame)
     ("d" delete-frame)
+    ("o" other-frame)
     ("f" find-file-other-frame)
     ("Z" suspend-frame)
+    ("M" toggle-frame-maximized)
     ("q" nil))
 
   (global-set-key (kbd "C-z") 'hydra-frames-windows/body)
@@ -827,16 +784,6 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     :bind (("M-y" . popup-kill-ring)))
 #+END_SRC
 
-** Ido-vertical
-#+BEGIN_SRC emacs-lisp
-  (use-package ido-vertical-mode
-    :straight t
-    :bind (("C-x k" . ido-kill-buffer))
-    :config
-    (setq ido-vertical-show-count t)
-    (setq ido-vertical-define-keys 'C-n-C-p-up-and-down))
-#+END_SRC
-
 ** Which-key
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
@@ -868,9 +815,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     :defer 5.1
     :diminish smartparens-mode
     :config
-    (smartparens-global-mode)
-    (sp-local-pair 'org-mode "*" "*")
-    (sp-local-pair 'org-mode "_" "_"))
+    (smartparens-global-mode))
 
   (use-package highlight-parentheses
     :straight t
@@ -994,13 +939,6 @@ There is a function bound to <f5> to switch between light mode and dark mode.
                                                "vcd" "vmdk" "bak"))
     (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
     (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
-#+END_SRC
-
-** Tabs
-#+BEGIN_SRC emacs-lisp
-  (use-package centaur-tabs
-    :straight t
-    :commands centaur-tabs-mode)
 #+END_SRC
 
 ** Windows management
@@ -1255,11 +1193,13 @@ Requires Emacs built with cairo.
 * Webjump
 #+BEGIN_SRC emacs-lisp
   (use-package webjump
+    :commands webjump
     :config (load-file (concat user-emacs-directory "personal-settings/webjump-sites.el")))
 #+END_SRC
 
 * Gnus
 #+BEGIN_SRC emacs-lisp
   (use-package gnus
+    :commands gnus
     :config (setq gnus-init-file (concat user-emacs-directory "personal-settings/gnus.el")))
 #+END_SRC
