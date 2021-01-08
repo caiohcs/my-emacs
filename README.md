@@ -18,7 +18,40 @@ This is my Emacs configuration, I use it for:
 
 # Installation
 
--   Copy init.el and settings.org to ~/.emacs.d/ or ~/.config/emacs
+-   Copy files to ~/.emacs.d/ or ~/.config/emacs
+
+
+# Straight.el
+
+```emacs-lisp
+(when (< emacs-major-version 27)
+  (setq gc-cons-threshold most-positive-fixnum)
+  (setq gc-cons-percentage 0.6))
+
+(setq straight-check-for-modifications '(check-on-save))
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+	(url-retrieve-synchronously
+	 "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+	 'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(straight-use-package 'use-package)
+
+(use-package diminish
+  :straight t
+  :defer t)
+(require 'bind-key)
+
+(use-package use-package-ensure-system-package
+  :straight t)
+```
 
 
 # Programming
@@ -65,8 +98,7 @@ LSP gives Emacs IDE features.
   ((c++-mode . lsp)
    (c-mode . lsp)
    (js-mode . lsp)
-   (python-mode . lsp))
-  :commands lsp)
+   (python-mode . lsp)))
 ```
 
 
@@ -75,7 +107,7 @@ LSP gives Emacs IDE features.
 ```emacs-lisp
 (use-package projectile
   :straight t
-  :commands projectile-mode)
+  :defer t)
 ```
 
 
@@ -105,7 +137,7 @@ Silver searcher: <https://github.com/ggreer/the_silver_searcher>
   :straight t
   :config
   (setq dumb-jump-selector 'ivy)
-  :commands dumb-jump-go)
+  :defer t)
 ```
 
 
@@ -186,13 +218,13 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ```emacs-lisp
 (use-package sly
   :straight t
-  :defer 3.2
+  :defer t
   :config
   (setq inferior-lisp-program "sbcl"))
 
 (use-package suggest
   :straight t
-  :commands suggest)
+  :defer t)
 
 (use-package lispy
   :straight t
@@ -209,7 +241,7 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ```emacs-lisp
 (use-package geiser
   :straight t
-  :commands run-geiser
+  :defer run-geiser
   :config
   ;; I have to use the guile2.2 binary because of Fedora
   (setq geiser-guile-binary "guile2.2"))
@@ -221,7 +253,7 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ```emacs-lisp
 (use-package cider
   :straight t
-  :commands cider-jack-in)
+  :defer t)
 ```
 
 
@@ -270,7 +302,7 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 
 (use-package impatient-mode
   :straight t
-  :commands impatient-mode)
+  :defer t)
 ```
 
 
@@ -279,11 +311,11 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ```emacs-lisp
 (use-package simple-httpd
   :straight t
-  :commands httpd-start)
+  :defer t)
 
 (use-package request
   :straight t
-  :commands request)
+  :defer t)
 ```
 
 
@@ -360,23 +392,24 @@ Tiny Is Not Yasnippet
 ```emacs-lisp
 (use-package tiny
   :straight t
-  :commands tiny-expand)
+  :defer t)
 ```
 
 
 # Dashboard
 
 ```emacs-lisp
+;; Dashboard requirements.
+(use-package all-the-icons
+  :straight t)
+
+(use-package page-break-lines
+  :straight t)
+
 (use-package dashboard
   :straight t
-  :init
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+  :after (all-the-icons page-break-lines)
   :config
-  ;; Dashboard requirements.
-  (use-package page-break-lines
-    :straight t)
-  (use-package all-the-icons
-    :straight t)
   ;; Dashboard configuration.
   (dashboard-setup-startup-hook)
   (setq dashboard-banner-logo-title "Welcome to Emacs")
@@ -385,7 +418,8 @@ Tiny Is Not Yasnippet
 			  (agenda . 5)))
   (setq dashboard-set-init-info t)
   (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t))
+  (setq dashboard-set-file-icons t)
+  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
 ```
 
 
@@ -415,19 +449,23 @@ Tiny Is Not Yasnippet
   (setq org-src-window-setup 'current-window)
   (setq org-agenda-window-setup 'current-window))
 
+;; GNU Emacs minor mode that provides vi-like bindings for org-mode
+(use-package worf
+  :straight t
+  :hook (org-mode . worf-mode))
+
 (use-package org-bullets
-  :after org
   :straight t
   :hook (org-mode . org-bullets-mode))
 
 (use-package ob-async
   :straight t
-  :defer 4.3)
+  :defer 7.3)
 
 ;; references
 (use-package org-ref
   :straight t
-  :commands org-ref-ivy-insert-cite-link
+  :defer t
   :config
   (setq reftex-default-bibliography '("~/notes/roam/math.bib")
 	org-ref-default-bibliography '("~/notes/roam/math.bib")))
@@ -442,7 +480,7 @@ Tiny Is Not Yasnippet
   ;; :ensure-system-package
   ;; ((sqlite3)
   ;;  (graphviz))
-  :commands org-roam-mode
+  :defer t
   :bind
   (:map org-roam-mode-map
 	(("C-c n l" . org-roam)
@@ -459,7 +497,7 @@ Tiny Is Not Yasnippet
 					   ("fillcolor" . "#EFEFFF")
 					   ("color" . "#DEDEFF")
 					   ("fontcolor" . "#111111")))
-  (setq org-roam-graph-viewer "brave-browser")
+  (setq org-roam-graph-viewer "chromium")
   (setq org-roam-capture-templates
 	(list `("d" "default" plain #'org-roam--capture-get-point
 		"%?"
@@ -472,7 +510,7 @@ Tiny Is Not Yasnippet
 
 (use-package org-roam-server
   :straight t
-  :commands org-roam-server-mode
+  :defer t
   :config
   (setq org-roam-server-host "0.0.0.0"
 	org-roam-server-port 8082
@@ -491,15 +529,13 @@ Tiny Is Not Yasnippet
 ```emacs-lisp
 ;; Export to html with syntax highlighting
 (use-package htmlize
-  :after org
   :straight t
-  :commands org-export-dispatch)
+  :defer t)
 
 ;; Export to Markdown with syntax highlighting
 (use-package ox-gfm
-  :after org
   :straight t
-  :commands org-gfm-export-to-markdown)
+  :defer t)
 ```
 
 
@@ -515,9 +551,8 @@ Tiny Is Not Yasnippet
     ;; Package used to create presentations using reveal.js.
     ;; Requires the installation of reveaj.js.
     (use-package ox-reveal
-      :after org
       :straight t
-      :commands org-reveal-export-to-html
+      :defer t
       :config
       (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
     ```
@@ -528,6 +563,7 @@ Tiny Is Not Yasnippet
 ```emacs-lisp
 (use-package tex
   :straight auctex
+  :defer t
   :hook (TeX-mode . (lambda ()
 		      (flycheck-mode)
 		      (company-mode)))
@@ -654,19 +690,21 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 (defhydra hydra-exwm (:color teal
 			     :hint nil)
   "
-  _b_:rave  _a_:lacritty  _e_:lfeed  _p_:ass  _y_:tdl
-  _g_:nus   _d_:ebbugs    _s_:hell
+  _b_:rowser _a_:lacritty _e_:lfeed _p_:ass    _y_:tdl
+  _g_:nus    _d_:ebbugs   _s_:hell  _w_:ebjump
   "
   ("q" nil "quit")
   ("<f4>" nil "quit")
-  ("b" (exwm-async-run "brave-browser"))
+  ("b" (exwm-async-run "chromium"))
   ("a" (exwm-async-run "alacritty"))
-  ("e" (elfeed))
-  ("p" (pass))
-  ("g" (gnus))
+  ("e" elfeed)
+  ("p" pass)
+  ("g" gnus)
   ("d" debbugs-gnu)
   ("s" eshell)
-  ("y" (hydra-ytdl/body)))
+  ("w" webjump)
+  ("y" hydra-ytdl/body))
+
 (global-set-key (kbd "<f4>") 'hydra-exwm/body)
 ```
 
@@ -676,7 +714,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```emacs-lisp
 (defhydra hydra-multiple-cursors (:color teal
 					 :hint nil
-					 :post hydra-movement/cond-body-call)
+					 :post hydra-modal--cond-body-call)
   "
     _e_:dit lines   _a_:ll like this  _l_:etters  _n_:umbers
   "
@@ -695,7 +733,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```emacs-lisp
 (defhydra hydra-avy (:color teal
 			    :hint nil
-			    :post hydra-movement/cond-body-call)
+			    :post hydra-modal--cond-body-call)
   "
   _s_: word 1   _n_: word bellow   _p_: word above
   _l_: line     _c_: char timer    _g_: char timer
@@ -832,10 +870,18 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 (defhydra hydra-frames-windows (:color teal
 				       :hint nil)
   "
-  m: make-frame   d: delete-frame          Z: suspend-frame
-  q: quit         b: buffer-other-frame    M: toggle-maximize
-  o: other-frame  f: find-file-other-frame
+  Frame commands:
+  _m_: make-frame   _d_: delete-frame          _Z_: suspend-frame
+  _q_: quit         _b_: buffer-other-frame    _M_: toggle-maximize
+  _o_: other-frame  _f_: find-file-other-frame
+  Window commands:
+  _0_: delete-window     _1_: delete-other-window  _2_: split below
+  _3_: split right       _^_: enlarge vertical     _-_: shrink vertical
+  _{_: shrink horizontal _}_: enlarge horizontal   _+_: balance-windows
+  _<up>_/_<down>_/_<left>_/_<right>_: windmove-up/down/left/right
+  _M-<up>_/_M-<down>_/_M-<left>_/_M-<right>_: buf-move-up/down/left/right
   "
+  ;; Frame commands
   ("m" make-frame-command)
   ("b" switch-to-buffer-other-frame)
   ("d" delete-frame)
@@ -843,6 +889,24 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("f" find-file-other-frame)
   ("Z" suspend-frame)
   ("M" toggle-frame-maximized)
+  ;; Window commands
+  ("0" delete-window)
+  ("1" delete-other-windows)
+  ("2" split-window-below)
+  ("3" split-window-right)
+  ("^" enlarge-window :color pink)
+  ("-" shrink-window :color pink)
+  ("}" enlarge-window-horizontally :color pink)
+  ("{" shrink-window-horizontally :color pink)
+  ("+" balance-windows)
+  ("<up>" windmove-up)
+  ("<down>" windmove-down)
+  ("<left>" windmove-left)
+  ("<right>" windmove-right)
+  ("M-<up>" buf-move-up)
+  ("M-<down>" buf-move-down)
+  ("M-<left>" buf-move-left)
+  ("M-<right>" buf-move-right)
   ("q" nil))
 
 (global-set-key (kbd "C-z") 'hydra-frames-windows/body)
@@ -885,7 +949,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```emacs-lisp
 (use-package visual-regexp-steroids
   :straight t
-  :commands vr/replace)
+  :defer t)
 ```
 
 
@@ -903,7 +967,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```emacs-lisp
 (use-package which-key
   :straight t
-  :commands which-key-mode)
+  :defer t)
 ```
 
 
@@ -947,30 +1011,21 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-## Buffer moving
+## Buffer-move
 
 ```emacs-lisp
 (use-package buffer-move
   :straight t
-  :bind
-  (("C-c <C-up>" . buf-move-up)
-   ("C-c <C-down>" . buf-move-down)
-   ("C-c <C-left>" . buf-move-left)
-   ("C-c <C-right>" . buf-move-right)))
+  :defer t)
 ```
 
 
-## Windows moving
+## Ace-window
 
 ```emacs-lisp
-(global-set-key (kbd "C-c <M-up>") 'windmove-up) 
-(global-set-key (kbd "C-c <M-down>") 'windmove-down) 
-(global-set-key (kbd "C-c <M-right>") 'windmove-right) 
-(global-set-key (kbd "C-c <M-left>") 'windmove-left) 
-
 (use-package ace-window
   :straight t
-  :commands ace-window)
+  :defer t)
 ```
 
 
@@ -991,7 +1046,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```emacs-lisp
 (use-package avy
   :straight t
-  :commands hydra-avy/body)
+  :defer t)
 ```
 
 
@@ -1000,8 +1055,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```emacs-lisp
 (use-package undo-tree
   :straight t
-  :defer 3.1
-  :diminish undo-tree-mode
+  :bind (("C-x u" . undo-tree-visualize))
   :config (global-undo-tree-mode))
 ```
 
@@ -1018,6 +1072,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 	      ("J" . dired-omit-mode)))
 
 (use-package dired-x
+  :after dired
   :config
   (setq dired-omit-verbose nil)
   (setq dired-omit-files
@@ -1025,12 +1080,13 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 
 (use-package peep-dired
   :straight t
+  :after dired
   :bind (:map dired-mode-map
 	      ("P" . 'peep-dired)))
 
 (use-package dired-rainbow
   :straight t
-  :defer 3.2
+  :after dired
   :config
   (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
   (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html"
@@ -1171,7 +1227,7 @@ I use aspell for spell checking.
 ```emacs-lisp
 (use-package treemacs
   :straight t
-  :commands treemacs)
+  :defer t)
 ```
 
 
@@ -1180,7 +1236,7 @@ I use aspell for spell checking.
 ```emacs-lisp
 (use-package command-log-mode
   :straight t
-  :commands global-command-log-mode)
+  :defer t)
 ```
 
 
@@ -1194,7 +1250,7 @@ Requires pass.
 ```emacs-lisp
 (use-package pass
   :straight t
-  :commands pass)
+  :defer t)
 ```
 
 
@@ -1203,7 +1259,7 @@ Requires pass.
 ```emacs-lisp
 (use-package debbugs
   :straight t
-  :commands debbugs-gnu)
+  :defer t)
 ```
 
 
@@ -1287,7 +1343,7 @@ cURL.
 ```emacs-lisp
 (use-package elfeed
   :straight t
-  :commands elfeed
+  :defer t
   :config (load-file (concat user-emacs-directory "personal-settings/feeds.el")))
 ```
 
@@ -1308,6 +1364,7 @@ cURL.
 ```emacs-lisp
 (use-package exwm
   :straight t
+  :disabled t
   :bind (("<XF86AudioRaiseVolume>" . (lambda ()
 				       (interactive)
 				       (call-process-shell-command "amixer set Master 5%+" nil 0)))
@@ -1329,17 +1386,11 @@ cURL.
 				 ([?\C-s] . ?\C-f)))))
 
   (setq exwm-replace nil)
-
   (require 'exwm-config)
-
   (setq exwm-workspace-number 4)
-
   (require 'exwm-randr)
-
   (exwm-enable)
-
   (setq exwm-randr-workspace-output-plist '(0 "eDP-1" 1 "HDMI-1"))
-
   (add-hook 'exwm-randr-screen-change-hook
 	    (lambda ()
 	      (start-process-shell-command
@@ -1371,9 +1422,7 @@ Saves to a temp file and puts the filename in the kill ring."
 ```emacs-lisp
 (use-package org-static-blog
   :straight t
-  :commands (org-static-blog-create-new-post
-	     org-static-blog-publish
-	     org-static-blog-publish-file)
+  :defer t
   :config (load-file (concat user-emacs-directory "personal-settings/blog.el")))
 ```
 
@@ -1382,7 +1431,7 @@ Saves to a temp file and puts the filename in the kill ring."
 
 ```emacs-lisp
 (use-package webjump
-  :commands webjump
+  :defer t
   :config (load-file (concat user-emacs-directory "personal-settings/webjump-sites.el")))
 ```
 
@@ -1391,6 +1440,38 @@ Saves to a temp file and puts the filename in the kill ring."
 
 ```emacs-lisp
 (use-package gnus
-  :commands gnus
+  :defer t
   :config (setq gnus-init-file (concat user-emacs-directory "personal-settings/gnus.el")))
+```
+
+
+# Theme
+
+```emacs-lisp
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-enabled-themes '(doom-acario-light use-package))
+ '(custom-safe-themes
+   '("f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default)))
+```
+
+
+# Auto tangle this file on save
+
+```emacs-lisp
+(add-to-list 'safe-local-variable-values
+	     '(eval add-hook 'after-save-hook
+		    (lambda () (org-babel-tangle))
+		    nil t))
+```
+
+
+# Reduce gc-threshold
+
+```emacs-lisp
+(setq gc-cons-threshold 100000000)
+(setq gc-cons-percentage 0.1)
 ```

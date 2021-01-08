@@ -19,11 +19,43 @@ This is my Emacs configuration, I use it for:
 - Blog
 
 * Installation
-- Copy init.el and settings.org to ~/.emacs.d/ or ~/.config/emacs
+- Copy files to ~/.emacs.d/ or ~/.config/emacs
+
+* Straight.el
+#+begin_src emacs-lisp :tangle yes
+  (when (< emacs-major-version 27)
+    (setq gc-cons-threshold most-positive-fixnum)
+    (setq gc-cons-percentage 0.6))
+
+  (setq straight-check-for-modifications '(check-on-save))
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+
+  (straight-use-package 'use-package)
+
+  (use-package diminish
+    :straight t
+    :defer t)
+  (require 'bind-key)
+
+  (use-package use-package-ensure-system-package
+    :straight t)
+#+end_src
+
 
 * Programming
 ** Magit
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package magit
     :straight t
     :bind (("C-x g" . magit-status)))
@@ -31,7 +63,7 @@ This is my Emacs configuration, I use it for:
 
 ** Company
 Company is a text completion framework.
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package company
     :straight t
     :commands company-mode
@@ -49,26 +81,25 @@ Company is a text completion framework.
 
 ** Language Server Protocol
 LSP gives Emacs IDE features. 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package lsp-mode
     :straight t
     :hook
     ((c++-mode . lsp)
      (c-mode . lsp)
      (js-mode . lsp)
-     (python-mode . lsp))
-    :commands lsp)
+     (python-mode . lsp)))
 #+END_SRC
 
 ** Projectile
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package projectile
     :straight t
-    :commands projectile-mode)
+    :defer t)
 #+END_SRC
 
 ** Syntax checking
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package flycheck
     :straight t
     :defer 4.3)
@@ -81,12 +112,12 @@ It's good to have two frameworks for jumping to definition (lsp also provides it
 Silver searcher: https://github.com/ggreer/the_silver_searcher
 
 *** Config
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (use-package dumb-jump
     :straight t
     :config
     (setq dumb-jump-selector 'ivy)
-    :commands dumb-jump-go)
+    :defer t)
 #+end_src
 
 ** C and C++
@@ -96,7 +127,7 @@ Silver searcher: https://github.com/ggreer/the_silver_searcher
 I'm assuming that the ccls binary is at /usr/bin/ccls.
 
 *** Config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package ccls
     :after lsp-mode
     :straight t
@@ -125,7 +156,7 @@ Autocompletion requires gocode, available at https://github.com/nsf/gocode.
 We can install gocode with go get, then we need to create a symbolic link at /usr/bin.
 
 *** Config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package go-mode
     :straight t
     :mode ("\\.go\\'" . go-mode)
@@ -148,16 +179,16 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 
 ** Lisp
 *** Config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package sly
     :straight t
-    :defer 3.2
+    :defer t
     :config
     (setq inferior-lisp-program "sbcl"))
 
   (use-package suggest
     :straight t
-    :commands suggest)
+    :defer t)
 
   (use-package lispy
     :straight t
@@ -169,24 +200,24 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 #+END_SRC
 
 ** Scheme
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package geiser
     :straight t
-    :commands run-geiser
+    :defer run-geiser
     :config
     ;; I have to use the guile2.2 binary because of Fedora
     (setq geiser-guile-binary "guile2.2"))
 #+END_SRC
 
 ** Clojure
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package cider
     :straight t
-    :commands cider-jack-in)
+    :defer t)
 #+END_SRC
 
 ** Python
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package elpy
     :straight t
     :hook (python-mode . elpy-enable)
@@ -198,7 +229,7 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 #+END_SRC
 
 ** Haskell
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package haskell-mode
     :straight t
     :mode ("\\.hs\\'" . haskell-mode))
@@ -206,7 +237,7 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 
 ** Web
 *** HTML/CSS
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package emmet-mode
     :straight t
     :hook ((web-mode . emmet-mode)
@@ -223,22 +254,22 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 
   (use-package impatient-mode
     :straight t
-    :commands impatient-mode)
+    :defer t)
 #+END_SRC
 
 *** HTTP
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package simple-httpd
     :straight t
-    :commands httpd-start)
+    :defer t)
 
   (use-package request
     :straight t
-    :commands request)
+    :defer t)
 #+END_SRC
 
 *** JS
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package js2-mode
     :straight t
     :mode ("\\.js\\'" . js2-mode))
@@ -257,14 +288,14 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 #+END_SRC
 
 ** Yaml
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package yaml-mode
     :straight t
     :mode ("\\.yml\\'" . yaml-mode))
 #+END_SRC
 
 ** Docker
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package docker
     :straight t
     :commands docker)
@@ -276,7 +307,7 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 
 ** Yasnippet
 *** Config
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (use-package yasnippet
     :straight t
     :hook ((lisp-interaction-mode . yas-minor-mode)
@@ -295,24 +326,25 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 
 *** Tiny
 Tiny Is Not Yasnippet
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package tiny
     :straight t
-    :commands tiny-expand)
+    :defer t)
 #+END_SRC
 
 * Dashboard
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
+  ;; Dashboard requirements.
+  (use-package all-the-icons
+    :straight t)
+
+  (use-package page-break-lines
+    :straight t)
+
   (use-package dashboard
     :straight t
-    :init
-    (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+    :after (all-the-icons page-break-lines)
     :config
-    ;; Dashboard requirements.
-    (use-package page-break-lines
-      :straight t)
-    (use-package all-the-icons
-      :straight t)
     ;; Dashboard configuration.
     (dashboard-setup-startup-hook)
     (setq dashboard-banner-logo-title "Welcome to Emacs")
@@ -321,12 +353,13 @@ Tiny Is Not Yasnippet
                             (agenda . 5)))
     (setq dashboard-set-init-info t)
     (setq dashboard-set-heading-icons t)
-    (setq dashboard-set-file-icons t))
+    (setq dashboard-set-file-icons t)
+    (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
 #+END_SRC
 
 * Org
 ** Config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package org
     :straight t
     :mode ("\\.org\\'" . org-mode)
@@ -347,32 +380,36 @@ Tiny Is Not Yasnippet
     (setq org-src-window-setup 'current-window)
     (setq org-agenda-window-setup 'current-window))
 
+  ;; GNU Emacs minor mode that provides vi-like bindings for org-mode
+  (use-package worf
+    :straight t
+    :hook (org-mode . worf-mode))
+
   (use-package org-bullets
-    :after org
     :straight t
     :hook (org-mode . org-bullets-mode))
 
   (use-package ob-async
     :straight t
-    :defer 4.3)
+    :defer 7.3)
 
   ;; references
   (use-package org-ref
     :straight t
-    :commands org-ref-ivy-insert-cite-link
+    :defer t
     :config
     (setq reftex-default-bibliography '("~/notes/roam/math.bib")
           org-ref-default-bibliography '("~/notes/roam/math.bib")))
 #+END_SRC
 
 ** Roam
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package org-roam
     :straight t
     ;; :ensure-system-package
     ;; ((sqlite3)
     ;;  (graphviz))
-    :commands org-roam-mode
+    :defer t
     :bind
     (:map org-roam-mode-map
           (("C-c n l" . org-roam)
@@ -389,7 +426,7 @@ Tiny Is Not Yasnippet
                                              ("fillcolor" . "#EFEFFF")
                                              ("color" . "#DEDEFF")
                                              ("fontcolor" . "#111111")))
-    (setq org-roam-graph-viewer "brave-browser")
+    (setq org-roam-graph-viewer "chromium")
     (setq org-roam-capture-templates
           (list `("d" "default" plain #'org-roam--capture-get-point
                   "%?"
@@ -402,7 +439,7 @@ Tiny Is Not Yasnippet
 
   (use-package org-roam-server
     :straight t
-    :commands org-roam-server-mode
+    :defer t
     :config
     (setq org-roam-server-host "0.0.0.0"
           org-roam-server-port 8082
@@ -416,18 +453,16 @@ Tiny Is Not Yasnippet
 #+END_SRC
 
 ** Exporting
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   ;; Export to html with syntax highlighting
   (use-package htmlize
-    :after org
     :straight t
-    :commands org-export-dispatch)
+    :defer t)
 
   ;; Export to Markdown with syntax highlighting
   (use-package ox-gfm
-    :after org
     :straight t
-    :commands org-gfm-export-to-markdown)
+    :defer t)
 #+END_SRC
 
 *** Presentations
@@ -435,21 +470,21 @@ Tiny Is Not Yasnippet
 Requires reveal.js to create html presentations.
 
 **** Config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   ;; Package used to create presentations using reveal.js.
   ;; Requires the installation of reveaj.js.
   (use-package ox-reveal
-    :after org
     :straight t
-    :commands org-reveal-export-to-html
+    :defer t
     :config
     (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
 #+END_SRC
 
 * LaTeX
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package tex
     :straight auctex
+    :defer t
     :hook (TeX-mode . (lambda ()
                         (flycheck-mode)
                         (company-mode)))
@@ -474,7 +509,7 @@ Requires reveal.js to create html presentations.
 * Theme
 My favorite themes packages are zerodark-theme, kaolin-themes, moe-theme and dracula-theme.
 There is a function bound to <f5> to switch between light mode and dark mode.
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package kaolin-themes
     :straight t)
 
@@ -523,7 +558,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 
 * Global (better UX)
 ** Hydra
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package hydra
     :straight t
     :defer 2.5)
@@ -531,12 +566,12 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 
 *** Hydra Modal editing
 [[./imgs/hydra.png]]
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (load-file (concat user-emacs-directory "other-settings/hydra-modal.el"))
 #+END_SRC
 
 *** Hydra EMMS
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-emms (:color teal
                                :hint nil)
     "
@@ -556,34 +591,36 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 *** Hydra to launch programs
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defun exwm-async-run (name)
     (start-process name nil name))
 
   (defhydra hydra-exwm (:color teal
                                :hint nil)
     "
-    _b_:rave  _a_:lacritty  _e_:lfeed  _p_:ass  _y_:tdl
-    _g_:nus   _d_:ebbugs    _s_:hell
+    _b_:rowser _a_:lacritty _e_:lfeed _p_:ass    _y_:tdl
+    _g_:nus    _d_:ebbugs   _s_:hell  _w_:ebjump
     "
     ("q" nil "quit")
     ("<f4>" nil "quit")
-    ("b" (exwm-async-run "brave-browser"))
+    ("b" (exwm-async-run "chromium"))
     ("a" (exwm-async-run "alacritty"))
-    ("e" (elfeed))
-    ("p" (pass))
-    ("g" (gnus))
+    ("e" elfeed)
+    ("p" pass)
+    ("g" gnus)
     ("d" debbugs-gnu)
     ("s" eshell)
-    ("y" (hydra-ytdl/body)))
+    ("w" webjump)
+    ("y" hydra-ytdl/body))
+
   (global-set-key (kbd "<f4>") 'hydra-exwm/body)
 #+END_SRC
 
 *** Hydra MC
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-multiple-cursors (:color teal
                                            :hint nil
-                                           :post hydra-movement/cond-body-call)
+                                           :post hydra-modal--cond-body-call)
     "
       _e_:dit lines   _a_:ll like this  _l_:etters  _n_:umbers
     "
@@ -597,10 +634,10 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 *** Hydra AVY
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-avy (:color teal
                               :hint nil
-                              :post hydra-movement/cond-body-call)
+                              :post hydra-modal--cond-body-call)
     "
     _s_: word 1   _n_: word bellow   _p_: word above
     _l_: line     _c_: char timer    _g_: char timer
@@ -617,7 +654,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 *** Hydra Youtube dl
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-ytdl (:color teal
                                :hint nil)
     "
@@ -631,7 +668,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 *** Hydra Eyebrowse
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-eyebrowse (:color amaranth :hint nil)
     "
   %s(eyebrowse-mode-line-indicator)  
@@ -662,7 +699,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 *** Hydra dump jump
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-dumb-jump (:color teal :columns 3)
     "Dumb Jump"
     ("q" nil "quit")
@@ -679,7 +716,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 *** Hydra lsp
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-lsp (:color teal
                               :hint nil)
     "
@@ -702,7 +739,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 *** Hydra Org Roam
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-roam (:color teal
                                :hint nil)
     "
@@ -721,14 +758,22 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 *** Hydra frames
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-frames-windows (:color teal
                                          :hint nil)
     "
-    m: make-frame   d: delete-frame          Z: suspend-frame
-    q: quit         b: buffer-other-frame    M: toggle-maximize
-    o: other-frame  f: find-file-other-frame
+    Frame commands:
+    _m_: make-frame   _d_: delete-frame          _Z_: suspend-frame
+    _q_: quit         _b_: buffer-other-frame    _M_: toggle-maximize
+    _o_: other-frame  _f_: find-file-other-frame
+    Window commands:
+    _0_: delete-window     _1_: delete-other-window  _2_: split below
+    _3_: split right       _^_: enlarge vertical     _-_: shrink vertical
+    _{_: shrink horizontal _}_: enlarge horizontal   _+_: balance-windows
+    _<up>_/_<down>_/_<left>_/_<right>_: windmove-up/down/left/right
+    _M-<up>_/_M-<down>_/_M-<left>_/_M-<right>_: buf-move-up/down/left/right
     "
+    ;; Frame commands
     ("m" make-frame-command)
     ("b" switch-to-buffer-other-frame)
     ("d" delete-frame)
@@ -736,13 +781,31 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     ("f" find-file-other-frame)
     ("Z" suspend-frame)
     ("M" toggle-frame-maximized)
+    ;; Window commands
+    ("0" delete-window)
+    ("1" delete-other-windows)
+    ("2" split-window-below)
+    ("3" split-window-right)
+    ("^" enlarge-window :color pink)
+    ("-" shrink-window :color pink)
+    ("}" enlarge-window-horizontally :color pink)
+    ("{" shrink-window-horizontally :color pink)
+    ("+" balance-windows)
+    ("<up>" windmove-up)
+    ("<down>" windmove-down)
+    ("<left>" windmove-left)
+    ("<right>" windmove-right)
+    ("M-<up>" buf-move-up)
+    ("M-<down>" buf-move-down)
+    ("M-<left>" buf-move-left)
+    ("M-<right>" buf-move-right)
     ("q" nil))
 
   (global-set-key (kbd "C-z") 'hydra-frames-windows/body)
 #+END_SRC
 
 ** Ivy
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   ;;; Global
   ;; Ivy is a generic completion tool
   (use-package ivy
@@ -771,28 +834,28 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 ** Regular expressions
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle yes
   (use-package visual-regexp-steroids
     :straight t
-    :commands vr/replace)
+    :defer t)
 #+end_src
 
 ** Kill ring
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package popup-kill-ring
     :straight t
     :bind (("M-y" . popup-kill-ring)))
 #+END_SRC
 
 ** Which-key
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package which-key
     :straight t
-    :commands which-key-mode)
+    :defer t)
 #+END_SRC
 
 ** Modeline
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (display-time-mode t)
 
   (use-package spaceline
@@ -809,7 +872,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 ** Parentheses
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package smartparens
     :straight t
     :defer 5.1
@@ -827,31 +890,22 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (show-paren-mode t)
 #+END_SRC
 
-** Buffer moving
-#+BEGIN_SRC emacs-lisp
+** Buffer-move
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package buffer-move
     :straight t
-    :bind
-    (("C-c <C-up>" . buf-move-up)
-     ("C-c <C-down>" . buf-move-down)
-     ("C-c <C-left>" . buf-move-left)
-     ("C-c <C-right>" . buf-move-right)))
+    :defer t)
 #+END_SRC
 
-** Windows moving
-#+BEGIN_SRC emacs-lisp
-  (global-set-key (kbd "C-c <M-up>") 'windmove-up) 
-  (global-set-key (kbd "C-c <M-down>") 'windmove-down) 
-  (global-set-key (kbd "C-c <M-right>") 'windmove-right) 
-  (global-set-key (kbd "C-c <M-left>") 'windmove-left) 
-
+** Ace-window
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package ace-window
     :straight t
-    :commands ace-window)
+    :defer t)
 #+END_SRC
 
 ** Multiple cursors
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package multiple-cursors
     :straight t
     :bind (("C-: C-m b" . mc/edit-lines)
@@ -861,23 +915,22 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 ** Avy
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package avy
     :straight t
-    :commands hydra-avy/body)
+    :defer t)
 #+END_SRC
 
 ** Undo-tree
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package undo-tree
     :straight t
-    :defer 3.1
-    :diminish undo-tree-mode
+    :bind (("C-x u" . undo-tree-visualize))
     :config (global-undo-tree-mode))
 #+END_SRC
 
 ** Dired
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package dired
     :hook (dired-mode . dired-omit-mode)
     :bind (:map dired-mode-map
@@ -887,6 +940,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
                 ("J" . dired-omit-mode)))
 
   (use-package dired-x
+    :after dired
     :config
     (setq dired-omit-verbose nil)
     (setq dired-omit-files
@@ -894,12 +948,13 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 
   (use-package peep-dired
     :straight t
+    :after dired
     :bind (:map dired-mode-map
                 ("P" . 'peep-dired)))
 
   (use-package dired-rainbow
     :straight t
-    :defer 3.2
+    :after dired
     :config
     (dired-rainbow-define-chmod directory "#6cb2eb" "d.*")
     (dired-rainbow-define html "#eb5286" ("css" "less" "sass" "scss" "htm" "html"
@@ -942,7 +997,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 ** Windows management
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package eyebrowse
     :straight t
     :defer 3.4
@@ -950,14 +1005,14 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 ** Smart region expanding
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package expand-region
     :straight t
     :bind (("C-=" . er/expand-region)))
 #+END_SRC
 
 ** Tool bar, menu bar, line numbering etc
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   ;;; Variables
   (global-visual-line-mode)
   (global-set-key (kbd "TAB") 'self-insert-command)
@@ -972,7 +1027,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 #+END_SRC
 
 ** Change backup/autosave folder
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   ;;; Change the backup/autosave folder.
   (defvar backup-dir (expand-file-name (concat user-emacs-directory "backup/")))
   (defvar autosave-dir (expand-file-name (concat user-emacs-directory "autosave/")))
@@ -983,7 +1038,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
 
 ** Sticky buffers
 https://lists.gnu.org/archive/html/help-gnu-emacs/2007-05/msg00975.html
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (define-minor-mode sticky-buffer-mode
     "Make the current window always display this buffer."
     nil " sticky" nil
@@ -992,53 +1047,53 @@ https://lists.gnu.org/archive/html/help-gnu-emacs/2007-05/msg00975.html
 
 ** Read process output
 Sets read-process-output-max to 1mb since the default is low. This should improve things that use servers like LSP.
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (setq read-process-output-max (* 1024 1024))
 #+END_SRC
 
 ** Spell checking
 I use aspell for spell checking.
 *** Config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defvar ispell-program-name "aspell")
 #+END_SRC
 
 ** Diminish
 *** Config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (diminish 'visual-line-mode)
   (diminish 'auto-revert-mode)
   (diminish 'eldoc-mode)
 #+END_SRC
 
 ** Treemacs
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package treemacs
     :straight t
-    :commands treemacs)
+    :defer t)
 #+END_SRC
 
 ** Display commands
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package command-log-mode
     :straight t
-    :commands global-command-log-mode)
+    :defer t)
 #+END_SRC
 
 * Programs
 ** Password manager
 Requires pass.
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package pass
     :straight t
-    :commands pass)
+    :defer t)
 #+END_SRC
 
 ** Debbugs
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package debbugs
     :straight t
-    :commands debbugs-gnu)
+    :defer t)
 #+END_SRC
 
 ** PDF
@@ -1046,7 +1101,7 @@ Requires pass.
 See https://github.com/politza/pdf-tools.
 
 *** Config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package pdf-tools
     :straight t
     :mode ("\\.pdf\\'" . pdf-view-mode))
@@ -1056,7 +1111,7 @@ See https://github.com/politza/pdf-tools.
 I use mpd/mpc to play music.
 I used Uncle Dave's config as a reference for the following settings.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package emms
     :straight t
     :config
@@ -1106,15 +1161,15 @@ I used Uncle Dave's config as a reference for the following settings.
 cURL.
 
 *** Config
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package elfeed
     :straight t
-    :commands elfeed
+    :defer t
     :config (load-file (concat user-emacs-directory "personal-settings/feeds.el")))
 #+END_SRC
 
 ** Youtube-dl
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package ytdl
     :straight t
     :commands ytdl-download
@@ -1123,9 +1178,10 @@ cURL.
 #+END_SRC
 
 ** EXWM
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package exwm
     :straight t
+    :disabled t
     :bind (("<XF86AudioRaiseVolume>" . (lambda ()
                                          (interactive)
                                          (call-process-shell-command "amixer set Master 5%+" nil 0)))
@@ -1147,17 +1203,11 @@ cURL.
                                    ([?\C-s] . ?\C-f)))))
 
     (setq exwm-replace nil)
-
     (require 'exwm-config)
-
     (setq exwm-workspace-number 4)
-
     (require 'exwm-randr)
-
     (exwm-enable)
-
     (setq exwm-randr-workspace-output-plist '(0 "eDP-1" 1 "HDMI-1"))
-
     (add-hook 'exwm-randr-screen-change-hook
               (lambda ()
                 (start-process-shell-command
@@ -1167,7 +1217,7 @@ cURL.
 
 ** Screenshots
 Requires Emacs built with cairo.
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (defun screenshot-svg ()
     "Save a screenshot of the current frame as an SVG image.
   Saves to a temp file and puts the filename in the kill ring."
@@ -1181,25 +1231,53 @@ Requires Emacs built with cairo.
 #+END_SRC
 
 * Blog
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package org-static-blog
     :straight t
-    :commands (org-static-blog-create-new-post
-               org-static-blog-publish
-               org-static-blog-publish-file)
+    :defer t
     :config (load-file (concat user-emacs-directory "personal-settings/blog.el")))
 #+END_SRC
 
 * Webjump
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package webjump
-    :commands webjump
+    :defer t
     :config (load-file (concat user-emacs-directory "personal-settings/webjump-sites.el")))
 #+END_SRC
 
 * Gnus
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
   (use-package gnus
-    :commands gnus
+    :defer t
     :config (setq gnus-init-file (concat user-emacs-directory "personal-settings/gnus.el")))
 #+END_SRC
+
+* Theme
+#+begin_src emacs-lisp :tangle yes
+  (custom-set-variables
+   ;; custom-set-variables was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(custom-enabled-themes '(doom-acario-light use-package))
+   '(custom-safe-themes
+     '("f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default)))
+#+end_src
+
+* Auto tangle this file on save
+#+begin_src emacs-lisp :tangle yes
+  (add-to-list 'safe-local-variable-values
+               '(eval add-hook 'after-save-hook
+                      (lambda () (org-babel-tangle))
+                      nil t))
+#+end_src
+
+* Reduce gc-threshold
+#+begin_src emacs-lisp :tangle yes
+  (setq gc-cons-threshold 100000000)
+  (setq gc-cons-percentage 0.1)
+#+end_src
+
+# Local Variables:
+# eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
+# End:
