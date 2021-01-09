@@ -237,7 +237,7 @@
   (setq dashboard-banner-logo-title "Welcome to Emacs")
   (setq dashboard-startup-banner 'logo)
   (setq dashboard-items '((recents . 5)
-                          (agenda . 5)))
+                          (bookmarks . 5)))
   (setq dashboard-set-init-info t)
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
@@ -443,29 +443,53 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 (defun exwm-async-run (name)
   (start-process name nil name))
 
-(defhydra hydra-exwm (:color teal
+(defhydra hydra-programs (:color teal
                              :hint nil)
   "
-  _b_:rowser _a_:lacritty _e_:lfeed _p_:ass    _y_:tdl
-  _g_:nus    _d_:ebbugs   _s_:hell  _w_:ebjump
+  _b_:rowser _a_:genda    _e_:lfeed _p_:ass    _y_:tdl
+  _g_:nus    _D_:ebbugs   _s_:hell  _w_:ebjump _d_:ictionary
+  _i_:spell  _B_:ookmarks _E_:ww
   "
   ("q" nil "quit")
-  ("<f4>" nil "quit")
   ("b" (exwm-async-run "chromium"))
-  ("a" (exwm-async-run "alacritty"))
+  ("B" hydra-bookmarks/body)
+  ("d" hydra-dictionary/body)
+  ("a" org-agenda)
+  ("i" hydra-ispell/body)
   ("e" elfeed)
+  ("E" eww-search-words)
   ("p" pass)
   ("g" gnus)
-  ("d" debbugs-gnu)
+  ("D" debbugs-gnu)
   ("s" eshell)
   ("w" webjump)
   ("y" hydra-ytdl/body))
 
-(global-set-key (kbd "<f4>") 'hydra-exwm/body)
+(global-set-key (kbd "C-c p") 'hydra-programs/body)
+
+(defhydra hydra-dictionary (:color teal
+                               :hint nil)
+    "
+    "
+    ("q" nil "quit")
+    ("l" dictionary-lookup-definition "lookup")
+    ("s" dictionary-search "search")
+    ("n" dictionary-new-search "new search")
+    ("p" dictionary-previous "previous")
+    ("c" dictionary-close "close"))
+
+(defhydra hydra-ispell (:color teal
+                               :hint nil)
+    "
+    _r_:egion  _c_:hange-dictionary
+    "
+    ("q" nil "quit")
+    ("r" ispell-region)
+    ("c" ispell-change-dictionary))
 
 (defhydra hydra-multiple-cursors (:color teal
                                          :hint nil
-                                         :post hydra-modal--cond-body-call)
+                                         :post hydra-modal--call-body-conditionally)
   "
     _e_:dit lines   _a_:ll like this  _l_:etters  _n_:umbers
   "
@@ -479,7 +503,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 
 (defhydra hydra-avy (:color teal
                             :hint nil
-                            :post hydra-modal--cond-body-call)
+                            :post hydra-modal--call-body-conditionally)
   "
   _s_: word 1   _n_: word bellow   _p_: word above
   _l_: line     _c_: char timer    _g_: char timer
@@ -507,7 +531,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 
 (defhydra hydra-eyebrowse (:color amaranth :hint nil)
   "
-%s(eyebrowse-mode-line-indicator)  
+%s(eyebrowse-mode-line-indicator)
 _p_: prev wind   _c_: creat wind  _r_: renam wind
 _n_: next wind   _C_: close wind  _l_: last wind
 _0_: switch to 0      ^^...       _9_: switch to 9   
@@ -532,6 +556,14 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("9" eyebrowse-switch-to-window-config-9 nil))
 
 (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
+
+(defhydra hydra-bookmarks (:color teal
+                                  :hint nil)
+  ("m" bookmark-set "set")
+  ("b" bookmark-jump "jump")
+  ("l" list-bookmarks "list")
+  ("s" bookmark-save "save")
+  ("q" nil "quit"))
 
 (defhydra hydra-dumb-jump (:color teal :columns 3)
   "Dumb Jump"
@@ -592,8 +624,9 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   _o_: other-frame  _f_: find-file-other-frame
   Window commands:
   _0_: delete-window     _1_: delete-other-window  _2_: split below
-  _3_: split right       _^_: enlarge vertical     _-_: shrink vertical
+  _3_: split right       _\\^_: enlarge vertical     _-_: shrink vertical
   _{_: shrink horizontal _}_: enlarge horizontal   _+_: balance-windows
+  _a_: ace-window        _t_: toggle-window-split
   _<up>_/_<down>_/_<left>_/_<right>_: windmove-up/down/left/right
   _M-<up>_/_M-<down>_/_M-<left>_/_M-<right>_: buf-move-up/down/left/right
   "
@@ -615,6 +648,8 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("}" enlarge-window-horizontally :color pink)
   ("{" shrink-window-horizontally :color pink)
   ("+" balance-windows)
+  ("t" toggle-window-split)
+  ("a" ace-window)
   ("<up>" windmove-up)
   ("<down>" windmove-down)
   ("<left>" windmove-left)
@@ -699,16 +734,43 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   :straight t
   :defer t)
 
+(defun toggle-window-split ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd (not (and (<= (car this-win-edges)
+                                         (car next-win-edges))
+                                     (<= (cadr this-win-edges)
+                                         (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
+
 (use-package ace-window
   :straight t
   :defer t)
 
+(use-package ace-link
+  :straight t
+  :defer 4.1
+  :config (ace-link-setup-default))
+
 (use-package multiple-cursors
   :straight t
-  :bind (("C-: C-m b" . mc/edit-lines)
-         ("C-: C-m a" . mc/mark-all-like-this)
-         ("C-: C-m >" . mc/mark-next-like-this)
-         ("C-: C-m <" . mc/mark-previous-like-this)))
+  :defer t)
 
 (use-package avy
   :straight t
@@ -944,6 +1006,8 @@ Saves to a temp file and puts the filename in the kill ring."
     (kill-new filename)
     (message filename)))
 
+(setq bookmark-default-file (concat user-emacs-directory "personal-settings/bookmarks"))
+
 (use-package org-static-blog
   :straight t
   :defer t
@@ -962,41 +1026,9 @@ Saves to a temp file and puts the filename in the kill ring."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-names-vector
-   ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
  '(custom-enabled-themes '(doom-acario-light use-package))
  '(custom-safe-themes
-   '("7e5d400035eea68343be6830f3de7b8ce5e75f7ac7b8337b5df492d023ee8483" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default))
- '(fci-rule-color "#4E4E4E")
- '(jdee-db-active-breakpoint-face-colors (cons "#D0D0E3" "#009B7C"))
- '(jdee-db-requested-breakpoint-face-colors (cons "#D0D0E3" "#005F00"))
- '(jdee-db-spec-breakpoint-face-colors (cons "#D0D0E3" "#4E4E4E"))
- '(objed-cursor-color "#D70000")
- '(pdf-view-midnight-colors (cons "#0F1019" "#F5F5F9"))
- '(rustic-ansi-faces
-   ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
- '(vc-annotate-background "#F5F5F9")
- '(vc-annotate-color-map
-   (list
-    (cons 20 "#005F00")
-    (cons 40 "#3a6c00")
-    (cons 60 "#747900")
-    (cons 80 "#AF8700")
-    (cons 100 "#bc7900")
-    (cons 120 "#c96c00")
-    (cons 140 "#D75F00")
-    (cons 160 "#c93f1f")
-    (cons 180 "#bc1f3f")
-    (cons 200 "#AF005F")
-    (cons 220 "#bc003f")
-    (cons 240 "#c9001f")
-    (cons 260 "#D70000")
-    (cons 280 "#b41313")
-    (cons 300 "#922727")
-    (cons 320 "#703a3a")
-    (cons 340 "#4E4E4E")
-    (cons 360 "#4E4E4E")))
- '(vc-annotate-very-old-color nil))
+   '("f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default)))
 
 (add-to-list 'safe-local-variable-values
              '(eval add-hook 'after-save-hook
@@ -1005,10 +1037,3 @@ Saves to a temp file and puts the filename in the kill ring."
 
 (setq gc-cons-threshold 100000000)
 (setq gc-cons-percentage 0.1)
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-(put 'dired-find-alternate-file 'disabled nil)
