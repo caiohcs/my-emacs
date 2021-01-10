@@ -446,13 +446,13 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 (defhydra hydra-programs (:color teal
                              :hint nil)
   "
-  _b_:rowser _a_:genda    _e_:lfeed _p_:ass    _y_:tdl
+  _B_:rowser _a_:genda    _e_:lfeed _p_:ass    _y_:tdl
   _g_:nus    _D_:ebbugs   _s_:hell  _w_:ebjump _d_:ictionary
-  _i_:spell  _B_:ookmarks _E_:ww
+  _i_:spell  _b_:ookmarks _E_:ww
   "
   ("q" nil "quit")
-  ("b" (exwm-async-run "chromium"))
-  ("B" hydra-bookmarks/body)
+  ("B" (exwm-async-run "chromium"))
+  ("b" hydra-bookmarks/body)
   ("d" hydra-dictionary/body)
   ("a" org-agenda)
   ("i" hydra-ispell/body)
@@ -487,36 +487,88 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
     ("r" ispell-region)
     ("c" ispell-change-dictionary))
 
-(defhydra hydra-multiple-cursors (:color teal
+(defhydra hydra-multiple-cursors (:color pink
                                          :hint nil
                                          :post hydra-modal--call-body-conditionally)
+  ("q" nil "quit")
+  ("n" mc/mark-next-like-this "next" :column "Mark")
+  ("p" mc/mark-previous-like-this "previous")
+  ("N" mc/unmark-next-like-this "next" :column "Unmark")
+  ("P" mc/unmark-previous-like-this "previous")
+  ("r" mc/mark-all-like-this "like region" :column "All like this")
+  ("R" mc/mark-all-in-region "in region")
+  ("a" mc/edit-beginnings-of-lines "beginning" :column "Lines")
+  ("e" mc/edit-ends-of-lines "end")
+  ("i n" mc/insert-numbers "numbers" :column "Insert")
+  ("i l" mc/insert-letters "letters")
+  ("S s" mc/sort-regions "sort" :column "Sort")
+  ("S r" mc/reverse-regions "reverse")
+  ("s n" mc/skip-to-next-like-this "next" :column "Skip")
+  ("s p" mc/skip-to-previous-like-this "previous"))
+
+(global-set-key (kbd "C-c M") 'hydra-multiple-cursors/body)
+
+(defhydra hydra-project (:color teal
+                                :hint nil)
   "
-    _e_:dit lines   _a_:ll like this  _l_:etters  _n_:umbers
+  _f_: find-file  _g_: regexp  _e_: eshell   _G_: interactive regexp
+  _c_: compile    _d_: dired   _r_: replace  _&_: async shell
+  _b_: buffers    _p_: projects            ^^_k_: kill buffer
   "
   ("q" nil "quit")
-  ("e" mc/edit-lines)
-  ("l" mc/insert-letters)
-  ("n" mc/insert-numbers)
-  ("a" mc/mark-all-like-this))
+  ("f" project-find-file)
+  ("g" project-find-regexp)
+  ("b" project-switch-to-buffer)
+  ("k" project-kill-buffers)
+  ("G" project-search)
+  ("r" project-query-replace-regexp)
+  ("d" project-dired)
+  ("e" project-eshell)
+  ("c" project-compile)
+  ("p" project-switch-project)
+  ("&" project-async-shell-command))
 
-(global-set-key (kbd "C-: c") 'hydra-multiple-cursors/body)
+(global-set-key (kbd "C-c P") 'hydra-project/body)
 
 (defhydra hydra-avy (:color teal
                             :hint nil
                             :post hydra-modal--call-body-conditionally)
+  ("q" nil "quit")
+  (":" avy-goto-char-timer "timer" :column "Motion")
+  (";" avy-goto-char-2 "char2")
+  ("p" avy-goto-word-1-above "above")
+  ("n" avy-goto-word-1-below "below")
+  ("'" avy-goto-line "line")
+  ("p" avy-pop-mark "pop")
+  ("m '" avy-move-line "line" :column "Move")
+  ("m r" avy-move-region "region")
+  ("t" avy-transpose-lines-in-region "transpose")
+  ("k r" avy-kill-region "region" :column "Kill")
+  ("k '" avy-kill-whole-line "line"))
+
+(global-set-key (kbd "C-:") 'hydra-avy/body)
+
+(defhydra hydra-macros (:color teal
+                               :hint nil)
   "
-  _s_: word 1   _n_: word bellow   _p_: word above
-  _l_: line     _c_: char timer    _g_: char timer
+  _r_: region  _e_: execute   _c_: counter  _f_: format  
+  _n_: next    _p_: previous  _i_: insert   _q_: query
+ _<f3>_: start  _<f4>_: stop
   "
   ("q" nil "quit")
-  ("s" avy-goto-word-1)
-  ("p" avy-goto-word-1-above)
-  ("n" avy-goto-word-1-below)
-  ("l" avy-goto-line)
-  ("c" avy-goto-char-timer)
-  ("g" avy-goto-char-timer))
+  ("Q" kbd-macro-query)
+  ("<f3>" kmacro-start-macro-or-insert-counter)
+  ("<f4>" kmacro-end-or-call-macro)
+  ("r" apply-macro-to-region-lines)
+  ("e" kmacro-end-and-call-macro)
+  ("n" kmacro-cycle-ring-next)
+  ("p" kmacro-cycle-ring-previous)
+  ("i" kmacro-insert-counter)
+  ("c" kmacro-set-counter)
+  ("q" kbd-macro-query)
+  ("f" kmacro-set-format))
 
-(global-set-key (kbd "M-s s") 'hydra-avy/body)
+(global-set-key (kbd "C-c m") 'hydra-macros/body)
 
 (defhydra hydra-ytdl (:color teal
                              :hint nil)
@@ -613,7 +665,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("c" org-roam-capture)
   ("s" org-roam-server-mode))
 
-(global-set-key (kbd "C-: r") 'hydra-roam/body)
+(global-set-key (kbd "C-c r") 'hydra-roam/body)
 
 (defhydra hydra-frames-windows (:color teal
                                        :hint nil)
@@ -770,7 +822,9 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 
 (use-package multiple-cursors
   :straight t
-  :defer t)
+  :defer t
+  :init
+  (setq mc/list-file (concat user-emacs-directory "other-settings/mc-lists.el")))
 
 (use-package avy
   :straight t
@@ -1037,3 +1091,4 @@ Saves to a temp file and puts the filename in the kill ring."
 
 (setq gc-cons-threshold 100000000)
 (setq gc-cons-percentage 0.1)
+(put 'dired-find-alternate-file 'disabled nil)

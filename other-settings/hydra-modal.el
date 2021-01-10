@@ -311,6 +311,7 @@ Objects:
   ("<return>" newline)
   ("<DEL>" delete-backward-char)
   ("<deletechar>" delete-forward-char)
+  (":" avy-goto-char)
   ("c" (hydra-modal--call-verb 'case) :exit t)
   ("m" (hydra-modal--call-verb 'mark) :exit t)
   ("d" (hydra-modal--call-verb 'delete) :exit t)
