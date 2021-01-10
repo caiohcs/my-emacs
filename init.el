@@ -52,19 +52,15 @@
    (js-mode . lsp)
    (python-mode . lsp)))
 
-(use-package projectile
-  :straight t
-  :defer t)
-
 (use-package flycheck
   :straight t
   :defer 4.3)
 
 (use-package dumb-jump
   :straight t
+  :defer t
   :config
-  (setq dumb-jump-selector 'ivy)
-  :defer t)
+  (setq dumb-jump-selector 'ivy))
 
 (use-package ccls
   :after lsp-mode
@@ -159,6 +155,7 @@
 
 (use-package rainbow-mode
   :straight t
+  :diminish rainbow-mode
   :hook ((org-mode . rainbow-mode)
          (web-mode . rainbow-mode)))
 
@@ -468,9 +465,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 (global-set-key (kbd "C-c p") 'hydra-programs/body)
 
 (defhydra hydra-dictionary (:color teal
-                               :hint nil)
-    "
-    "
+                                   :hint nil)
     ("q" nil "quit")
     ("l" dictionary-lookup-definition "lookup")
     ("s" dictionary-search "search")
@@ -506,7 +501,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("s n" mc/skip-to-next-like-this "next" :column "Skip")
   ("s p" mc/skip-to-previous-like-this "previous"))
 
-(global-set-key (kbd "C-c M") 'hydra-multiple-cursors/body)
+(global-set-key (kbd "C-c m") 'hydra-multiple-cursors/body)
 
 (defhydra hydra-project (:color teal
                                 :hint nil)
@@ -553,12 +548,12 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   "
   _r_: region  _e_: execute   _c_: counter  _f_: format  
   _n_: next    _p_: previous  _i_: insert   _q_: query
- _<f3>_: start  _<f4>_: stop
+ _(_: start  _)_: stop
   "
   ("q" nil "quit")
   ("Q" kbd-macro-query)
-  ("<f3>" kmacro-start-macro-or-insert-counter)
-  ("<f4>" kmacro-end-or-call-macro)
+  ("(" kmacro-start-macro-or-insert-counter)
+  (")" kmacro-end-or-call-macro)
   ("r" apply-macro-to-region-lines)
   ("e" kmacro-end-and-call-macro)
   ("n" kmacro-cycle-ring-next)
@@ -568,7 +563,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("q" kbd-macro-query)
   ("f" kmacro-set-format))
 
-(global-set-key (kbd "C-c m") 'hydra-macros/body)
+(global-set-key (kbd "C-c M") 'hydra-macros/body)
 
 (defhydra hydra-ytdl (:color teal
                              :hint nil)
@@ -607,49 +602,50 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("8" eyebrowse-switch-to-window-config-8 nil)
   ("9" eyebrowse-switch-to-window-config-9 nil))
 
-(global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
-
-(defhydra hydra-bookmarks (:color teal
-                                  :hint nil)
-  ("m" bookmark-set "set")
-  ("b" bookmark-jump "jump")
-  ("l" list-bookmarks "list")
-  ("s" bookmark-save "save")
-  ("q" nil "quit"))
+(global-set-key (kbd "C-c e") 'hydra-eyebrowse/body)
 
 (defhydra hydra-dumb-jump (:color teal :columns 3)
   "Dumb Jump"
   ("q" nil "quit")
-  ("<f3>" nil "quit")
   ("j" dumb-jump-go "Go")
   ("o" dumb-jump-go-other-window "Other window")
   ("e" dumb-jump-go-prefer-external "Go external")
-  ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
   ("i" dumb-jump-go-prompt "Prompt")
   ("l" dumb-jump-quick-look "Quick look")
-  ("b" dumb-jump-back "Back"))
+  ("b" dumb-jump-back "Back")
+  ("x" dumb-jump-go-prefer-external-other-window "Go external other window"))
 
-(global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
-
-(defhydra hydra-lsp (:color teal
+(defhydra hydra-ide (:color teal
                             :hint nil)
-  "
-  _b_:ack  _j_:ump def  _d_:ecl  _D_:escribe  _h_:ighlight  _H_:ighlight doc
-  _l_:ens  _r_:ename _L_: avy lens
-  "
   ("q" nil "quit")
-  ("b" xref-pop-marker-stack)
-  ("j" lsp-find-definition)
-  ("d" lsp-find-declaration)
-  ("D" lsp-describe-thing-at-point)
-  ("H" lsp-document-highlight)
-  ("h" lsp-toggle-symbol-highlight)
-  ("l" lsp-lens-mode)
-  ("r" lsp-rename)
-  ("L" lsp-avy-lens)
-  ("f" lsp-format-region))
+  ("l" hydra-lsp/body "lsp" :column "IDE features")
+  ("d" hydra-dumb-jump/body "dumb-jump"))
 
-(global-set-key (kbd "<f6>") 'hydra-lsp/body)
+(global-set-key (kbd "C-c i") 'hydra-ide/body)
+
+(defhydra hydra-lsp (:exit t :hint nil)
+  "
+ Buffer^^               Server^^                   Symbol
+-------------------------------------------------------------------------------------
+ [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
+ [_m_] imenu            [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
+ [_x_] execute action   [_M-s_] describe session   [_R_] references   [_s_] signature"
+  ("d" lsp-find-declaration)
+  ("D" lsp-ui-peek-find-definitions)
+  ("R" lsp-ui-peek-find-references)
+  ("i" lsp-ui-peek-find-implementation)
+  ("t" lsp-find-type-definition)
+  ("s" lsp-signature-help)
+  ("o" lsp-describe-thing-at-point)
+  ("r" lsp-rename)
+
+  ("f" lsp-format-buffer)
+  ("m" lsp-ui-imenu)
+  ("x" lsp-execute-code-action)
+
+  ("M-s" lsp-describe-session)
+  ("M-r" lsp-restart-workspace)
+  ("S" lsp-shutdown-workspace))
 
 (defhydra hydra-roam (:color teal
                              :hint nil)
@@ -713,6 +709,14 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("q" nil))
 
 (global-set-key (kbd "C-z") 'hydra-frames-windows/body)
+
+(defhydra hydra-bookmarks (:color teal
+                                  :hint nil)
+  ("m" bookmark-set "set")
+  ("b" bookmark-jump "jump")
+  ("l" list-bookmarks "list")
+  ("s" bookmark-save "save")
+  ("q" nil "quit"))
 
 ;;; Global
 ;; Ivy is a generic completion tool
@@ -833,6 +837,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 (use-package undo-tree
   :straight t
   :bind (("C-x u" . undo-tree-visualize))
+  :diminish undo-tree-mode
   :config (global-undo-tree-mode))
 
 (use-package dired
@@ -1080,9 +1085,41 @@ Saves to a temp file and puts the filename in the kill ring."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector
+   ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
  '(custom-enabled-themes '(doom-acario-light use-package))
  '(custom-safe-themes
-   '("f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default)))
+   '("7e5d400035eea68343be6830f3de7b8ce5e75f7ac7b8337b5df492d023ee8483" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default))
+ '(fci-rule-color "#4E4E4E")
+ '(jdee-db-active-breakpoint-face-colors (cons "#D0D0E3" "#009B7C"))
+ '(jdee-db-requested-breakpoint-face-colors (cons "#D0D0E3" "#005F00"))
+ '(jdee-db-spec-breakpoint-face-colors (cons "#D0D0E3" "#4E4E4E"))
+ '(objed-cursor-color "#D70000")
+ '(pdf-view-midnight-colors (cons "#0F1019" "#F5F5F9"))
+ '(rustic-ansi-faces
+   ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
+ '(vc-annotate-background "#F5F5F9")
+ '(vc-annotate-color-map
+   (list
+    (cons 20 "#005F00")
+    (cons 40 "#3a6c00")
+    (cons 60 "#747900")
+    (cons 80 "#AF8700")
+    (cons 100 "#bc7900")
+    (cons 120 "#c96c00")
+    (cons 140 "#D75F00")
+    (cons 160 "#c93f1f")
+    (cons 180 "#bc1f3f")
+    (cons 200 "#AF005F")
+    (cons 220 "#bc003f")
+    (cons 240 "#c9001f")
+    (cons 260 "#D70000")
+    (cons 280 "#b41313")
+    (cons 300 "#922727")
+    (cons 320 "#703a3a")
+    (cons 340 "#4E4E4E")
+    (cons 360 "#4E4E4E")))
+ '(vc-annotate-very-old-color nil))
 
 (add-to-list 'safe-local-variable-values
              '(eval add-hook 'after-save-hook

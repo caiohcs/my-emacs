@@ -19,9 +19,9 @@ This is my Emacs configuration, I use it for:
 - Blog
 
 * Installation
-- Copy files to ~/.emacs.d/ or ~/.config/emacs
+- Copy files to ~/.config/emacs or ~/.emacs.d/
 
-* Straight.el
+* Straight
 #+begin_src emacs-lisp :tangle yes
   (when (< emacs-major-version 27)
     (setq gc-cons-threshold most-positive-fixnum)
@@ -51,7 +51,6 @@ This is my Emacs configuration, I use it for:
   (use-package use-package-ensure-system-package
     :straight t)
 #+end_src
-
 
 * Programming
 ** Magit
@@ -91,13 +90,6 @@ LSP gives Emacs IDE features.
      (python-mode . lsp)))
 #+END_SRC
 
-** Projectile
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (use-package projectile
-    :straight t
-    :defer t)
-#+END_SRC
-
 ** Syntax checking
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package flycheck
@@ -115,9 +107,9 @@ Silver searcher: https://github.com/ggreer/the_silver_searcher
 #+begin_src emacs-lisp :tangle yes
   (use-package dumb-jump
     :straight t
+    :defer t
     :config
-    (setq dumb-jump-selector 'ivy)
-    :defer t)
+    (setq dumb-jump-selector 'ivy))
 #+end_src
 
 ** C and C++
@@ -249,6 +241,7 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 
   (use-package rainbow-mode
     :straight t
+    :diminish rainbow-mode
     :hook ((org-mode . rainbow-mode)
            (web-mode . rainbow-mode)))
 
@@ -556,21 +549,20 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (global-set-key (kbd "<f5>") #'toggle-light-dark-theme)
 #+END_SRC
 
-* Global (better UX)
-** Hydra
+* Hydra
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package hydra
     :straight t
     :defer 2.5)
 #+END_SRC
 
-*** Hydra Modal editing
+** Hydra Modal editing
 [[./imgs/hydra.png]]
 #+BEGIN_SRC emacs-lisp :tangle yes
   (load-file (concat user-emacs-directory "other-settings/hydra-modal.el"))
 #+END_SRC
 
-*** Hydra EMMS
+** Hydra EMMS
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-emms (:color teal
                                :hint nil)
@@ -590,7 +582,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (global-set-key (kbd "C-: m") 'hydra-emms/body)
 #+END_SRC
 
-*** Hydra to launch programs
+** Hydra to launch programs
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defun exwm-async-run (name)
     (start-process name nil name))
@@ -620,12 +612,10 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (global-set-key (kbd "C-c p") 'hydra-programs/body)
 #+END_SRC
 
-*** Hydra dictionary
+** Hydra dictionary
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-dictionary (:color teal
-                                 :hint nil)
-      "
-      "
+                                     :hint nil)
       ("q" nil "quit")
       ("l" dictionary-lookup-definition "lookup")
       ("s" dictionary-search "search")
@@ -634,7 +624,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
       ("c" dictionary-close "close"))
 #+END_SRC
 
-*** Hydra ispell
+** Hydra ispell
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-ispell (:color teal
                                  :hint nil)
@@ -646,7 +636,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
       ("c" ispell-change-dictionary))
 #+END_SRC
 
-*** Hydra multiple cursors
+** Hydra multiple cursors
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-multiple-cursors (:color pink
                                            :hint nil
@@ -667,10 +657,10 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     ("s n" mc/skip-to-next-like-this "next" :column "Skip")
     ("s p" mc/skip-to-previous-like-this "previous"))
 
-  (global-set-key (kbd "C-c M") 'hydra-multiple-cursors/body)
+  (global-set-key (kbd "C-c m") 'hydra-multiple-cursors/body)
 #+END_SRC
 
-*** Hydra project
+** Hydra project
 #+begin_src emacs-lisp :tangle yes
   (defhydra hydra-project (:color teal
                                   :hint nil)
@@ -695,7 +685,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (global-set-key (kbd "C-c P") 'hydra-project/body)
 #+end_src
 
-*** Hydra AVY
+** Hydra AVY
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-avy (:color teal
                               :hint nil
@@ -714,22 +704,21 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     ("k '" avy-kill-whole-line "line"))
 
   (global-set-key (kbd "C-:") 'hydra-avy/body)
-
 #+END_SRC
 
-*** Hydra macros
+** Hydra macros
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-macros (:color teal
                                  :hint nil)
     "
     _r_: region  _e_: execute   _c_: counter  _f_: format  
     _n_: next    _p_: previous  _i_: insert   _q_: query
-   _<f3>_: start  _<f4>_: stop
+   _(_: start  _)_: stop
     "
     ("q" nil "quit")
     ("Q" kbd-macro-query)
-    ("<f3>" kmacro-start-macro-or-insert-counter)
-    ("<f4>" kmacro-end-or-call-macro)
+    ("(" kmacro-start-macro-or-insert-counter)
+    (")" kmacro-end-or-call-macro)
     ("r" apply-macro-to-region-lines)
     ("e" kmacro-end-and-call-macro)
     ("n" kmacro-cycle-ring-next)
@@ -739,10 +728,10 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     ("q" kbd-macro-query)
     ("f" kmacro-set-format))
 
-  (global-set-key (kbd "C-c m") 'hydra-macros/body)
+  (global-set-key (kbd "C-c M") 'hydra-macros/body)
 #+END_SRC
 
-*** Hydra Youtube dl
+** Hydra Youtube dl
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-ytdl (:color teal
                                :hint nil)
@@ -756,7 +745,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     ("p" ytdl-download-playlist))
 #+END_SRC
 
-*** Hydra Eyebrowse
+** Hydra Eyebrowse
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-eyebrowse (:color amaranth :hint nil)
     "
@@ -784,61 +773,64 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     ("8" eyebrowse-switch-to-window-config-8 nil)
     ("9" eyebrowse-switch-to-window-config-9 nil))
 
-  (global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
+  (global-set-key (kbd "C-c e") 'hydra-eyebrowse/body)
 #+END_SRC
 
-*** Bookmarks
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (defhydra hydra-bookmarks (:color teal
-                                    :hint nil)
-    ("m" bookmark-set "set")
-    ("b" bookmark-jump "jump")
-    ("l" list-bookmarks "list")
-    ("s" bookmark-save "save")
-    ("q" nil "quit"))
-#+END_SRC
-
-*** Hydra dump jump
+** Hydra dump jump
+https://github.com/jacktasia/dumb-jump
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-dumb-jump (:color teal :columns 3)
     "Dumb Jump"
     ("q" nil "quit")
-    ("<f3>" nil "quit")
     ("j" dumb-jump-go "Go")
     ("o" dumb-jump-go-other-window "Other window")
     ("e" dumb-jump-go-prefer-external "Go external")
-    ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
     ("i" dumb-jump-go-prompt "Prompt")
     ("l" dumb-jump-quick-look "Quick look")
-    ("b" dumb-jump-back "Back"))
-
-  (global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
+    ("b" dumb-jump-back "Back")
+    ("x" dumb-jump-go-prefer-external-other-window "Go external other window"))
 #+END_SRC
 
-*** Hydra lsp
-#+BEGIN_SRC emacs-lisp :tangle yes
-  (defhydra hydra-lsp (:color teal
+** Hydra IDE
+#+begin_src emacs-lisp :tangle yes
+  (defhydra hydra-ide (:color teal
                               :hint nil)
-    "
-    _b_:ack  _j_:ump def  _d_:ecl  _D_:escribe  _h_:ighlight  _H_:ighlight doc
-    _l_:ens  _r_:ename _L_: avy lens
-    "
     ("q" nil "quit")
-    ("b" xref-pop-marker-stack)
-    ("j" lsp-find-definition)
-    ("d" lsp-find-declaration)
-    ("D" lsp-describe-thing-at-point)
-    ("H" lsp-document-highlight)
-    ("h" lsp-toggle-symbol-highlight)
-    ("l" lsp-lens-mode)
-    ("r" lsp-rename)
-    ("L" lsp-avy-lens)
-    ("f" lsp-format-region))
+    ("l" hydra-lsp/body "lsp" :column "IDE features")
+    ("d" hydra-dumb-jump/body "dumb-jump"))
 
-  (global-set-key (kbd "<f6>") 'hydra-lsp/body)
+  (global-set-key (kbd "C-c i") 'hydra-ide/body)
+#+end_src
+
+** Hydra lsp
+https://github.com/abo-abo/hydra/wiki/lsp-mode
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (defhydra hydra-lsp (:exit t :hint nil)
+    "
+   Buffer^^               Server^^                   Symbol
+  -------------------------------------------------------------------------------------
+   [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
+   [_m_] imenu            [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
+   [_x_] execute action   [_M-s_] describe session   [_R_] references   [_s_] signature"
+    ("d" lsp-find-declaration)
+    ("D" lsp-ui-peek-find-definitions)
+    ("R" lsp-ui-peek-find-references)
+    ("i" lsp-ui-peek-find-implementation)
+    ("t" lsp-find-type-definition)
+    ("s" lsp-signature-help)
+    ("o" lsp-describe-thing-at-point)
+    ("r" lsp-rename)
+
+    ("f" lsp-format-buffer)
+    ("m" lsp-ui-imenu)
+    ("x" lsp-execute-code-action)
+
+    ("M-s" lsp-describe-session)
+    ("M-r" lsp-restart-workspace)
+    ("S" lsp-shutdown-workspace))
 #+END_SRC
 
-*** Hydra Org Roam
+** Hydra Org Roam
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-roam (:color teal
                                :hint nil)
@@ -857,7 +849,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (global-set-key (kbd "C-c r") 'hydra-roam/body)
 #+END_SRC
 
-*** Hydra frames
+** Hydra frames
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defhydra hydra-frames-windows (:color teal
                                          :hint nil)
@@ -907,7 +899,18 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (global-set-key (kbd "C-z") 'hydra-frames-windows/body)
 #+END_SRC
 
-** Ivy
+* Bookmarks
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (defhydra hydra-bookmarks (:color teal
+                                    :hint nil)
+    ("m" bookmark-set "set")
+    ("b" bookmark-jump "jump")
+    ("l" list-bookmarks "list")
+    ("s" bookmark-save "save")
+    ("q" nil "quit"))
+#+END_SRC
+
+* Ivy
 #+BEGIN_SRC emacs-lisp :tangle yes
   ;;; Global
   ;; Ivy is a generic completion tool
@@ -936,28 +939,28 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     :after (ivy avy))
 #+END_SRC
 
-** Regular expressions
+* Regular expressions
 #+begin_src emacs-lisp :tangle yes
   (use-package visual-regexp-steroids
     :straight t
     :defer t)
 #+end_src
 
-** Kill ring
+* Kill ring
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package popup-kill-ring
     :straight t
     :bind (("M-y" . popup-kill-ring)))
 #+END_SRC
 
-** Which-key
+* Which-key
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package which-key
     :straight t
     :defer t)
 #+END_SRC
 
-** Modeline
+* Modeline
 #+BEGIN_SRC emacs-lisp :tangle yes
   (display-time-mode t)
 
@@ -974,7 +977,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     (spaceline-spacemacs-theme))
 #+END_SRC
 
-** Parentheses
+* Parentheses
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package smartparens
     :straight t
@@ -993,14 +996,14 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (show-paren-mode t)
 #+END_SRC
 
-** Buffer-move
+* Buffer-move
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package buffer-move
     :straight t
     :defer t)
 #+END_SRC
 
-** Toggle window split
+* Toggle window split
 From https://www.emacswiki.org/emacs/ToggleWindowSplit
 #+begin_src emacs-lisp :tangle yes
   (defun toggle-window-split ()
@@ -1029,14 +1032,14 @@ From https://www.emacswiki.org/emacs/ToggleWindowSplit
             (if this-win-2nd (other-window 1))))))
 #+end_src
 
-** Ace-window
+* Ace-window
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package ace-window
     :straight t
     :defer t)
 #+END_SRC
 
-** Ace-link
+* Ace-link
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package ace-link
     :straight t
@@ -1044,7 +1047,7 @@ From https://www.emacswiki.org/emacs/ToggleWindowSplit
     :config (ace-link-setup-default))
 #+END_SRC
 
-** Multiple cursors
+* Multiple cursors
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package multiple-cursors
     :straight t
@@ -1053,22 +1056,23 @@ From https://www.emacswiki.org/emacs/ToggleWindowSplit
     (setq mc/list-file (concat user-emacs-directory "other-settings/mc-lists.el")))
 #+END_SRC
 
-** Avy
+* Avy
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package avy
     :straight t
     :defer t)
 #+END_SRC
 
-** Undo-tree
+* Undo-tree
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package undo-tree
     :straight t
     :bind (("C-x u" . undo-tree-visualize))
+    :diminish undo-tree-mode
     :config (global-undo-tree-mode))
 #+END_SRC
 
-** Dired
+* Dired
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package dired
     :hook (dired-mode . dired-omit-mode)
@@ -1135,7 +1139,7 @@ From https://www.emacswiki.org/emacs/ToggleWindowSplit
     (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 #+END_SRC
 
-** Windows management
+* Windows management
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package eyebrowse
     :straight t
@@ -1143,14 +1147,14 @@ From https://www.emacswiki.org/emacs/ToggleWindowSplit
     :config (eyebrowse-mode t))
 #+END_SRC
 
-** Smart region expanding
+* Smart region expanding
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package expand-region
     :straight t
     :bind (("C-=" . er/expand-region)))
 #+END_SRC
 
-** Tool bar, menu bar, line numbering etc
+* Tool bar, menu bar, line numbering etc
 #+BEGIN_SRC emacs-lisp :tangle yes
   ;;; Variables
   (global-visual-line-mode)
@@ -1165,7 +1169,7 @@ From https://www.emacswiki.org/emacs/ToggleWindowSplit
     (scroll-bar-mode -1))
 #+END_SRC
 
-** Change backup/autosave folder
+* Change backup/autosave folder
 #+BEGIN_SRC emacs-lisp :tangle yes
   ;;; Change the backup/autosave folder.
   (defvar backup-dir (expand-file-name (concat user-emacs-directory "backup/")))
@@ -1175,7 +1179,7 @@ From https://www.emacswiki.org/emacs/ToggleWindowSplit
   (setq auto-save-file-name-transforms `((".*" ,autosave-dir t)))
 #+END_SRC
 
-** Sticky buffers
+* Sticky buffers
 https://lists.gnu.org/archive/html/help-gnu-emacs/2007-05/msg00975.html
 #+BEGIN_SRC emacs-lisp :tangle yes
   (define-minor-mode sticky-buffer-mode
@@ -1184,43 +1188,39 @@ https://lists.gnu.org/archive/html/help-gnu-emacs/2007-05/msg00975.html
     (set-window-dedicated-p (selected-window) sticky-buffer-mode))
 #+END_SRC
 
-** Read process output
+* Read process output
 Sets read-process-output-max to 1mb since the default is low. This should improve things that use servers like LSP.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (setq read-process-output-max (* 1024 1024))
 #+END_SRC
 
-** Spell checking
-I use aspell for spell checking.
-*** Config
+* Spell checking
 #+BEGIN_SRC emacs-lisp :tangle yes
   (defvar ispell-program-name "aspell")
 #+END_SRC
 
-** Diminish
-*** Config
+* Diminish
 #+BEGIN_SRC emacs-lisp :tangle yes
   (diminish 'visual-line-mode)
   (diminish 'auto-revert-mode)
   (diminish 'eldoc-mode)
 #+END_SRC
 
-** Treemacs
+* Treemacs
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package treemacs
     :straight t
     :defer t)
 #+END_SRC
 
-** Display commands
+* Display commands
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package command-log-mode
     :straight t
     :defer t)
 #+END_SRC
 
-* Programs
-** Password manager
+* Password manager
 Requires pass.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package pass
@@ -1228,25 +1228,25 @@ Requires pass.
     :defer t)
 #+END_SRC
 
-** Debbugs
+* Debbugs
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package debbugs
     :straight t
     :defer t)
 #+END_SRC
 
-** PDF
-*** Requirements
+* PDF
+** Requirements
 See https://github.com/politza/pdf-tools.
 
-*** Config
+** Config
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package pdf-tools
     :straight t
     :mode ("\\.pdf\\'" . pdf-view-mode))
 #+END_SRC
 
-** EMMS
+* EMMS
 I use mpd/mpc to play music.
 I used Uncle Dave's config as a reference for the following settings.
 
@@ -1295,11 +1295,11 @@ I used Uncle Dave's config as a reference for the following settings.
     (message "MPD Database Updated!"))
 #+END_SRC
 
-** RSS
-*** Requirements
+* RSS
+** Requirements
 cURL.
 
-*** Config
+** Config
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package elfeed
     :straight t
@@ -1403,9 +1403,41 @@ Requires Emacs built with cairo.
    ;; If you edit it by hand, you could mess it up, so be careful.
    ;; Your init file should contain only one such instance.
    ;; If there is more than one, they won't work right.
+   '(ansi-color-names-vector
+     ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
    '(custom-enabled-themes '(doom-acario-light use-package))
    '(custom-safe-themes
-     '("f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default)))
+     '("7e5d400035eea68343be6830f3de7b8ce5e75f7ac7b8337b5df492d023ee8483" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default))
+   '(fci-rule-color "#4E4E4E")
+   '(jdee-db-active-breakpoint-face-colors (cons "#D0D0E3" "#009B7C"))
+   '(jdee-db-requested-breakpoint-face-colors (cons "#D0D0E3" "#005F00"))
+   '(jdee-db-spec-breakpoint-face-colors (cons "#D0D0E3" "#4E4E4E"))
+   '(objed-cursor-color "#D70000")
+   '(pdf-view-midnight-colors (cons "#0F1019" "#F5F5F9"))
+   '(rustic-ansi-faces
+     ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
+   '(vc-annotate-background "#F5F5F9")
+   '(vc-annotate-color-map
+     (list
+      (cons 20 "#005F00")
+      (cons 40 "#3a6c00")
+      (cons 60 "#747900")
+      (cons 80 "#AF8700")
+      (cons 100 "#bc7900")
+      (cons 120 "#c96c00")
+      (cons 140 "#D75F00")
+      (cons 160 "#c93f1f")
+      (cons 180 "#bc1f3f")
+      (cons 200 "#AF005F")
+      (cons 220 "#bc003f")
+      (cons 240 "#c9001f")
+      (cons 260 "#D70000")
+      (cons 280 "#b41313")
+      (cons 300 "#922727")
+      (cons 320 "#703a3a")
+      (cons 340 "#4E4E4E")
+      (cons 360 "#4E4E4E")))
+   '(vc-annotate-very-old-color nil))
 #+end_src
 
 * Auto tangle this file on save

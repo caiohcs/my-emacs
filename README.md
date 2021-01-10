@@ -18,10 +18,10 @@ This is my Emacs configuration, I use it for:
 
 # Installation
 
--   Copy files to ~/.emacs.d/ or ~/.config/emacs
+-   Copy files to ~/.config/emacs or ~/.emacs.d/
 
 
-# Straight.el
+# Straight
 
 ```emacs-lisp
 (when (< emacs-major-version 27)
@@ -102,15 +102,6 @@ LSP gives Emacs IDE features.
 ```
 
 
-## Projectile
-
-```emacs-lisp
-(use-package projectile
-  :straight t
-  :defer t)
-```
-
-
 ## Syntax checking
 
 ```emacs-lisp
@@ -135,9 +126,9 @@ Silver searcher: <https://github.com/ggreer/the_silver_searcher>
 ```emacs-lisp
 (use-package dumb-jump
   :straight t
+  :defer t
   :config
-  (setq dumb-jump-selector 'ivy)
-  :defer t)
+  (setq dumb-jump-selector 'ivy))
 ```
 
 
@@ -297,6 +288,7 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 
 (use-package rainbow-mode
   :straight t
+  :diminish rainbow-mode
   :hook ((org-mode . rainbow-mode)
 	 (web-mode . rainbow-mode)))
 
@@ -638,10 +630,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```
 
 
-# Global (better UX)
-
-
-## Hydra
+# Hydra
 
 ```emacs-lisp
 (use-package hydra
@@ -650,7 +639,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```
 
 
-### Hydra Modal editing
+## Hydra Modal editing
 
 ![img](./imgs/hydra.png)
 
@@ -659,7 +648,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```
 
 
-### Hydra EMMS
+## Hydra EMMS
 
 ```emacs-lisp
 (defhydra hydra-emms (:color teal
@@ -681,7 +670,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```
 
 
-### Hydra to launch programs
+## Hydra to launch programs
 
 ```emacs-lisp
 (defun exwm-async-run (name)
@@ -713,13 +702,11 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```
 
 
-### Hydra dictionary
+## Hydra dictionary
 
 ```emacs-lisp
 (defhydra hydra-dictionary (:color teal
-			       :hint nil)
-    "
-    "
+				   :hint nil)
     ("q" nil "quit")
     ("l" dictionary-lookup-definition "lookup")
     ("s" dictionary-search "search")
@@ -729,7 +716,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```
 
 
-### Hydra ispell
+## Hydra ispell
 
 ```emacs-lisp
 (defhydra hydra-ispell (:color teal
@@ -743,7 +730,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```
 
 
-### Hydra multiple cursors
+## Hydra multiple cursors
 
 ```emacs-lisp
 (defhydra hydra-multiple-cursors (:color pink
@@ -765,11 +752,11 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("s n" mc/skip-to-next-like-this "next" :column "Skip")
   ("s p" mc/skip-to-previous-like-this "previous"))
 
-(global-set-key (kbd "C-c M") 'hydra-multiple-cursors/body)
+(global-set-key (kbd "C-c m") 'hydra-multiple-cursors/body)
 ```
 
 
-### Hydra project
+## Hydra project
 
 ```emacs-lisp
 (defhydra hydra-project (:color teal
@@ -796,7 +783,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```
 
 
-### Hydra AVY
+## Hydra AVY
 
 ```emacs-lisp
 (defhydra hydra-avy (:color teal
@@ -816,11 +803,10 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("k '" avy-kill-whole-line "line"))
 
 (global-set-key (kbd "C-:") 'hydra-avy/body)
-
 ```
 
 
-### Hydra macros
+## Hydra macros
 
 ```emacs-lisp
 (defhydra hydra-macros (:color teal
@@ -828,12 +814,12 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   "
   _r_: region  _e_: execute   _c_: counter  _f_: format  
   _n_: next    _p_: previous  _i_: insert   _q_: query
- _<f3>_: start  _<f4>_: stop
+ _(_: start  _)_: stop
   "
   ("q" nil "quit")
   ("Q" kbd-macro-query)
-  ("<f3>" kmacro-start-macro-or-insert-counter)
-  ("<f4>" kmacro-end-or-call-macro)
+  ("(" kmacro-start-macro-or-insert-counter)
+  (")" kmacro-end-or-call-macro)
   ("r" apply-macro-to-region-lines)
   ("e" kmacro-end-and-call-macro)
   ("n" kmacro-cycle-ring-next)
@@ -843,11 +829,11 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("q" kbd-macro-query)
   ("f" kmacro-set-format))
 
-(global-set-key (kbd "C-c m") 'hydra-macros/body)
+(global-set-key (kbd "C-c M") 'hydra-macros/body)
 ```
 
 
-### Hydra Youtube dl
+## Hydra Youtube dl
 
 ```emacs-lisp
 (defhydra hydra-ytdl (:color teal
@@ -863,7 +849,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 ```
 
 
-### Hydra Eyebrowse
+## Hydra Eyebrowse
 
 ```emacs-lisp
 (defhydra hydra-eyebrowse (:color amaranth :hint nil)
@@ -892,68 +878,73 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("8" eyebrowse-switch-to-window-config-8 nil)
   ("9" eyebrowse-switch-to-window-config-9 nil))
 
-(global-set-key (kbd "<f2>") 'hydra-eyebrowse/body)
+(global-set-key (kbd "C-c e") 'hydra-eyebrowse/body)
 ```
 
 
-### Bookmarks
+## Hydra dump jump
 
-```emacs-lisp
-(defhydra hydra-bookmarks (:color teal
-				  :hint nil)
-  ("m" bookmark-set "set")
-  ("b" bookmark-jump "jump")
-  ("l" list-bookmarks "list")
-  ("s" bookmark-save "save")
-  ("q" nil "quit"))
-```
-
-
-### Hydra dump jump
+<https://github.com/jacktasia/dumb-jump>
 
 ```emacs-lisp
 (defhydra hydra-dumb-jump (:color teal :columns 3)
   "Dumb Jump"
   ("q" nil "quit")
-  ("<f3>" nil "quit")
   ("j" dumb-jump-go "Go")
   ("o" dumb-jump-go-other-window "Other window")
   ("e" dumb-jump-go-prefer-external "Go external")
-  ("x" dumb-jump-go-prefer-external-other-window "Go external other window")
   ("i" dumb-jump-go-prompt "Prompt")
   ("l" dumb-jump-quick-look "Quick look")
-  ("b" dumb-jump-back "Back"))
-
-(global-set-key (kbd "<f3>") 'hydra-dumb-jump/body)
+  ("b" dumb-jump-back "Back")
+  ("x" dumb-jump-go-prefer-external-other-window "Go external other window"))
 ```
 
 
-### Hydra lsp
+## Hydra IDE
 
 ```emacs-lisp
-(defhydra hydra-lsp (:color teal
+(defhydra hydra-ide (:color teal
 			    :hint nil)
-  "
-  _b_:ack  _j_:ump def  _d_:ecl  _D_:escribe  _h_:ighlight  _H_:ighlight doc
-  _l_:ens  _r_:ename _L_: avy lens
-  "
   ("q" nil "quit")
-  ("b" xref-pop-marker-stack)
-  ("j" lsp-find-definition)
-  ("d" lsp-find-declaration)
-  ("D" lsp-describe-thing-at-point)
-  ("H" lsp-document-highlight)
-  ("h" lsp-toggle-symbol-highlight)
-  ("l" lsp-lens-mode)
-  ("r" lsp-rename)
-  ("L" lsp-avy-lens)
-  ("f" lsp-format-region))
+  ("l" hydra-lsp/body "lsp" :column "IDE features")
+  ("d" hydra-dumb-jump/body "dumb-jump"))
 
-(global-set-key (kbd "<f6>") 'hydra-lsp/body)
+(global-set-key (kbd "C-c i") 'hydra-ide/body)
 ```
 
 
-### Hydra Org Roam
+## Hydra lsp
+
+<https://github.com/abo-abo/hydra/wiki/lsp-mode>
+
+```emacs-lisp
+(defhydra hydra-lsp (:exit t :hint nil)
+  "
+ Buffer^^               Server^^                   Symbol
+-------------------------------------------------------------------------------------
+ [_f_] format           [_M-r_] restart            [_d_] declaration  [_i_] implementation  [_o_] documentation
+ [_m_] imenu            [_S_]   shutdown           [_D_] definition   [_t_] type            [_r_] rename
+ [_x_] execute action   [_M-s_] describe session   [_R_] references   [_s_] signature"
+  ("d" lsp-find-declaration)
+  ("D" lsp-ui-peek-find-definitions)
+  ("R" lsp-ui-peek-find-references)
+  ("i" lsp-ui-peek-find-implementation)
+  ("t" lsp-find-type-definition)
+  ("s" lsp-signature-help)
+  ("o" lsp-describe-thing-at-point)
+  ("r" lsp-rename)
+
+  ("f" lsp-format-buffer)
+  ("m" lsp-ui-imenu)
+  ("x" lsp-execute-code-action)
+
+  ("M-s" lsp-describe-session)
+  ("M-r" lsp-restart-workspace)
+  ("S" lsp-shutdown-workspace))
+```
+
+
+## Hydra Org Roam
 
 ```emacs-lisp
 (defhydra hydra-roam (:color teal
@@ -974,7 +965,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-### Hydra frames
+## Hydra frames
 
 ```emacs-lisp
 (defhydra hydra-frames-windows (:color teal
@@ -1026,7 +1017,20 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-## Ivy
+# Bookmarks
+
+```emacs-lisp
+(defhydra hydra-bookmarks (:color teal
+				  :hint nil)
+  ("m" bookmark-set "set")
+  ("b" bookmark-jump "jump")
+  ("l" list-bookmarks "list")
+  ("s" bookmark-save "save")
+  ("q" nil "quit"))
+```
+
+
+# Ivy
 
 ```emacs-lisp
 ;;; Global
@@ -1057,7 +1061,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-## Regular expressions
+# Regular expressions
 
 ```emacs-lisp
 (use-package visual-regexp-steroids
@@ -1066,7 +1070,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-## Kill ring
+# Kill ring
 
 ```emacs-lisp
 (use-package popup-kill-ring
@@ -1075,7 +1079,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-## Which-key
+# Which-key
 
 ```emacs-lisp
 (use-package which-key
@@ -1084,7 +1088,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-## Modeline
+# Modeline
 
 ```emacs-lisp
 (display-time-mode t)
@@ -1103,7 +1107,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-## Parentheses
+# Parentheses
 
 ```emacs-lisp
 (use-package smartparens
@@ -1124,7 +1128,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-## Buffer-move
+# Buffer-move
 
 ```emacs-lisp
 (use-package buffer-move
@@ -1133,7 +1137,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 ```
 
 
-## Toggle window split
+# Toggle window split
 
 From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 
@@ -1165,7 +1169,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Ace-window
+# Ace-window
 
 ```emacs-lisp
 (use-package ace-window
@@ -1174,7 +1178,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Ace-link
+# Ace-link
 
 ```emacs-lisp
 (use-package ace-link
@@ -1184,7 +1188,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Multiple cursors
+# Multiple cursors
 
 ```emacs-lisp
 (use-package multiple-cursors
@@ -1195,7 +1199,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Avy
+# Avy
 
 ```emacs-lisp
 (use-package avy
@@ -1204,17 +1208,18 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Undo-tree
+# Undo-tree
 
 ```emacs-lisp
 (use-package undo-tree
   :straight t
   :bind (("C-x u" . undo-tree-visualize))
+  :diminish undo-tree-mode
   :config (global-undo-tree-mode))
 ```
 
 
-## Dired
+# Dired
 
 ```emacs-lisp
 (use-package dired
@@ -1283,7 +1288,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Windows management
+# Windows management
 
 ```emacs-lisp
 (use-package eyebrowse
@@ -1293,7 +1298,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Smart region expanding
+# Smart region expanding
 
 ```emacs-lisp
 (use-package expand-region
@@ -1302,7 +1307,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Tool bar, menu bar, line numbering etc
+# Tool bar, menu bar, line numbering etc
 
 ```emacs-lisp
 ;;; Variables
@@ -1319,7 +1324,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Change backup/autosave folder
+# Change backup/autosave folder
 
 ```emacs-lisp
 ;;; Change the backup/autosave folder.
@@ -1331,7 +1336,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Sticky buffers
+# Sticky buffers
 
 <https://lists.gnu.org/archive/html/help-gnu-emacs/2007-05/msg00975.html>
 
@@ -1343,7 +1348,7 @@ From <https://www.emacswiki.org/emacs/ToggleWindowSplit>
 ```
 
 
-## Read process output
+# Read process output
 
 Sets read-process-output-max to 1mb since the default is low. This should improve things that use servers like LSP.
 
@@ -1352,22 +1357,14 @@ Sets read-process-output-max to 1mb since the default is low. This should improv
 ```
 
 
-## Spell checking
-
-I use aspell for spell checking.
-
-
-### Config
+# Spell checking
 
 ```emacs-lisp
 (defvar ispell-program-name "aspell")
 ```
 
 
-## Diminish
-
-
-### Config
+# Diminish
 
 ```emacs-lisp
 (diminish 'visual-line-mode)
@@ -1376,7 +1373,7 @@ I use aspell for spell checking.
 ```
 
 
-## Treemacs
+# Treemacs
 
 ```emacs-lisp
 (use-package treemacs
@@ -1385,7 +1382,7 @@ I use aspell for spell checking.
 ```
 
 
-## Display commands
+# Display commands
 
 ```emacs-lisp
 (use-package command-log-mode
@@ -1394,10 +1391,7 @@ I use aspell for spell checking.
 ```
 
 
-# Programs
-
-
-## Password manager
+# Password manager
 
 Requires pass.
 
@@ -1408,7 +1402,7 @@ Requires pass.
 ```
 
 
-## Debbugs
+# Debbugs
 
 ```emacs-lisp
 (use-package debbugs
@@ -1417,15 +1411,15 @@ Requires pass.
 ```
 
 
-## PDF
+# PDF
 
 
-### Requirements
+## Requirements
 
 See <https://github.com/politza/pdf-tools>.
 
 
-### Config
+## Config
 
 ```emacs-lisp
 (use-package pdf-tools
@@ -1434,7 +1428,7 @@ See <https://github.com/politza/pdf-tools>.
 ```
 
 
-## EMMS
+# EMMS
 
 I use mpd/mpc to play music. I used Uncle Dave's config as a reference for the following settings.
 
@@ -1484,15 +1478,15 @@ I use mpd/mpc to play music. I used Uncle Dave's config as a reference for the f
 ```
 
 
-## RSS
+# RSS
 
 
-### Requirements
+## Requirements
 
 cURL.
 
 
-### Config
+## Config
 
 ```emacs-lisp
 (use-package elfeed
@@ -1614,9 +1608,41 @@ Saves to a temp file and puts the filename in the kill ring."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-names-vector
+   ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
  '(custom-enabled-themes '(doom-acario-light use-package))
  '(custom-safe-themes
-   '("f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default)))
+   '("7e5d400035eea68343be6830f3de7b8ce5e75f7ac7b8337b5df492d023ee8483" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default))
+ '(fci-rule-color "#4E4E4E")
+ '(jdee-db-active-breakpoint-face-colors (cons "#D0D0E3" "#009B7C"))
+ '(jdee-db-requested-breakpoint-face-colors (cons "#D0D0E3" "#005F00"))
+ '(jdee-db-spec-breakpoint-face-colors (cons "#D0D0E3" "#4E4E4E"))
+ '(objed-cursor-color "#D70000")
+ '(pdf-view-midnight-colors (cons "#0F1019" "#F5F5F9"))
+ '(rustic-ansi-faces
+   ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
+ '(vc-annotate-background "#F5F5F9")
+ '(vc-annotate-color-map
+   (list
+    (cons 20 "#005F00")
+    (cons 40 "#3a6c00")
+    (cons 60 "#747900")
+    (cons 80 "#AF8700")
+    (cons 100 "#bc7900")
+    (cons 120 "#c96c00")
+    (cons 140 "#D75F00")
+    (cons 160 "#c93f1f")
+    (cons 180 "#bc1f3f")
+    (cons 200 "#AF005F")
+    (cons 220 "#bc003f")
+    (cons 240 "#c9001f")
+    (cons 260 "#D70000")
+    (cons 280 "#b41313")
+    (cons 300 "#922727")
+    (cons 320 "#703a3a")
+    (cons 340 "#4E4E4E")
+    (cons 360 "#4E4E4E")))
+ '(vc-annotate-very-old-color nil))
 ```
 
 
