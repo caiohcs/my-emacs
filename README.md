@@ -94,20 +94,12 @@ LSP gives Emacs IDE features.
 ```emacs-lisp
 (use-package lsp-mode
   :straight t
+  :config (setq lsp-diagnostic-package :flymake)
   :hook
   ((c++-mode . lsp)
    (c-mode . lsp)
    (js-mode . lsp)
    (python-mode . lsp)))
-```
-
-
-## Syntax checking
-
-```emacs-lisp
-(use-package flycheck
-  :straight t
-  :defer 4.3)
 ```
 
 
@@ -323,8 +315,6 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
   :hook (js-mode . tide-mode)
   :config
   (tide-setup)
-  (flycheck-mode)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
   (setq company-tooltip-align-annotations t)
   (eldoc-mode)
   (tide-hl-identifier-mode)
@@ -557,7 +547,6 @@ Tiny Is Not Yasnippet
   :straight auctex
   :defer t
   :hook (TeX-mode . (lambda ()
-		      (flycheck-mode)
 		      (company-mode)))
   :config
   (setq TeX-auto-save t)

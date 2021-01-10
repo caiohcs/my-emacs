@@ -46,15 +46,12 @@
 
 (use-package lsp-mode
   :straight t
+  :config (setq lsp-diagnostic-package :flymake)
   :hook
   ((c++-mode . lsp)
    (c-mode . lsp)
    (js-mode . lsp)
    (python-mode . lsp)))
-
-(use-package flycheck
-  :straight t
-  :defer 4.3)
 
 (use-package dumb-jump
   :straight t
@@ -180,8 +177,6 @@
   :hook (js-mode . tide-mode)
   :config
   (tide-setup)
-  (flycheck-mode)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
   (setq company-tooltip-align-annotations t)
   (eldoc-mode)
   (tide-hl-identifier-mode)
@@ -350,7 +345,6 @@
   :straight auctex
   :defer t
   :hook (TeX-mode . (lambda ()
-                      (flycheck-mode)
                       (company-mode)))
   :config
   (setq TeX-auto-save t)
@@ -1128,4 +1122,3 @@ Saves to a temp file and puts the filename in the kill ring."
 
 (setq gc-cons-threshold 100000000)
 (setq gc-cons-percentage 0.1)
-(put 'dired-find-alternate-file 'disabled nil)
