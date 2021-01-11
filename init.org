@@ -361,6 +361,8 @@ Tiny Is Not Yasnippet
        (emacs-lisp . t)
        (shell . t)
        (lisp . t)
+       (gnuplot . t)
+       (R . t)
        (C . t)))
     (setq org-src-window-setup 'current-window)
     (setq org-agenda-window-setup 'current-window))
@@ -450,11 +452,11 @@ Tiny Is Not Yasnippet
     :defer t)
 #+END_SRC
 
-*** Presentations
-**** Requirements
+** Presentations
+*** Requirements
 Requires reveal.js to create html presentations.
 
-**** Config
+*** Config
 #+BEGIN_SRC emacs-lisp :tangle yes
   ;; Package used to create presentations using reveal.js.
   ;; Requires the installation of reveaj.js.
@@ -464,6 +466,21 @@ Requires reveal.js to create html presentations.
     :config
     (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
 #+END_SRC
+
+* Plots
+** gnuplot
+#+begin_src emacs-lisp :tangle yes
+  (use-package gnuplot
+    :straight t
+    :defer t)
+#+end_src
+
+** R
+#+begin_src emacs-lisp :tangle yes
+  (use-package ess
+    :straight t
+    :defer t)
+#+end_src
 
 * LaTeX
 #+BEGIN_SRC emacs-lisp :tangle yes
