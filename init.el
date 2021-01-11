@@ -669,8 +669,8 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   _3_: split right       _\\^_: enlarge vertical     _-_: shrink vertical
   _{_: shrink horizontal _}_: enlarge horizontal   _+_: balance-windows
   _a_: ace-window        _t_: toggle-window-split
-  _<up>_/_<down>_/_<left>_/_<right>_: windmove-up/down/left/right
-  _M-<up>_/_M-<down>_/_M-<left>_/_M-<right>_: buf-move-up/down/left/right
+  _k_/_j_/_h_/_l_: windmove-up/down/left/right
+  _M-k_/_M-j_/_M-h_/_M-l_: buf-move-up/down/left/right
   "
   ;; Frame commands
   ("m" make-frame-command)
@@ -692,17 +692,27 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("+" balance-windows)
   ("t" toggle-window-split)
   ("a" ace-window)
-  ("<up>" windmove-up)
-  ("<down>" windmove-down)
-  ("<left>" windmove-left)
-  ("<right>" windmove-right)
-  ("M-<up>" buf-move-up)
-  ("M-<down>" buf-move-down)
-  ("M-<left>" buf-move-left)
-  ("M-<right>" buf-move-right)
+  ("k" windmove-up)
+  ("j" windmove-down)
+  ("h" windmove-left)
+  ("l" windmove-right)
+  ("M-k" buf-move-up)
+  ("M-j" buf-move-down)
+  ("M-h" buf-move-left)
+  ("M-l" buf-move-right)
   ("q" nil))
 
 (global-set-key (kbd "C-z") 'hydra-frames-windows/body)
+
+(use-package ledger-mode
+  :straight t
+  :mode "\\.dat\\'"
+  :config
+  (setq ledger-reports
+        '(("bal" "gpg2 --decrypt %(ledger-file) 2>/dev/null | %(binary) -f - bal")
+          ("reg" "gpg2 --decrypt %(ledger-file) 2>/dev/null | %(binary) -f - reg")
+          ("payee" "gpg2 --decrypt %(ledger-file) 2>/dev/null | %(binary) -f - reg @%(payee)")
+          ("account" "gpg2 --decrypt %(ledger-file) 2>/dev/null | %(binary) -f - reg %(account)"))))
 
 (defhydra hydra-bookmarks (:color teal
                                   :hint nil)
