@@ -76,6 +76,13 @@ Company is a text completion framework.
   (use-package company-quickhelp
     :straight t
     :hook (company-mode . company-quickhelp-local-mode))
+
+
+  (use-package company-prescient
+    :straight t
+    :after company
+    :config
+    (company-prescient-mode))
 #+END_SRC
 
 ** Language Server Protocol
@@ -931,6 +938,15 @@ https://github.com/abo-abo/hydra/wiki/lsp-mode
     ("q" nil "quit"))
 #+END_SRC
 
+* Prescient
+#+begin_src  emacs-lisp :tangle yes
+  (use-package prescient
+    :straight t
+    :defer t
+    :config
+    (setq prescient-sort-length-enable nil))
+#+end_src
+
 * Ivy
 #+BEGIN_SRC emacs-lisp :tangle yes
   ;;; Global
@@ -958,6 +974,12 @@ https://github.com/abo-abo/hydra/wiki/lsp-mode
   (use-package ivy-avy
     :straight t
     :after (ivy avy))
+
+  (use-package ivy-prescient
+    :straight t
+    :after counsel
+    :config
+    (ivy-prescient-mode))
 #+END_SRC
 
 * Regular expressions
