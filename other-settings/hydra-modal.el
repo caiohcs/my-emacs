@@ -60,10 +60,10 @@ Objects:
   ("b" (setq hydra-modal--modifier-backwards t) :color red)
   ("i" (progn
 	 (call-interactively (lambda (arg) (interactive "c") (setq hydra-modal--modifier-inside arg)))
-	 (funcall hydra-modal--active-verb-function 'another)))
+	 (funcall hydra-modal--active-verb 'another)))
   ("u" (progn
 	 (call-interactively (lambda (arg) (interactive "c") (setq hydra-modal--modifier-until arg)))
-	 (funcall hydra-modal--active-verb-function 'another)))
+	 (funcall hydra-modal--active-verb 'another)))
   ("w" (funcall hydra-modal--active-verb 'word))
   ("l" (funcall hydra-modal--active-verb 'line))
   ("p" (funcall hydra-modal--active-verb 'paragraph))
