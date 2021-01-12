@@ -15,6 +15,120 @@ This is my Emacs configuration, I use it for:
 -   Wiki
 -   Blog
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [My Emacs configuration](#my-emacs-configuration)
+- [Installation](#installation)
+- [Straight](#straight)
+- [Programming](#programming)
+    - [Magit](#magit)
+    - [Company](#company)
+    - [Language Server Protocol](#language-server-protocol)
+    - [Jump to definition](#jump-to-definition)
+        - [Requirements](#requirements)
+        - [Config](#config)
+    - [C and C++](#c-and-c)
+        - [Requirements](#requirements-1)
+        - [Config](#config-1)
+    - [Golang](#golang)
+        - [Requirements](#requirements-2)
+        - [Config](#config-2)
+    - [Lisp](#lisp)
+        - [Config](#config-3)
+    - [Scheme](#scheme)
+    - [Clojure](#clojure)
+    - [Python](#python)
+    - [Haskell](#haskell)
+    - [Web](#web)
+        - [HTML/CSS](#htmlcss)
+        - [HTTP](#http)
+        - [JS](#js)
+    - [Yaml](#yaml)
+    - [Docker](#docker)
+    - [Yasnippet](#yasnippet)
+        - [Config](#config-4)
+        - [Tiny](#tiny)
+- [Dashboard](#dashboard)
+- [Org](#org)
+    - [Config](#config-5)
+    - [Roam](#roam)
+    - [Exporting](#exporting)
+    - [Presentations](#presentations)
+        - [Requirements](#requirements-3)
+        - [Config](#config-6)
+- [Plots](#plots)
+    - [gnuplot](#gnuplot)
+    - [R](#r)
+- [Markdown](#markdown)
+- [LaTeX](#latex)
+- [Theme](#theme)
+- [Hydra](#hydra)
+    - [Hydra Modal editing](#hydra-modal-editing)
+    - [Hydra EMMS](#hydra-emms)
+    - [Hydra to launch programs](#hydra-to-launch-programs)
+    - [Hydra dictionary](#hydra-dictionary)
+    - [Hydra ispell](#hydra-ispell)
+    - [Hydra multiple cursors](#hydra-multiple-cursors)
+    - [Hydra project](#hydra-project)
+    - [Hydra AVY](#hydra-avy)
+    - [Hydra macros](#hydra-macros)
+    - [Hydra Youtube dl](#hydra-youtube-dl)
+    - [Hydra Eyebrowse](#hydra-eyebrowse)
+    - [Hydra dump jump](#hydra-dump-jump)
+    - [Hydra IDE](#hydra-ide)
+    - [Hydra lsp](#hydra-lsp)
+    - [Hydra Org Roam](#hydra-org-roam)
+    - [Hydra frames](#hydra-frames)
+- [Ledger](#ledger)
+- [Bookmarks](#bookmarks)
+- [Prescient](#prescient)
+- [Ivy](#ivy)
+- [Regular expressions](#regular-expressions)
+- [Kill ring](#kill-ring)
+- [Which-key](#which-key)
+- [Modeline](#modeline)
+- [Parentheses](#parentheses)
+- [Buffer-move](#buffer-move)
+- [Toggle window split](#toggle-window-split)
+- [Ace-window](#ace-window)
+- [Ace-link](#ace-link)
+- [Multiple cursors](#multiple-cursors)
+- [Avy](#avy)
+- [Undo-tree](#undo-tree)
+- [Dired](#dired)
+- [Windows management](#windows-management)
+- [Smart region expanding](#smart-region-expanding)
+- [Tool bar, menu bar, line numbering etc](#tool-bar-menu-bar-line-numbering-etc)
+- [Change backup/autosave folder](#change-backupautosave-folder)
+- [Sticky buffers](#sticky-buffers)
+- [Read process output](#read-process-output)
+- [Spell checking](#spell-checking)
+- [Diminish](#diminish)
+- [Treemacs](#treemacs)
+- [Display commands](#display-commands)
+- [Password manager](#password-manager)
+- [Debbugs](#debbugs)
+- [PDF](#pdf)
+    - [Requirements](#requirements-4)
+    - [Config](#config-7)
+- [EMMS](#emms)
+- [RSS](#rss)
+    - [Requirements](#requirements-5)
+    - [Config](#config-8)
+    - [Youtube-dl](#youtube-dl)
+    - [EXWM](#exwm)
+    - [Screenshots](#screenshots)
+- [Bookmarks](#bookmarks-1)
+- [Blog](#blog)
+- [Webjump](#webjump)
+- [Gnus](#gnus)
+- [Theme](#theme-1)
+- [Auto tangle this file on save](#auto-tangle-this-file-on-save)
+- [Reduce gc-threshold](#reduce-gc-threshold)
+
+<!-- markdown-toc end -->
+
 
 # Installation
 
@@ -79,11 +193,47 @@ Company is a text completion framework.
 	      ("C-p" . 'company-select-previous))
   :hook ((emacs-lisp-mode . company-mode)
 	 (lisp-mode . company-mode)
-	 (sly-mrepl-mode . company-mode)))
+	 (sly-mrepl-mode . company-mode))
+  :config
+  (setq company-idle-delay 0)
+
+  ;; Using digits to select company-mode candidates
+  ;; https://oremacs.com/2017/12/27/company-numbers/
+  (setq company-show-numbers t)
+
+  (let ((map company-active-map))
+    (mapc
+     (lambda (x)
+       (define-key map (format "%d" x) 'ora-company-number))
+     (number-sequence 0 9))
+    (define-key map " " (lambda ()
+			  (interactive)
+			  (company-abort)
+			  (self-insert-command 1)))
+    (define-key map (kbd "<return>") nil))
+
+  (defun ora-company-number ()
+    "Forward to `company-complete-number'.
+
+Unless the number is potentially part of the candidate.
+In that case, insert the number."
+    (interactive)
+    (let* ((k (this-command-keys))
+	   (re (concat "^" company-prefix k)))
+      (if (cl-find-if (lambda (s) (string-match re s))
+		      company-candidates)
+	  (self-insert-command 1)
+	(company-complete-number (string-to-number k))))))
 
 (use-package company-quickhelp
   :straight t
   :hook (company-mode . company-quickhelp-local-mode))
+
+(use-package company-prescient
+  :straight t
+  :after company
+  :config
+  (company-prescient-mode))
 ```
 
 
@@ -427,6 +577,8 @@ Tiny Is Not Yasnippet
      (emacs-lisp . t)
      (shell . t)
      (lisp . t)
+     (gnuplot . t)
+     (R . t)
      (C . t)))
   (setq org-src-window-setup 'current-window)
   (setq org-agenda-window-setup 'current-window))
@@ -521,23 +673,55 @@ Tiny Is Not Yasnippet
 ```
 
 
-### Presentations
+## Presentations
 
-1.  Requirements
 
-    Requires reveal.js to create html presentations.
+### Requirements
 
-2.  Config
+Requires reveal.js to create html presentations.
 
-    ```emacs-lisp
-    ;; Package used to create presentations using reveal.js.
-    ;; Requires the installation of reveaj.js.
-    (use-package ox-reveal
-      :straight t
-      :defer t
-      :config
-      (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
-    ```
+
+### Config
+
+```emacs-lisp
+;; Package used to create presentations using reveal.js.
+;; Requires the installation of reveaj.js.
+(use-package ox-reveal
+  :straight t
+  :defer t
+  :config
+  (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
+```
+
+
+# Plots
+
+
+## gnuplot
+
+```emacs-lisp
+(use-package gnuplot
+  :straight t
+  :defer t)
+```
+
+
+## R
+
+```emacs-lisp
+(use-package ess
+  :straight t
+  :defer t)
+```
+
+
+# Markdown
+
+```emacs-lisp
+(use-package markdown-toc
+  :straight t
+  :defer t)
+```
 
 
 # LaTeX
@@ -969,8 +1153,8 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   _3_: split right       _\\^_: enlarge vertical     _-_: shrink vertical
   _{_: shrink horizontal _}_: enlarge horizontal   _+_: balance-windows
   _a_: ace-window        _t_: toggle-window-split
-  _<up>_/_<down>_/_<left>_/_<right>_: windmove-up/down/left/right
-  _M-<up>_/_M-<down>_/_M-<left>_/_M-<right>_: buf-move-up/down/left/right
+  _k_/_j_/_h_/_l_: windmove-up/down/left/right
+  _M-k_/_M-j_/_M-h_/_M-l_: buf-move-up/down/left/right
   "
   ;; Frame commands
   ("m" make-frame-command)
@@ -992,17 +1176,32 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("+" balance-windows)
   ("t" toggle-window-split)
   ("a" ace-window)
-  ("<up>" windmove-up)
-  ("<down>" windmove-down)
-  ("<left>" windmove-left)
-  ("<right>" windmove-right)
-  ("M-<up>" buf-move-up)
-  ("M-<down>" buf-move-down)
-  ("M-<left>" buf-move-left)
-  ("M-<right>" buf-move-right)
+  ("k" windmove-up)
+  ("j" windmove-down)
+  ("h" windmove-left)
+  ("l" windmove-right)
+  ("M-k" buf-move-up)
+  ("M-j" buf-move-down)
+  ("M-h" buf-move-left)
+  ("M-l" buf-move-right)
   ("q" nil))
 
 (global-set-key (kbd "C-z") 'hydra-frames-windows/body)
+```
+
+
+# Ledger
+
+```emacs-lisp
+(use-package ledger-mode
+  :straight t
+  :mode "\\.dat\\'"
+  :config
+  (setq ledger-reports
+	'(("bal" "gpg2 --decrypt %(ledger-file) 2>/dev/null | %(binary) -f - bal")
+	  ("reg" "gpg2 --decrypt %(ledger-file) 2>/dev/null | %(binary) -f - reg")
+	  ("payee" "gpg2 --decrypt %(ledger-file) 2>/dev/null | %(binary) -f - reg @%(payee)")
+	  ("account" "gpg2 --decrypt %(ledger-file) 2>/dev/null | %(binary) -f - reg %(account)"))))
 ```
 
 
@@ -1016,6 +1215,19 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("l" list-bookmarks "list")
   ("s" bookmark-save "save")
   ("q" nil "quit"))
+```
+
+
+# Prescient
+
+```emacs-lisp
+(use-package prescient
+  :straight t
+  :defer t
+  :config
+  (setq prescient-sort-length-enable nil)
+  (setq prescient-save-file (concat user-emacs-directory "personal-settings/prescient-save.el"))
+  (prescient-persist-mode))
 ```
 
 
@@ -1047,6 +1259,13 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 (use-package ivy-avy
   :straight t
   :after (ivy avy))
+
+(use-package ivy-prescient
+  :straight t
+  :after counsel
+  :config
+  (ivy-prescient-mode)
+  (setq ivy-initial-inputs-alist ivy-prescient--old-initial-inputs-alist))
 ```
 
 

@@ -38,11 +38,47 @@
               ("C-p" . 'company-select-previous))
   :hook ((emacs-lisp-mode . company-mode)
          (lisp-mode . company-mode)
-         (sly-mrepl-mode . company-mode)))
+         (sly-mrepl-mode . company-mode))
+  :config
+  (setq company-idle-delay 0)
+
+  ;; Using digits to select company-mode candidates
+  ;; https://oremacs.com/2017/12/27/company-numbers/
+  (setq company-show-numbers t)
+
+  (let ((map company-active-map))
+    (mapc
+     (lambda (x)
+       (define-key map (format "%d" x) 'ora-company-number))
+     (number-sequence 0 9))
+    (define-key map " " (lambda ()
+                          (interactive)
+                          (company-abort)
+                          (self-insert-command 1)))
+    (define-key map (kbd "<return>") nil))
+
+  (defun ora-company-number ()
+    "Forward to `company-complete-number'.
+
+Unless the number is potentially part of the candidate.
+In that case, insert the number."
+    (interactive)
+    (let* ((k (this-command-keys))
+           (re (concat "^" company-prefix k)))
+      (if (cl-find-if (lambda (s) (string-match re s))
+                      company-candidates)
+          (self-insert-command 1)
+        (company-complete-number (string-to-number k))))))
 
 (use-package company-quickhelp
   :straight t
   :hook (company-mode . company-quickhelp-local-mode))
+
+(use-package company-prescient
+  :straight t
+  :after company
+  :config
+  (company-prescient-mode))
 
 (use-package lsp-mode
   :straight t
@@ -251,6 +287,8 @@
      (emacs-lisp . t)
      (shell . t)
      (lisp . t)
+     (gnuplot . t)
+     (R . t)
      (C . t)))
   (setq org-src-window-setup 'current-window)
   (setq org-agenda-window-setup 'current-window))
@@ -340,6 +378,18 @@
   :defer t
   :config
   (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
+
+(use-package gnuplot
+  :straight t
+  :defer t)
+
+(use-package ess
+  :straight t
+  :defer t)
+
+(use-package markdown-toc
+  :straight t
+  :defer t)
 
 (use-package tex
   :straight auctex
@@ -722,6 +772,14 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("s" bookmark-save "save")
   ("q" nil "quit"))
 
+(use-package prescient
+  :straight t
+  :defer t
+  :config
+  (setq prescient-sort-length-enable nil)
+  (setq prescient-save-file (concat user-emacs-directory "personal-settings/prescient-save.el"))
+  (prescient-persist-mode))
+
 ;;; Global
 ;; Ivy is a generic completion tool
 (use-package ivy
@@ -747,6 +805,13 @@ _0_: switch to 0      ^^...       _9_: switch to 9
 (use-package ivy-avy
   :straight t
   :after (ivy avy))
+
+(use-package ivy-prescient
+  :straight t
+  :after counsel
+  :config
+  (ivy-prescient-mode)
+  (setq ivy-initial-inputs-alist ivy-prescient--old-initial-inputs-alist))
 
 (use-package visual-regexp-steroids
   :straight t
@@ -1132,3 +1197,4 @@ Saves to a temp file and puts the filename in the kill ring."
 
 (setq gc-cons-threshold 100000000)
 (setq gc-cons-percentage 0.1)
+(put 'dired-find-alternate-file 'disabled nil)
