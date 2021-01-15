@@ -276,7 +276,8 @@ In that case, insert the number."
   :mode ("\\.org\\'" . org-mode)
   :diminish org-indent-mode
   :config
-  (setq org-agenda-files (list "~/notes/agenda.org"))
+  (setq org-agenda-files "~/notes/agenda.org")
+  (setq org-directory "~/notes")
   (require 'ox-html)
   (require 'ox-latex)
   (require 'ox-md)
@@ -487,9 +488,9 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 (defhydra hydra-programs (:color teal
                              :hint nil)
   "
-  _B_:rowser _a_:genda    _e_:lfeed _p_:ass    _y_:tdl
-  _g_:nus    _D_:ebbugs   _s_:hell  _w_:ebjump _d_:ictionary
-  _i_:spell  _b_:ookmarks _E_:ww
+  _B_:rowser _a_:genda    _e_:lfeed _p_:ass     _y_:tdl
+  _g_:nus    _D_:ebbugs   _s_:hell  _w_:ebjump  _d_:ictionary
+  _i_:spell  _b_:ookmarks _E_:ww    _r_:ecentf  _c_:alc
   "
   ("q" nil "quit")
   ("B" (exwm-async-run "chromium"))
@@ -500,6 +501,8 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("e" elfeed)
   ("E" eww-search-words)
   ("p" pass)
+  ("c" calc)
+  ("r" counsel-recentf)
   ("g" gnus)
   ("D" debbugs-gnu)
   ("s" eshell)
@@ -620,34 +623,6 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
   ("l" ytdl-show-list)
   ("p" ytdl-download-playlist))
 
-(defhydra hydra-eyebrowse (:color amaranth :hint nil)
-  "
-%s(eyebrowse-mode-line-indicator)
-_p_: prev wind   _c_: creat wind  _r_: renam wind
-_n_: next wind   _C_: close wind  _l_: last wind
-_0_: switch to 0      ^^...       _9_: switch to 9   
-  "
-  ("q" nil "quit")
-  ("<f2>" nil "quit")
-  ("p" eyebrowse-prev-window-config nil)
-  ("n" eyebrowse-next-window-config nil)
-  ("l" eyebrowse-last-window-config nil)
-  ("r" eyebrowse-rename-window-config nil)
-  ("c" eyebrowse-create-window-config nil)
-  ("C" eyebrowse-close-window-config nil)
-  ("0" eyebrowse-switch-to-window-config-0 nil)
-  ("1" eyebrowse-switch-to-window-config-1 nil)
-  ("2" eyebrowse-switch-to-window-config-2 nil)
-  ("3" eyebrowse-switch-to-window-config-3 nil)
-  ("4" eyebrowse-switch-to-window-config-4 nil)
-  ("5" eyebrowse-switch-to-window-config-5 nil)
-  ("6" eyebrowse-switch-to-window-config-6 nil)
-  ("7" eyebrowse-switch-to-window-config-7 nil)
-  ("8" eyebrowse-switch-to-window-config-8 nil)
-  ("9" eyebrowse-switch-to-window-config-9 nil))
-
-(global-set-key (kbd "C-c e") 'hydra-eyebrowse/body)
-
 (defhydra hydra-dumb-jump (:color teal :columns 3)
   "Dumb Jump"
   ("q" nil "quit")
@@ -718,10 +693,10 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   _0_: delete-window     _1_: delete-other-window  _2_: split below
   _3_: split right       _\\^_: enlarge vertical     _-_: shrink vertical
   _{_: shrink horizontal _}_: enlarge horizontal   _+_: balance-windows
-  _a_: ace-window        _t_: toggle-window-split
+  _a_: ace-window        _t_: toggle-window-split  _O_: other-window
   _k_/_j_/_h_/_l_: windmove-up/down/left/right
   _M-k_/_M-j_/_M-h_/_M-l_: buf-move-up/down/left/right
-  "
+  Tab hydra: _T_"
   ;; Frame commands
   ("m" make-frame-command)
   ("b" switch-to-buffer-other-frame)
@@ -742,6 +717,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("+" balance-windows)
   ("t" toggle-window-split)
   ("a" ace-window)
+  ("O" other-window)
   ("k" windmove-up)
   ("j" windmove-down)
   ("h" windmove-left)
@@ -750,9 +726,29 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   ("M-j" buf-move-down)
   ("M-h" buf-move-left)
   ("M-l" buf-move-right)
+  ;; Tab hydra
+  ("T" hydra-tab/body)
   ("q" nil))
 
 (global-set-key (kbd "C-z") 'hydra-frames-windows/body)
+
+(defhydra hydra-tab (:color teal
+                            :hint nil)
+  "
+  tab-bar commands:
+  _2_: tab-new  _<tab>_: tab-next      _C-<tab>_: tab-previous  _b_: switch-to-buffer-other-tab
+  _u_: tab-undo  _d_: dired-other-tab  _r_: tab-rename         _<RET>_: tab-bar-select-tab-by-name
+  "
+  ("q" nil "quit")
+  ("2" tab-new)
+  ("r" tab-rename)
+  ("b" switch-to-buffer-other-tab)
+  ("f" find-file-other-tab)
+  ("<RET>" tab-bar-select-tab-by-name)
+  ("C-<tab>" tab-previous)
+  ("<tab>" tab-next)
+  ("u" tab-undo)
+  ("d" dired-other-tab))
 
 (use-package ledger-mode
   :straight t
@@ -913,6 +909,7 @@ _0_: switch to 0      ^^...       _9_: switch to 9
   :hook (dired-mode . dired-omit-mode)
   :bind (:map dired-mode-map
               ("<return>" . dired-find-alternate-file)
+              ("C-<return>" . dired-find-file)
               ("<dead-circumflex>" . dired-up-directory)
               ("E" . image-dired)
               ("J" . dired-omit-mode)))
@@ -972,11 +969,6 @@ _0_: switch to 0      ^^...       _9_: switch to 9
                                              "vcd" "vmdk" "bak"))
   (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
   (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
-
-(use-package eyebrowse
-  :straight t
-  :defer 3.4
-  :config (eyebrowse-mode t))
 
 (use-package expand-region
   :straight t
@@ -1197,4 +1189,3 @@ Saves to a temp file and puts the filename in the kill ring."
 
 (setq gc-cons-threshold 100000000)
 (setq gc-cons-percentage 0.1)
-(put 'dired-find-alternate-file 'disabled nil)
