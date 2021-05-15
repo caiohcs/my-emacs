@@ -19,7 +19,28 @@ This is my Emacs configuration, I use it for:
 - Blog
 
 * Installation
-- Copy files to ~/.config/emacs or ~/.emacs.d/ 
+#+begin_src bash
+  git clone https://github.com/caiohcs/my-emacs
+  cd my-emacs
+  ln -s $PWD/init.el ~/.config/emacs/
+  ln -s $PWD/other-settings/ ~/.config/emacs/
+  ln -s $PWD/early-init.el ~/.config/emacs/
+#+end_src
+
+* Font
+#+begin_src emacs-lisp :tangle yes
+  (set-face-attribute 'default nil
+                      :family "Monaco"
+                      :height 110
+                      :weight 'normal
+                      :width 'normal)
+#+end_src
+
+* Enable commands
+#+begin_src emacs-lisp :tangle yes
+  (put 'dired-find-alternate-file 'disabled nil)
+#+end_src
+
 
 * Straight
 #+begin_src emacs-lisp :tangle yes
@@ -115,7 +136,7 @@ Company is a text completion framework.
 #+END_SRC
 
 ** Language Server Protocol
-LSP gives Emacs IDE features. 
+LSP gives Emacs IDE features.
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package lsp-mode
     :straight t
@@ -123,8 +144,7 @@ LSP gives Emacs IDE features.
     :hook
     ((c++-mode . lsp)
      (c-mode . lsp)
-     (js-mode . lsp)
-     (python-mode . lsp)))
+     (js-mode . lsp)))
 #+END_SRC
 
 ** Jump to definition
@@ -242,12 +262,33 @@ We can install gocode with go get, then we need to create a symbolic link at /us
 #+BEGIN_SRC emacs-lisp :tangle yes
   (use-package elpy
     :straight t
-    :hook (python-mode . elpy-enable)
+    :hook ((python-mode . elpy-enable)
+           (python-mode . display-line-numbers-mode))
     :config (setq elpy-rpc-backend "jedi"))
+
+  (use-package lsp-jedi
+    :disabled t
+    :config
+    (with-eval-after-load "lsp-mode"
+      (add-to-list 'lsp-disabled-clients 'pyls)
+      (add-to-list 'lsp-enabled-clients 'jedi)))
 
   (use-package lpy
     :straight t
     :hook (python-mode . lpy-mode))
+
+  (use-package dap-mode
+    :straight t
+    :config (require 'dap-python)
+    :after elpy)
+
+  (use-package pytest
+    :straight t
+    :after elpy)
+
+  (use-package pyenv
+    :straight (:host github :repo "aiguofer/pyenv.el")
+    :hook (python-mode . global-pyenv-mode))
 #+END_SRC
 
 ** Haskell
@@ -576,7 +617,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
     :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
                              (custom-available-themes))))
 
-  (defvar toggle-light-dark-theme--current-theme 'light)
+  (defvar toggle-light-dark-theme--current-theme 'dark)
 
   (defun toggle-light-dark-theme ()
     "Disables all custom enabled themes and then toggles between a
@@ -765,7 +806,7 @@ There is a function bound to <f5> to switch between light mode and dark mode.
   (defhydra hydra-macros (:color teal
                                  :hint nil)
     "
-    _r_: region  _e_: execute   _c_: counter  _f_: format  
+    _r_: region  _e_: execute   _c_: counter  _f_: format
     _n_: next    _p_: previous  _i_: insert   _q_: query
    _(_: start  _)_: stop
     "
@@ -1476,9 +1517,9 @@ Requires Emacs built with cairo.
    ;; If there is more than one, they won't work right.
    '(ansi-color-names-vector
      ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
-   '(custom-enabled-themes '(doom-acario-light use-package))
+   '(custom-enabled-themes '(kaolin-galaxy))
    '(custom-safe-themes
-     '("7e5d400035eea68343be6830f3de7b8ce5e75f7ac7b8337b5df492d023ee8483" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default))
+     '("11cc65061e0a5410d6489af42f1d0f0478dbd181a9660f81a692ddc5f948bf34" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" "4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" default))
    '(fci-rule-color "#4E4E4E")
    '(jdee-db-active-breakpoint-face-colors (cons "#D0D0E3" "#009B7C"))
    '(jdee-db-requested-breakpoint-face-colors (cons "#D0D0E3" "#005F00"))

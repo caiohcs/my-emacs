@@ -15,123 +15,35 @@ This is my Emacs configuration, I use it for:
 -   Wiki
 -   Blog
 
-<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
-**Table of Contents**
-
-- [My Emacs configuration](#my-emacs-configuration)
-- [Installation](#installation)
-- [Straight](#straight)
-- [Programming](#programming)
-    - [Magit](#magit)
-    - [Company](#company)
-    - [Language Server Protocol](#language-server-protocol)
-    - [Jump to definition](#jump-to-definition)
-        - [Requirements](#requirements)
-        - [Config](#config)
-    - [C and C++](#c-and-c)
-        - [Requirements](#requirements-1)
-        - [Config](#config-1)
-    - [Golang](#golang)
-        - [Requirements](#requirements-2)
-        - [Config](#config-2)
-    - [Lisp](#lisp)
-        - [Config](#config-3)
-    - [Scheme](#scheme)
-    - [Clojure](#clojure)
-    - [Python](#python)
-    - [Haskell](#haskell)
-    - [Web](#web)
-        - [HTML/CSS](#htmlcss)
-        - [HTTP](#http)
-        - [JS](#js)
-    - [Yaml](#yaml)
-    - [Docker](#docker)
-    - [Yasnippet](#yasnippet)
-        - [Config](#config-4)
-        - [Tiny](#tiny)
-- [Dashboard](#dashboard)
-- [Org](#org)
-    - [Config](#config-5)
-    - [Roam](#roam)
-    - [Exporting](#exporting)
-    - [Presentations](#presentations)
-        - [Requirements](#requirements-3)
-        - [Config](#config-6)
-- [Plots](#plots)
-    - [gnuplot](#gnuplot)
-    - [R](#r)
-- [Markdown](#markdown)
-- [LaTeX](#latex)
-- [Theme](#theme)
-- [Hydra](#hydra)
-    - [Hydra Modal editing](#hydra-modal-editing)
-    - [Hydra EMMS](#hydra-emms)
-    - [Hydra to launch programs](#hydra-to-launch-programs)
-    - [Hydra dictionary](#hydra-dictionary)
-    - [Hydra ispell](#hydra-ispell)
-    - [Hydra multiple cursors](#hydra-multiple-cursors)
-    - [Hydra project](#hydra-project)
-    - [Hydra AVY](#hydra-avy)
-    - [Hydra macros](#hydra-macros)
-    - [Hydra Youtube dl](#hydra-youtube-dl)
-    - [Hydra dump jump](#hydra-dump-jump)
-    - [Hydra IDE](#hydra-ide)
-    - [Hydra lsp](#hydra-lsp)
-    - [Hydra Org Roam](#hydra-org-roam)
-    - [Hydra frames](#hydra-frames)
-    - [Hydra tabs](#hydra-tabs)
-- [Ledger](#ledger)
-- [Bookmarks](#bookmarks)
-- [Prescient](#prescient)
-- [Ivy](#ivy)
-- [Regular expressions](#regular-expressions)
-- [Kill ring](#kill-ring)
-- [Which-key](#which-key)
-- [Modeline](#modeline)
-- [Parentheses](#parentheses)
-- [Buffer-move](#buffer-move)
-- [Toggle window split](#toggle-window-split)
-- [Ace-window](#ace-window)
-- [Ace-link](#ace-link)
-- [Multiple cursors](#multiple-cursors)
-- [Avy](#avy)
-- [Undo-tree](#undo-tree)
-- [Dired](#dired)
-- [Smart region expanding](#smart-region-expanding)
-- [Tool bar, menu bar, line numbering etc](#tool-bar-menu-bar-line-numbering-etc)
-- [Change backup/autosave folder](#change-backupautosave-folder)
-- [Sticky buffers](#sticky-buffers)
-- [Read process output](#read-process-output)
-- [Spell checking](#spell-checking)
-- [Diminish](#diminish)
-- [Treemacs](#treemacs)
-- [Display commands](#display-commands)
-- [Password manager](#password-manager)
-- [Debbugs](#debbugs)
-- [PDF](#pdf)
-    - [Requirements](#requirements-4)
-    - [Config](#config-7)
-- [EMMS](#emms)
-- [RSS](#rss)
-    - [Requirements](#requirements-5)
-    - [Config](#config-8)
-    - [Youtube-dl](#youtube-dl)
-    - [EXWM](#exwm)
-    - [Screenshots](#screenshots)
-- [Bookmarks](#bookmarks-1)
-- [Blog](#blog)
-- [Webjump](#webjump)
-- [Gnus](#gnus)
-- [Theme](#theme-1)
-- [Auto tangle this file on save](#auto-tangle-this-file-on-save)
-- [Reduce gc-threshold](#reduce-gc-threshold)
-
-<!-- markdown-toc end -->
-
 
 # Installation
 
--   Copy files to ~/.config/emacs or ~/.emacs.d/
+```bash
+git clone https://github.com/caiohcs/my-emacs
+cd my-emacs
+ln -s $PWD/init.el ~/.config/emacs/
+ln -s $PWD/other-settings/ ~/.config/emacs/
+ln -s $PWD/early-init.el ~/.config/emacs/
+```
+
+
+# Font
+
+```emacs-lisp
+(set-face-attribute 'default nil
+		    :family "Monaco"
+		    :height 110
+		    :weight 'normal
+		    :width 'normal)
+```
+
+
+# Enable commands
+
+```emacs-lisp
+(put 'dired-find-alternate-file 'disabled nil)
+```
+
 
 # Straight
 
@@ -246,8 +158,7 @@ LSP gives Emacs IDE features.
   :hook
   ((c++-mode . lsp)
    (c-mode . lsp)
-   (js-mode . lsp)
-   (python-mode . lsp)))
+   (js-mode . lsp)))
 ```
 
 
@@ -393,12 +304,33 @@ Autocompletion requires gocode, available at <https://github.com/nsf/gocode>. We
 ```emacs-lisp
 (use-package elpy
   :straight t
-  :hook (python-mode . elpy-enable)
+  :hook ((python-mode . elpy-enable)
+	 (python-mode . display-line-numbers-mode))
   :config (setq elpy-rpc-backend "jedi"))
+
+(use-package lsp-jedi
+  :disabled t
+  :config
+  (with-eval-after-load "lsp-mode"
+    (add-to-list 'lsp-disabled-clients 'pyls)
+    (add-to-list 'lsp-enabled-clients 'jedi)))
 
 (use-package lpy
   :straight t
   :hook (python-mode . lpy-mode))
+
+(use-package dap-mode
+  :straight t
+  :config (require 'dap-python)
+  :after elpy)
+
+(use-package pytest
+  :straight t
+  :after elpy)
+
+(use-package pyenv
+  :straight (:host github :repo "aiguofer/pyenv.el")
+  :hook (python-mode . global-pyenv-mode))
 ```
 
 
@@ -776,7 +708,7 @@ toggle-light-dark-theme custom variables."
   :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
 			   (custom-available-themes))))
 
-(defvar toggle-light-dark-theme--current-theme 'light)
+(defvar toggle-light-dark-theme--current-theme 'dark)
 
 (defun toggle-light-dark-theme ()
   "Disables all custom enabled themes and then toggles between a
@@ -986,7 +918,7 @@ toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
 (defhydra hydra-macros (:color teal
 			       :hint nil)
   "
-  _r_: region  _e_: execute   _c_: counter  _f_: format  
+  _r_: region  _e_: execute   _c_: counter  _f_: format
   _n_: next    _p_: previous  _i_: insert   _q_: query
  _(_: start  _)_: stop
   "
@@ -1803,9 +1735,9 @@ Saves to a temp file and puts the filename in the kill ring."
  ;; If there is more than one, they won't work right.
  '(ansi-color-names-vector
    ["#F5F5F9" "#D70000" "#005F00" "#AF8700" "#1F55A0" "#AF005F" "#007687" "#0F1019"])
- '(custom-enabled-themes '(doom-acario-light use-package))
+ '(custom-enabled-themes '(kaolin-galaxy))
  '(custom-safe-themes
-   '("7e5d400035eea68343be6830f3de7b8ce5e75f7ac7b8337b5df492d023ee8483" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" default))
+   '("11cc65061e0a5410d6489af42f1d0f0478dbd181a9660f81a692ddc5f948bf34" "f2927d7d87e8207fa9a0a003c0f222d45c948845de162c885bf6ad2a255babfd" "4bca89c1004e24981c840d3a32755bf859a6910c65b829d9441814000cf6c3d0" default))
  '(fci-rule-color "#4E4E4E")
  '(jdee-db-active-breakpoint-face-colors (cons "#D0D0E3" "#009B7C"))
  '(jdee-db-requested-breakpoint-face-colors (cons "#D0D0E3" "#005F00"))
